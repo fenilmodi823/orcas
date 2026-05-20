@@ -1,8 +1,17 @@
-from fastapi import FastAPI
+import math
+import numpy as np
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from skyfield.api import load, wgs84
+from datetime import datetime
+from typing import Optional
+
+# Earth-centric Imports
 from backend.tle_fetcher import fetch_tle
 from backend.orbit_predictor import load_tles
+
+# Interplanetary Imports
+from backend.interplanetary_engine import InnerSolarSystemModel
 
 app = FastAPI(title="ORCAS API")
 
@@ -16,8 +25,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# -------------------------------------------------------------------------
+# GLOBAL INITIALIZATION
+# -------------------------------------------------------------------------
+print("Initializing Interplanetary Engine for API...")
+# We instantiate this globally so the heavy .bsp file loads only once on startup.
+solar_model = InnerSolarSystemModel()
 
-@app.get("/api/satellites")
+
+# -------------------------------------------------------------------------
+# EARTH-CENTRIC ENDPOINTS
+# -------------------------------------------------------------------------
+@app.get("/api/satellites", tags=["Earth Orbit"])
 def get_satellites():
     # 1. Fetch specialized CelesTrak groups
     stations_path, _ = fetch_tle(group="stations")
@@ -72,3 +91,90 @@ def get_satellites():
             )
 
     return result
+
+
+# -------------------------------------------------------------------------
+# HELIOCENTRIC ENDPOINTS
+# -------------------------------------------------------------------------
+@app.get("/api/solar-system", tags=["Interplanetary"])
+async def get_solar_system(target_date: Optional[str] = None):
+    """
+    Returns the heliocentric [x, y, z] positions and historical orbital paths
+    for the solar system bodies at a specific date (or now).
+    """
+    try:
+        ts = solar_model.ts
+
+        # --- THE TIME MACHINE LOGIC ---
+        if target_date:
+            # Parse the incoming ISO date string from the frontend
+            dt = datetime.fromisoformat(target_date.replace("Z", "+00:00"))
+            # Convert to Skyfield's high-precision timescale
+            t_target = ts.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+        else:
+            t_target = ts.now()
+            dt = t_target.utc_datetime()
+
+        # Isolate the scalar datetime to prevent downstream vectorization crashes
+        if isinstance(dt, np.ndarray):
+            dt = dt.item()
+
+        # Pass the calculated time to the engine
+        positions = solar_model.get_positions(t_target)
+
+        # Configuration matches our plotter: (Name, Skyfield Body, Period, Step)
+        orbit_configs = [
+            ("mercury", solar_model.mercury, 88, 1),
+            ("venus", solar_model.venus, 225, 2),
+            ("earth", solar_model.earth, 365, 2),
+            ("mars", solar_model.mars, 687, 3),
+            ("jupiter", solar_model.jupiter, 4333, 15),
+        ]
+
+        # --- DYNAMICALLY APPEND ASTEROIDS ---
+        if solar_model.apophis is not None:
+            orbit_configs.append(("apophis", solar_model.apophis, 323, 2))
+        if solar_model.bennu is not None:
+            orbit_configs.append(("bennu", solar_model.bennu, 436, 2))
+        if solar_model.ryugu is not None:
+            orbit_configs.append(("ryugu", solar_model.ryugu, 474, 2))
+
+        payload = {}
+
+        for name, body, period, step in orbit_configs:
+            # 1. Grab current position and cast to standard Python list
+            current_pos = positions[name.lower()].tolist()
+
+            # 2. Calculate the historical path (trailing backward from the target date)
+            days_past = np.arange(0, period, step)
+            t_array = ts.utc(dt.year, dt.month, dt.day - days_past)  # type: ignore
+
+            # Skyfield returns shape (3, N). We transpose to (N, 3)
+            path_au = solar_model.sun.at(t_array).observe(body).position.au  # type: ignore
+            path_nodes = (
+                path_au.T.tolist()
+            )  # CRITICAL: Cast the 2D matrix to nested Python lists
+
+            payload[name] = {
+                "current_position": current_pos,
+                "orbital_path": path_nodes,
+            }
+
+            if name.lower() in ["apophis", "bennu", "ryugu"]:
+                distance_au = math.dist(positions["earth"].tolist(), positions[name.lower()].tolist())
+                distance_km = distance_au * 149597870.7
+                if distance_au <= 0.0025:
+                    status = "CRITICAL"
+                elif distance_au <= 0.05:
+                    status = "WARNING"
+                else:
+                    status = "SAFE"
+                payload[name]["threat_assessment"] = {
+                    "status": status,
+                    "distance_km": distance_km,
+                }
+
+        return {"status": "success", "timestamp": dt.isoformat(), "data": payload}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

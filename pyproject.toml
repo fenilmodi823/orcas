@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orcas"
-version = "1.0.0"
-description = "Machine-Learning-Enhanced Space Debris Tracking System with 2D/3D Visualization, Collision Alerts, and Satellite Analysis Tools."
+version = "1.1.0"
+description = "Dual-Engine Orbital Mechanics System featuring ML Space Debris Tracking, Heliocentric Ephemeris, PHA Asteroid Tracking, and Temporal Simulation."
 authors = [
     { name = "Fenil Modi" },
 ]
@@ -48,6 +48,7 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.29.0",
     "python-dotenv>=1.0.1",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -72,4 +73,5 @@ backend = [
     "models/*.obj",
     "assets/textures/*.png",
     "assets/textures/*.jpg",
+    "*.bsp",
 ]

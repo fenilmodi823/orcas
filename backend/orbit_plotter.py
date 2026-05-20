@@ -1,8 +1,11 @@
 import os
-from typing import Any, List
+from typing import Any, Dict, List
 import numpy as np
 import pyvista as pv
 from skyfield.api import load
+
+if os.environ.get("RUNNING_IN_DOCKER") == "true":
+    pv.start_xvfb()
 
 # Assets Configuration
 EARTH_RADIUS_KM = 6371.0
@@ -63,15 +66,13 @@ def plot_satellite_orbits_3d(
     ]
 
     # Setup Plotter
-    plotter = pv.Plotter(
-        window_size=[1200, 800], title="ORCAS - Advanced View"
-    )
+    plotter = pv.Plotter(window_size=[1200, 800], title="ORCAS - Advanced View")
     plotter.set_background("black")  # type: ignore
     _add_textured_earth(plotter)
     _add_orbit_rings(plotter)
 
     # Actor Categories for UI Toggling
-    category_actors = {
+    category_actors: Dict[str, List[Any]] = {
         "Payload": [],
         "Rocket Body": [],
         "Debris": [],
@@ -143,7 +144,7 @@ def plot_satellite_orbits_3d(
     start_y = 10
 
     # 1. Debris Toggle
-    plotter.add_checkbox_button_widget(
+    plotter.add_checkbox_button_widget(  # type: ignore
         create_toggle("Debris"),
         value=True,
         position=(10, start_y),
@@ -154,7 +155,7 @@ def plot_satellite_orbits_3d(
     plotter.add_text("Show Debris", position=(50, start_y + 5), font_size=12)
 
     # 2. Payload Toggle
-    plotter.add_checkbox_button_widget(
+    plotter.add_checkbox_button_widget(  # type: ignore
         create_toggle("Payload"),
         value=True,
         position=(10, start_y + 40),
@@ -165,7 +166,7 @@ def plot_satellite_orbits_3d(
     plotter.add_text("Show Payloads", position=(50, start_y + 45), font_size=12)
 
     # 3. Labels Toggle
-    plotter.add_checkbox_button_widget(
+    plotter.add_checkbox_button_widget(  # type: ignore
         create_toggle("Labels"),
         value=True,
         position=(10, start_y + 80),

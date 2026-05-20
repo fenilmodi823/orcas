@@ -6,8 +6,5 @@ export default defineConfig({
   plugins: [react(), cesium()],
   optimizeDeps: {
     include: ['cesium', 'resium']
-  },
-  build: {
-    target: 'esnext'
   }
 });
