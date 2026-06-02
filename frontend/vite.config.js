@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [react(), cesium()],
   optimizeDeps: {
     include: ['cesium', 'resium']
-  }
+  },
+  worker: {
+    format: "es",
+  },
 });

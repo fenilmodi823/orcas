@@ -1,12 +1,19 @@
+import os
 from skyfield.api import load
 from skyfield.data import mpc
 from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
+
+# Robust path calculations relative to script location
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
+EPHEMERIS_PATH = os.path.join(PROJECT_ROOT, "data", "ephemeris", "de421.bsp")
+ASTEROID_CATALOG_PATH = os.path.join(PROJECT_ROOT, "data", "catalogs", "PHA.text")
 
 
 class InnerSolarSystemModel:
     def __init__(self):
         self.ts = load.timescale()
-        self.planets = load("de421.bsp")
+        self.planets = load(EPHEMERIS_PATH)
 
         # Inner System
         self.sun = self.planets["sun"]
@@ -24,13 +31,11 @@ class InnerSolarSystemModel:
 
     def _load_asteroids(self):
         """
-        Fetches the Potentially Hazardous Asteroids (PHA) database from the Minor Planet Center.
-        Skyfield caches this locally (PHA.txt) to prevent massive downloads on every boot.
+        Loads the Potentially Hazardous Asteroids (PHA) database from local storage.
         """
-        print("Fetching/Loading Potentially Hazardous Asteroids (PHA.txt)...")
-        url = "https://minorplanetcenter.net/iau/MPCORB/PHA.txt"
+        print(f"Loading Potentially Hazardous Asteroids ({ASTEROID_CATALOG_PATH})...")
         try:
-            with load.open(url) as f:
+            with open(ASTEROID_CATALOG_PATH, "rb") as f:
                 self.asteroid_df = mpc.load_mpcorb_dataframe(f)
 
             # Use flexible substring matching instead of exact index keys

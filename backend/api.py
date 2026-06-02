@@ -33,6 +33,34 @@ print("Initializing Interplanetary Engine for API...")
 solar_model = InnerSolarSystemModel()
 
 
+@app.on_event("startup")
+async def start_background_worker():
+    import asyncio
+    from backend.telemetry_worker import fetch_live_debris_data
+    # Start the non-blocking background telemetry sync daemon
+    asyncio.create_task(fetch_live_debris_data())
+
+
+@app.get("/health", tags=["System Health"])
+def health_check():
+    import os
+    from backend import telemetry_worker
+    # Verify paths relative to backend execution environment
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    eph_exists = os.path.exists(os.path.join(base_dir, "data", "ephemeris", "de421.bsp"))
+    cat_exists = os.path.exists(os.path.join(base_dir, "data", "catalogs", "PHA.text"))
+    
+    return {
+        "status": "operational",
+        "environment": "docker_container",
+        "assets": {
+            "de421.bsp": "connected" if eph_exists else "missing",
+            "PHA.text": "connected" if cat_exists else "missing"
+        },
+        "last_sync_time": telemetry_worker.LAST_SYNC_TIME
+    }
+
+
 # -------------------------------------------------------------------------
 # EARTH-CENTRIC ENDPOINTS
 # -------------------------------------------------------------------------

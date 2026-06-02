@@ -61,8 +61,8 @@ def draw_solar_system():
     plotter.camera_position = [(0, -12, 8), (0, 0, 0), (0, 0, 1)]
 
     print("Rendering macro-system scene in memory...")
-    plotter.show(screenshot="backend/macro_solar_system_render.png")
-    print("Success! Saved render to backend/macro_solar_system_render.png")
+    plotter.show(screenshot="assets/screenshots/macro_solar_system_render.png")
+    print("Success! Saved render to assets/screenshots/macro_solar_system_render.png")
 
 
 if __name__ == "__main__":

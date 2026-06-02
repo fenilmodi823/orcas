@@ -37,6 +37,12 @@ except Exception as e:
     tle_fetcher = None
 
 try:
+    from backend import telemetry_worker
+except Exception as e:
+    log.exception("Import error: backend.telemetry_worker failed: %s", e)
+    telemetry_worker = None
+
+try:
     from backend import orbit_predictor
 except Exception as e:
     log.exception("Import error: backend.orbit_predictor failed: %s", e)

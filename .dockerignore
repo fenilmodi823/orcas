@@ -1,4 +1,5 @@
 venv/
+.venv/
 __pycache__/
 .git/
 .env
@@ -6,3 +7,5 @@ frontend/
 frontend-three/
 tests/
 *.pyc
+assets/screenshots/
+assets/figures/

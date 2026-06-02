@@ -1,46 +1,55 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { useSolarSystem } from "../../hooks/useSolarSystem";
 import CelestialBody from "./CelestialBody";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
 // --- THE MATHEMATICAL CAMERA ENGINE (UPGRADED) ---
 function CameraRig({ focusTarget }) {
   const controlsRef = useRef();
-  const isFlying = useRef(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const previousTarget = useRef(null);
+
+  // Trigger animation when a new focus target is selected
+  useEffect(() => {
+    if (focusTarget) {
+      setIsAnimating(true);
+    } else {
+      setIsAnimating(false);
+    }
+  }, [focusTarget]);
 
   useFrame((state) => {
     if (!controlsRef.current) return;
 
-    // 1. Did the user click a new target? Engage Auto-Pilot.
+    // Safety fallback: if focusTarget changes reference and wasn't caught by useEffect
     if (focusTarget !== previousTarget.current) {
       previousTarget.current = focusTarget;
-      isFlying.current = true;
+      setIsAnimating(true);
     }
 
-    if (focusTarget) {
+    if (isAnimating && focusTarget) {
       const targetVec = new THREE.Vector3(...focusTarget.position);
 
-      // 2. ALWAYS turn the camera's "head" to track the moving planet
+      // Structurally aligned with Geocentric view angle [0, -12, 8]
+      // Preserves original viewing angle by scaling relative Y and Z offsets
+      const offsetY = -focusTarget.radius * 8;
+      const offsetZ = focusTarget.radius * (16 / 3);
+      const idealCameraPos = targetVec.clone().add(new THREE.Vector3(0, offsetY, offsetZ));
+
+      // Linearly interpolate both the camera position and the OrbitControls target
+      state.camera.position.lerp(idealCameraPos, 0.05);
       controlsRef.current.target.lerp(targetVec, 0.05);
 
-      // 3. ONLY fly the camera body if Auto-Pilot is engaged
-      if (isFlying.current) {
-        const offset = Math.max(focusTarget.radius * 8, 0.2);
-        const idealCameraPos = new THREE.Vector3(
-          targetVec.x + offset,
-          targetVec.y + offset,
-          targetVec.z + offset,
-        );
+      // Check distance from current positions to their destinations
+      const distToCamera = state.camera.position.distanceTo(idealCameraPos);
+      const distToTarget = controlsRef.current.target.distanceTo(targetVec);
 
-        state.camera.position.lerp(idealCameraPos, 0.05);
-
-        // 4. Cut the engines once we arrive so the user can zoom/pan freely!
-        if (state.camera.position.distanceTo(idealCameraPos) < 0.1) {
-          isFlying.current = false;
-        }
+      // Stop programmatic camera movement when within the explicit 0.01 threshold
+      if (distToCamera < 0.01 && distToTarget < 0.01) {
+        setIsAnimating(false);
       }
 
       controlsRef.current.update();
@@ -276,34 +285,44 @@ export default function InterplanetaryScene() {
           speed={1}
         />
 
-        {/* The Sun (Clickable!) */}
-        <mesh
-          position={[0, 0, 0]}
-          onClick={(e) => {
-            e.stopPropagation();
-            setFocusTarget({ position: [0, 0, 0], radius: 0.2 });
-          }}
-          style={{ cursor: "pointer" }}
-        >
-          <sphereGeometry args={[0.2, 32, 32]} />
-          <meshBasicMaterial color="#ffcc00" />
-        </mesh>
-
-        {/* Loop through API payload ONLY if we have data */}
-        {orbitData &&
-          Object.entries(orbitData).map(([name, data]) => (
-            <CelestialBody
-              key={name}
-              name={name}
-              currentPosition={data.current_position}
-              orbitalPath={data.orbital_path}
-              onFocus={setFocusTarget}
-              threatStatus={data.threat_assessment?.status}
+        <Suspense fallback={null}>
+          {/* The Sun (Clickable!) */}
+          <mesh
+            position={[0, 0, 0]}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFocusTarget({ position: [0, 0, 0], radius: 0.2 });
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <sphereGeometry args={[0.2, 32, 32]} />
+            <meshStandardMaterial
+              color="#ffcc00"
+              emissive="#ffaa00"
+              emissiveIntensity={4}
             />
-          ))}
+          </mesh>
+
+          {/* Loop through API payload ONLY if we have data */}
+          {orbitData &&
+            Object.entries(orbitData).map(([name, data]) => (
+              <CelestialBody
+                key={name}
+                name={name}
+                currentPosition={data.current_position}
+                orbitalPath={data.orbital_path}
+                onFocus={setFocusTarget}
+                threatStatus={data.threat_assessment?.status}
+              />
+            ))}
+        </Suspense>
 
         {/* The new math engine controlling the view */}
         <CameraRig focusTarget={focusTarget} />
+
+        <EffectComposer disableNormalPass>
+          <Bloom luminanceThreshold={1} mipmapBlur intensity={2.0} />
+        </EffectComposer>
       </Canvas>
     </div>
   );
