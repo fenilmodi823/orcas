@@ -363,7 +363,7 @@ Deferred, but **[[Architecture]] must not preclude it.** Scale strategy, coordin
 
 | Track | Phase | Status |
 | --- | --- | --- |
-| Shared | **P0 Foundation** | 🔴 **Next** — [[Prompt - Phase 0 Scaffold]] |
+| Shared | **P0 Foundation** | ✅ **Complete** 2026-08-14 — [[Prompt - Simulation Restructure]] |
 | Shared | P3 Design system | ⚪ Not started |
 | 🌍 Portfolio | **PA1 Astro site + content** | ⚪ Not started |
 | 🌍 Portfolio | PA2 Shared physics package | ⚪ Not started |
