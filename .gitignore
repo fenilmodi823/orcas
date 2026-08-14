@@ -26,6 +26,13 @@ dist/
 
 # Editors / OS
 .vs/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.log
 .DS_Store
+
+# AI tooling — guidance/config for coding agents, not program code
+.claude/
+.markdownlintignore
+.markdownlint.jsonc
+CLAUDE.md
