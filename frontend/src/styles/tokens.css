@@ -1,0 +1,47 @@
+/**
+ * Design tokens. Source: ORCAS Vault/02 - Design/Design.md §3, §5.
+ * Every colour in the app lives here — no hex literal elsewhere (Rules.md).
+ *
+ * Spacing, radii and elevation tokens are NOT here yet: Design.md defers
+ * the full token file (colour, spacing, radii, blur, elevation, motion) to
+ * Phase 3. Only colour and motion are decided as of this scaffold.
+ */
+:root {
+  /* Depths */
+  --void: #04070f; /* deepest background, behind the scene */
+  --abyss: #080d18; /* panel base */
+  --deep: #0e1626; /* raised surface */
+
+  /* Accent — bioluminescent cyan, the orca signature */
+  --orca-cyan: #00e5ff;
+  --orca-glow: #5cf2ff; /* hover / active */
+  --abyss-teal: #00ffcc; /* secondary, telemetry-positive */
+
+  /* Semantic */
+  --critical: #ff3b30; /* conjunction alert ONLY */
+  --caution: #ffb020;
+  --nominal: #30d158;
+
+  /* Orbit classes — must be distinguishable to colour-blind users */
+  --leo: #00e5ff;
+  --meo: #a78bfa;
+  --geo: #ffb020;
+  --heo: #ff7ab6;
+  --debris: #8a93a6;
+
+  /* Text */
+  --text-hi: #eaf0fa;
+  --text-mid: #a6b2c6;
+  --text-lo: #6b7789;
+
+  /* Glass */
+  --glass-fill: rgba(12, 20, 34, 0.55);
+  --glass-edge: rgba(255, 255, 255, 0.1);
+  --glass-blur: 24px;
+
+  /* Motion */
+  --motion-instant: 100ms ease-out;
+  --motion-quick: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-camera: 900ms cubic-bezier(0.65, 0, 0.35, 1);
+  --motion-scale: 1600ms;
+}

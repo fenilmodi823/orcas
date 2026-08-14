@@ -4,7 +4,8 @@
 !.env.example
 
 # Large / regenerable data — kept on disk, never committed
-data/
+data/*
+!data/sample/
 legacy/
 
 # Python
