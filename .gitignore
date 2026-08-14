@@ -7,6 +7,7 @@
 data/*
 !data/sample/
 legacy/
+ORCAS Vault/
 
 # Python
 .venv/
