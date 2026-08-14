@@ -11,13 +11,35 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      # Real Postgres, matching docker-compose.yml — services/ingestion_service.py
+      # is DB-touching and this project deliberately doesn't use SQLite for
+      # tests (Data-Strategy.md: "Why PostgreSQL and not SQLite, even locally").
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: orcas
+          POSTGRES_PASSWORD: orcas
+          POSTGRES_DB: orcas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://orcas:orcas@localhost:5432/orcas
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv sync
       - run: uv run ruff check .
       - run: uv run mypy app/domain app/services
-      - run: uv run pytest
+      - run: uv run alembic upgrade head
+      # --cov-fail-under enforces Phases.md P1's own completion criterion —
+      # >=70% on domain/ and services/ — not just a one-off local measurement.
+      - run: uv run pytest --cov=app.domain --cov=app.services --cov-fail-under=70
 
   frontend:
     runs-on: ubuntu-latest

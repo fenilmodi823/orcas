@@ -22,11 +22,19 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://orcas:orcas@postgres:5432/orcas
+      ML_MODEL_PATH: /app/ml_models/object_classifier.joblib
+      DATA_SAMPLE_DIR: /app/data/sample
+      SNAPSHOT_DIR: /app/data/snapshot
+      ARCHIVE_DIR: /app/data/archive
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
       - orcas-backend-venv:/app/.venv
+      - ./ml_models:/app/ml_models:ro
+      - ./data/sample:/app/data/sample:ro
+      - ./data/snapshot:/app/data/snapshot
+      - ./data/archive:/app/data/archive
     depends_on:
       postgres:
         condition: service_healthy
@@ -45,9 +53,17 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://orcas:orcas@postgres:5432/orcas
+      ML_MODEL_PATH: /app/ml_models/object_classifier.joblib
+      DATA_SAMPLE_DIR: /app/data/sample
+      SNAPSHOT_DIR: /app/data/snapshot
+      ARCHIVE_DIR: /app/data/archive
     volumes:
       - ./backend:/app
       - orcas-worker-venv:/app/.venv
+      - ./ml_models:/app/ml_models:ro
+      - ./data/sample:/app/data/sample:ro
+      - ./data/snapshot:/app/data/snapshot
+      - ./data/archive:/app/data/archive
     depends_on:
       postgres:
         condition: service_healthy

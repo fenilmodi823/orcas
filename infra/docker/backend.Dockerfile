@@ -21,7 +21,8 @@ COPY --from=deps /app/.venv /app/.venv
 COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./
-ENV PATH="/app/.venv/bin:$PATH"
+COPY ml_models ./ml_models
+ENV PATH="/app/.venv/bin:$PATH" ML_MODEL_PATH="/app/ml_models/object_classifier.joblib"
 USER orcas
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

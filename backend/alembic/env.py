@@ -16,12 +16,16 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Populated in Phase 2 with app.infra.db.models.Base.metadata
-target_metadata = None
-
 # Single source of truth for the DB URL — app.settings, not a static
 # alembic.ini value (Rules.md: "One Settings object... no scattered config").
+from app.infra.db.base import Base  # noqa: E402
+from app.infra.db.models import (  # noqa: E402, F401  imported for their side effect: registering on Base.metadata
+    ElementSet,
+    SpaceObject,
+)
 from app.settings import settings  # noqa: E402
+
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
