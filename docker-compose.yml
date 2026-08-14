@@ -26,6 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - orcas-backend-venv:/app/.venv
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,6 +47,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://orcas:orcas@postgres:5432/orcas
     volumes:
       - ./backend:/app
+      - orcas-worker-venv:/app/.venv
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,3 +68,5 @@ services:
 
 volumes:
   orcas-postgres-data:
+  orcas-backend-venv:
+  orcas-worker-venv:
