@@ -7,5 +7,16 @@ import type { OmmRecord } from './types.js';
  * See ORCAS Vault/01 - Product/Data-Strategy.md §9.4.
  */
 export function satrecFromOmm(record: OmmRecord): SatRec {
-  return json2satrec(record);
+  // OmmRecord models the real CCSDS/CelesTrak wire types (EPHEMERIS_TYPE:
+  // number, CLASSIFICATION_TYPE: string) — never let a library's parser
+  // dictate our schema. satellite.js's own types are narrower than the wire
+  // format allows, so narrow only here, at the adapter boundary.
+  return json2satrec({
+    ...record,
+    EPHEMERIS_TYPE: record.EPHEMERIS_TYPE === 0 ? 0 : undefined,
+    CLASSIFICATION_TYPE:
+      record.CLASSIFICATION_TYPE === 'U' || record.CLASSIFICATION_TYPE === 'C'
+        ? record.CLASSIFICATION_TYPE
+        : undefined,
+  });
 }
