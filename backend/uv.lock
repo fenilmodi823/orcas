@@ -340,18 +340,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jplephem"
-version = "2.24"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/90/8b/a50514f000fcd0207cd281370b0db66e7712a5db9f96b77a0301a7205f96/jplephem-2.24.tar.gz", hash = "sha256:354fe1adae022264ab46f18afb6af26211277cfd7b3ef90400755fcabe93bc11", size = 45289, upload-time = "2026-01-23T21:03:01.07Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/3f/b9d5739352badc11ca637c8f72525d519458622936bc3313ddefdc7dee96/jplephem-2.24-py3-none-any.whl", hash = "sha256:2de15608a0f13010a71a0a8af8765646d5884402006dac0dd7639d7db13629ac", size = 49585, upload-time = "2026-01-23T21:03:00.079Z" },
-]
-
-[[package]]
 name = "kiwisolver"
 version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -527,7 +515,6 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "sgp4" },
-    { name = "skyfield" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -558,7 +545,6 @@ requires-dist = [
     { name = "scikit-learn", specifier = "==1.6.1" },
     { name = "scipy", specifier = ">=1.14" },
     { name = "sgp4", specifier = ">=2.23" },
-    { name = "skyfield", specifier = ">=1.49" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]
@@ -917,21 +903,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
-]
-
-[[package]]
-name = "skyfield"
-version = "1.55"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "certifi" },
-    { name = "jplephem" },
-    { name = "numpy" },
-    { name = "sgp4" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8f/50/d491b746eb3d6155d8206d86415b02d900567d463579173a518debaa4e1f/skyfield-1.55.tar.gz", hash = "sha256:05dce8aafbff3f007f01cabcd2eb1858c43d7465f58c13d22c5a828a6d2fc14b", size = 347730, upload-time = "2026-08-07T20:16:49.772Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/5a/c4cc09d4421de255ca0504485efceb3646a4e5381bfb665647e39bea5cb1/skyfield-1.55-py3-none-any.whl", hash = "sha256:9f98964855067460c94aa81a337194136f4a97a62ba8bbbfac1b8556f2b66ad4", size = 371137, upload-time = "2026-08-07T20:16:50.825Z" },
 ]
 
 [[package]]
