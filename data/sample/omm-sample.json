@@ -14,8 +14,8 @@
     "NORAD_CAT_ID": "90000",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -33,8 +33,8 @@
     "NORAD_CAT_ID": "90001",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -52,8 +52,8 @@
     "NORAD_CAT_ID": "90002",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -71,8 +71,8 @@
     "NORAD_CAT_ID": "90003",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -90,8 +90,8 @@
     "NORAD_CAT_ID": "90004",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -109,8 +109,8 @@
     "NORAD_CAT_ID": "90005",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -128,8 +128,8 @@
     "NORAD_CAT_ID": "90006",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -147,8 +147,8 @@
     "NORAD_CAT_ID": "90007",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -166,8 +166,8 @@
     "NORAD_CAT_ID": "90008",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -185,8 +185,8 @@
     "NORAD_CAT_ID": "90009",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 2e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 2e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -204,8 +204,8 @@
     "NORAD_CAT_ID": "100201",
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
-    "BSTAR": 3e-05,
-    "MEAN_MOTION_DOT": 1e-05,
+    "BSTAR": 3e-5,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -224,7 +224,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -243,7 +243,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -262,7 +262,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -281,7 +281,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -300,7 +300,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -319,7 +319,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -338,7 +338,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -357,7 +357,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -376,7 +376,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   },
   {
@@ -395,7 +395,7 @@
     "ELEMENT_SET_NO": 999,
     "REV_AT_EPOCH": 1000,
     "BSTAR": 0.0,
-    "MEAN_MOTION_DOT": 1e-05,
+    "MEAN_MOTION_DOT": 1e-5,
     "MEAN_MOTION_DDOT": 0.0
   }
 ]
