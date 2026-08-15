@@ -1,0 +1,16 @@
+{
+  "name": "orcas-simulation",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "frontend"
+  ],
+  "scripts": {
+    "build:packages": "npm run build -w packages/orcas-physics -w packages/orcas-scene",
+    "test:packages": "npm run test -w packages/orcas-physics",
+    "dev:frontend": "npm run dev -w frontend",
+    "build:frontend": "npm run build -w frontend",
+    "lint:frontend": "npm run lint -w frontend"
+  }
+}

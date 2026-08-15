@@ -1,20 +1,40 @@
 # Secrets
 .env
+.env.*
+!.env.example
+
+# Large / regenerable data — kept on disk, never committed
+data/*
+!data/sample/
+legacy/
+ORCAS Vault/
 
 # Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
 .venv/
 venv/
-.env/
-.envrc
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# VS Code
-.vscode/
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
 
-# OS
+# Editors / OS
+.vs/
+.vscode/*
+!.vscode/settings.json
+*.log
 .DS_Store
-Thumbs.db
+
+# AI tooling — guidance/config for coding agents, not program code
+.claude/
+.markdownlintignore
+.markdownlint.jsonc
+CLAUDE.md

@@ -1,18 +1,88 @@
 services:
-  orcas-backend:
-    build: .
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: orcas
+      POSTGRES_PASSWORD: orcas
+      POSTGRES_DB: orcas
+    volumes:
+      - orcas-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orcas -d orcas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/backend.Dockerfile
+      target: dev
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://orcas:orcas@postgres:5432/orcas
+      ML_MODEL_PATH: /app/ml_models/object_classifier.joblib
+      DATA_SAMPLE_DIR: /app/data/sample
+      SNAPSHOT_DIR: /app/data/snapshot
+      ARCHIVE_DIR: /app/data/archive
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/app/data
-      - ./ml_models:/app/ml_models
-      - ./backend:/app/backend
+      - ./backend:/app
+      - orcas-backend-venv:/app/.venv
+      - ./ml_models:/app/ml_models:ro
+      - ./data/sample:/app/data/sample:ro
+      - ./data/snapshot:/app/data/snapshot
+      - ./data/archive:/app/data/archive
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/backend.Dockerfile
+      target: dev
+    env_file:
+      - .env
     environment:
-      - NASA_API_KEY=${NASA_API_KEY:-}
-      - CELESTRAK_TLE_URL=${CELESTRAK_TLE_URL:-https://celestrak.org/NORAD/elements/gp.php}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - SDT_COLLISION_MAX=60
-      - SDT_PLOT3D_MAX=120
-      - SDT_LIVE2D_MAX=100
-      - SDT_ENABLE_2D=0
-      - SDT_ENABLE_3D=0
+      DATABASE_URL: postgresql+asyncpg://orcas:orcas@postgres:5432/orcas
+      ML_MODEL_PATH: /app/ml_models/object_classifier.joblib
+      DATA_SAMPLE_DIR: /app/data/sample
+      SNAPSHOT_DIR: /app/data/snapshot
+      ARCHIVE_DIR: /app/data/archive
+    volumes:
+      - ./backend:/app
+      - orcas-worker-venv:/app/.venv
+      - ./ml_models:/app/ml_models:ro
+      - ./data/sample:/app/data/sample:ro
+      - ./data/snapshot:/app/data/snapshot
+      - ./data/archive:/app/data/archive
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["uv", "run", "python", "-c", "print('worker: nothing scheduled yet — Phase 2 adds OMM ingestion')"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/frontend.Dockerfile
+      target: dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - ./packages:/app/packages
+    depends_on:
+      - backend
+
+volumes:
+  orcas-postgres-data:
+  orcas-backend-venv:
+  orcas-worker-venv:

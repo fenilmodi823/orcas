@@ -1,0 +1,72 @@
+{
+  // ==== General Editor Settings ====
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.wordWrap": "on",
+  "editor.renderWhitespace": "selection",
+
+  // ==== Python Configuration ====
+  // backend/.venv is the uv-managed environment — this repo's actual
+  // dependencies (sqlalchemy, sgp4, scipy, pytest, ...) live only here.
+  // Pointing Pylance at a global interpreter is what caused the wall of
+  // false reportMissingImports.
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic",
+  // legacy/ and tests/legacy/ are frozen reference code, deliberately not
+  // on the Python path (pytest excludes tests/legacy from testpaths too) —
+  // don't lint code nothing imports.
+  "python.analysis.exclude": [
+    "**/legacy/**",
+    "**/tests/legacy/**",
+    "**/node_modules/**",
+    "**/.venv/**"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["backend/tests"],
+  // ruff (lint + format), not pylint/autopep8 — see CLAUDE.md Conventions.
+  "python.linting.enabled": false,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+
+  // ==== Markdown Configuration ====
+  // Rules tuned in .markdownlintjsonc (Obsidian frontmatter-title +
+  // multi-H1 track-divider conventions — see ORCAS Vault/00 - Meta/Rules.md
+  // §Markdown authoring). .markdownlintignore alone isn't reliably picked up
+  // by every markdownlint-cli2 invocation, so vendored/generated markdown is
+  // also excluded explicitly here — it's not ours to lint.
+  "markdownlint.ignore": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/legacy/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+
+  // ==== Terminal & Run Behavior ====
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "code-runner.executorMap": {
+    "python": "python -u"
+  },
+
+  // ==== Git Settings ====
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.postCommitCommand": "sync",
+
+  // ==== UI Preferences ====
+  "workbench.colorTheme": "Visual Studio Dark - C++",
+  "window.zoomLevel": 0,
+  "explorer.confirmDelete": false,
+
+  "code-runner.fileDirectoryAsCwd": false,
+  "code-runner.cwd": "${workspaceFolder}",
+  "git.ignoreLimitWarning": true,
+  "python-envs.defaultEnvManager": "ms-python.python:system"
+}
