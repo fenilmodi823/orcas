@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  "include": ["backend", "scripts"],
+  "exclude": [
+    "**/legacy",
+    "**/legacy/**",
+    "**/tests/legacy",
+    "**/tests/legacy/**",
+    "**/node_modules",
+    "**/node_modules/**",
+    "**/.venv",
+    "**/.venv/**",
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "ignore": ["**/legacy/**", "**/tests/legacy/**"],
+  "extraPaths": ["backend"],
+  "venvPath": "backend",
+  "venv": ".venv",
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none"
+}

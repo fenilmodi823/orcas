@@ -66,6 +66,11 @@ ignore_missing_imports = true
 testpaths = ["tests/unit", "tests/integration", "tests/golden"]
 asyncio_mode = "auto"
 
+# Pyright/Pylance config lives in the workspace-root pyrightconfig.json, not
+# here — a [tool.pyright] block in this file would shadow it for anything
+# under backend/, giving two disagreeing sources of truth. See
+# .vscode/settings.json's own comment on this.
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

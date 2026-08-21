@@ -11,20 +11,10 @@
   // ==== Python Configuration ====
   // backend/.venv is the uv-managed environment — this repo's actual
   // dependencies (sqlalchemy, sgp4, scipy, pytest, ...) live only here.
-  // Pointing Pylance at a global interpreter is what caused the wall of
-  // false reportMissingImports.
+  // Static analysis (type checking mode, extra paths, excludes, ignores)
+  // is centrally managed in pyrightconfig.json at the workspace root.
   "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "basic",
-  // legacy/ and tests/legacy/ are frozen reference code, deliberately not
-  // on the Python path (pytest excludes tests/legacy from testpaths too) —
-  // don't lint code nothing imports.
-  "python.analysis.exclude": [
-    "**/legacy/**",
-    "**/tests/legacy/**",
-    "**/node_modules/**",
-    "**/.venv/**"
-  ],
   "python.testing.pytestEnabled": true,
   "python.testing.pytestArgs": ["backend/tests"],
   // ruff (lint + format), not pylint/autopep8 — see CLAUDE.md Conventions.
@@ -40,6 +30,7 @@
   // by every markdownlint-cli2 invocation, so vendored/generated markdown is
   // also excluded explicitly here — it's not ours to lint.
   "markdownlint.ignore": [
+    "**/.markdownlintignore",
     "**/node_modules/**",
     "**/.venv/**",
     "**/venv/**",
@@ -67,6 +58,5 @@
 
   "code-runner.fileDirectoryAsCwd": false,
   "code-runner.cwd": "${workspaceFolder}",
-  "git.ignoreLimitWarning": true,
-  "python-envs.defaultEnvManager": "ms-python.python:system"
+  "git.ignoreLimitWarning": true
 }
