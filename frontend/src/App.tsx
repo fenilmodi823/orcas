@@ -10,6 +10,9 @@ import { useGlobalHotkeys } from './state/use-global-hotkeys.js';
 // < 300 KB gzipped before the 3D chunk). No router dependency — a path
 // check is all one extra route needs.
 const DesignLab = lazy(() => import('./design/index.js'));
+const CatalogDebug = lazy(() =>
+  import('./data/CatalogDebug.js').then((m) => ({ default: m.CatalogDebug })),
+);
 
 /** Mouse orbit/zoom plus arrow-key pan — Design.md §9: "the scene itself has
  * keyboard camera controls." `listenToKeyEvents` isn't wired by drei itself. */
@@ -52,6 +55,13 @@ export function App() {
     return (
       <Suspense fallback={null}>
         <DesignLab />
+      </Suspense>
+    );
+  }
+  if (window.location.pathname === '/catalog') {
+    return (
+      <Suspense fallback={null}>
+        <CatalogDebug />
       </Suspense>
     );
   }
