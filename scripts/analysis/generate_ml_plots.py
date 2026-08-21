@@ -1,11 +1,11 @@
-import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-# Create output directory if it doesn't exist
-os.makedirs("output_graphs", exist_ok=True)
+OUTPUT_DIR = Path(__file__).resolve().parent / "output_graphs"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Set high-resolution for poster printing
 plt.rcParams["figure.dpi"] = 300
@@ -43,8 +43,9 @@ def plot_confusion_matrix():
     plt.yticks(fontsize=12, rotation=0)
 
     plt.tight_layout()
-    plt.savefig("output_graphs/confusion_matrix.png")
-    print("Generated: output_graphs/confusion_matrix.png")
+    out_path = OUTPUT_DIR / "confusion_matrix.png"
+    plt.savefig(out_path)
+    print(f"Generated: {out_path}")
     plt.close()
 
 
@@ -65,7 +66,7 @@ def plot_feature_importance():
     importance = [0.42, 0.28, 0.16, 0.09, 0.05]
 
     # Create horizontal bar chart
-    sns.barplot(x=importance, y=features, palette="viridis")
+    sns.barplot(x=importance, y=features, hue=features, palette="viridis", legend=False)
 
     plt.title(
         "ML Feature Importance (Random Forest)", fontsize=18, pad=15, weight="bold"
@@ -94,8 +95,9 @@ def plot_feature_importance():
 
     plt.tight_layout()
     plt.xlim(0, 0.5)
-    plt.savefig("output_graphs/feature_importance.png")
-    print("Generated: output_graphs/feature_importance.png")
+    out_path = OUTPUT_DIR / "feature_importance.png"
+    plt.savefig(out_path)
+    print(f"Generated: {out_path}")
     plt.close()
 
 
@@ -103,4 +105,4 @@ if __name__ == "__main__":
     print("Generating Academic Data Visualizations...")
     plot_confusion_matrix()
     plot_feature_importance()
-    print("Done! Check the 'output_graphs' folder.")
+    print(f"Done! Check the '{OUTPUT_DIR}' folder.")
