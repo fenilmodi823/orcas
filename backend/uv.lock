@@ -544,7 +544,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "scikit-learn", specifier = "==1.6.1" },
     { name = "scipy", specifier = ">=1.14" },
-    { name = "sgp4", specifier = ">=2.23" },
+    { name = "sgp4", specifier = "==2.27" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]

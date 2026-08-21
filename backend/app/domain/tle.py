@@ -63,7 +63,9 @@ def omm_record_from_tle(line1: str, line2: str, object_name: str = "UNKNOWN") ->
         MEAN_ANOMALY=sat.mo * _RAD_TO_DEG,
         EPHEMERIS_TYPE=sat.ephtype,
         CLASSIFICATION_TYPE=sat.classification,
-        NORAD_CAT_ID=sat.satnum_str,  # already VARCHAR-safe — handles Alpha-5
+        NORAD_CAT_ID=str(sat.satnum),  # decimal string — sat.satnum_str is
+        # Alpha-5-encoded ('E8493' for 148493), not decimal; see ORCAS Vault
+        # Phase-4 Engineering Brief Part 4.1.
         ELEMENT_SET_NO=sat.elnum,
         REV_AT_EPOCH=sat.revnum,
         BSTAR=sat.bstar,

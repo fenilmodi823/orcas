@@ -39,6 +39,23 @@ def test_malformed_lines_raise() -> None:
         omm_record_from_tle("not a tle line at all", "still not one")
 
 
+def test_alpha5_catalog_number_normalises_to_decimal_string() -> None:
+    """A TLE whose columns 3-7 hold an Alpha-5 designator (satellite
+    number >= 100000) must produce a decimal NORAD_CAT_ID, matching the
+    same object's identity if it had arrived via OMM JSON instead. Before
+    this fix, `sat.satnum_str` returned the Alpha-5 form ('E8493') here,
+    not the decimal one ('148493') — see brief Part 4.1.
+    """
+    # Same ISS-shaped element set as LINE1/LINE2, satellite number field
+    # (cols 3-7 of BOTH lines — twoline2rv reads satnum from line 2, and a
+    # real TLE always has matching numbers on both lines) swapped to the
+    # Alpha-5 encoding of 148493.
+    alpha5_line1 = "1 E8493U 98067A   26226.50000000  .00016717  00000-0  10270-3 0  9994"
+    alpha5_line2 = "2 E8493  51.6400 208.9163 0006317  69.9862 25.2906 15.50377579123456"
+    record = omm_record_from_tle(alpha5_line1, alpha5_line2, object_name="ISS (ZARYA)")
+    assert record["NORAD_CAT_ID"] == "148493"
+
+
 def test_agrees_with_direct_sgp4_propagation() -> None:
     """TLE -> OmmRecord -> Satrec (via satrec_from_omm) must propagate to
     the same position as parsing the TLE directly — proves the unit
