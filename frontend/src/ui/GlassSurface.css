@@ -1,0 +1,84 @@
+/* Liquid Glass material (Design.md §2). All values are token references —
+   no colour literal lives here (Rules.md hard ban). */
+.glass-surface {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    var(--glass-surface-shadow),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-underline);
+  transition: border-color var(--motion-quick) var(--ease-quick);
+}
+
+.glass-surface[data-variant='floating'] {
+  border-radius: var(--radius-xl);
+}
+.glass-surface[data-variant='docked'] {
+  border-radius: var(--radius-lg);
+}
+.glass-surface[data-variant='modal'] {
+  border-radius: var(--radius-2xl);
+}
+
+.glass-surface[data-elevation='1'] {
+  --glass-surface-shadow: var(--elev-1);
+}
+.glass-surface[data-elevation='2'] {
+  --glass-surface-shadow: var(--elev-2);
+}
+.glass-surface[data-elevation='3'] {
+  --glass-surface-shadow: var(--elev-3);
+}
+.glass-surface[data-elevation='4'] {
+  --glass-surface-shadow: var(--elev-4);
+}
+
+/* The "no backdrop-filter behind it" tier — a surface must never claim glass
+   over a flat background it cannot actually blur (UI-Research §2). */
+.glass-surface.raised {
+  background: var(--glass-fill-raised);
+}
+
+/* "The liquid part" — behaviour, not appearance (Design.md §2). */
+.glass-surface[data-interactive]:hover {
+  border-color: var(--glass-edge-hover);
+}
+
+.glass-surface__highlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 0%),
+    var(--glass-highlight),
+    transparent 70%
+  );
+  transition: opacity var(--motion-quick) var(--ease-quick);
+}
+
+.glass-surface[data-interactive]:hover .glass-surface__highlight {
+  opacity: 1;
+}
+
+.glass-surface:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--focus-ring),
+    var(--glass-surface-shadow),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-underline);
+}
+
+/* Safari is the usual casualty (Design.md §2). */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-surface {
+    background: var(--glass-fill-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

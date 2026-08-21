@@ -1,0 +1,51 @@
+.object-tether {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 12;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity var(--motion-instant) var(--ease-out);
+}
+
+.object-tether__lead {
+  position: absolute;
+  height: 1px;
+  width: 18px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--text-hi) 50%, transparent),
+    color-mix(in srgb, var(--text-hi) 14%, transparent)
+  );
+}
+
+.object-tether__chip {
+  position: absolute;
+  transform: translate(18px, -50%);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+}
+
+.object-tether__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.object-tether__name {
+  font: 600 13px/16px var(--font-ui);
+  color: var(--text-hi);
+}
+
+.object-tether__meta {
+  font: var(--t-tel-label);
+  letter-spacing: 0.1em;
+  /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
+  color: var(--text-mid);
+}

@@ -1,0 +1,26 @@
+.telemetry-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetry-readout__label {
+  font: var(--t-tel-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.telemetry-readout__value {
+  font: var(--t-tel-value);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-hi);
+}
+
+.telemetry-readout__unit {
+  font: var(--t-caption);
+  font-family: var(--font-mono);
+  /* --text-lo cannot clear 4.5:1 at this size on any glass tier against the
+     worst-case backdrop (Design.md §9) — --text-mid can, everywhere. */
+  color: var(--text-mid);
+}

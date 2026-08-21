@@ -1,0 +1,47 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px 8px 12px;
+  font: var(--t-tel-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.status-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orca-cyan);
+  animation: status-pill-pulse 2.4s var(--ease-out) infinite;
+}
+
+.status-pill[data-stale] .status-pill__dot {
+  background: var(--caution);
+  animation: none;
+}
+
+.status-pill__value {
+  font: var(--t-caption);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--text-hi);
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* box-shadow alpha steps derive from --orca-cyan via color-mix rather than a
+   new rgba literal — tokens.css is settled for this phase. */
+@keyframes status-pill-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--orca-cyan) 50%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--orca-cyan) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--orca-cyan) 0%, transparent);
+  }
+}

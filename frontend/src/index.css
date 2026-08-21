@@ -1,4 +1,57 @@
+@import "tailwindcss";
 @import "./styles/tokens.css";
+
+/**
+ * Tailwind v4 theme wiring. Every value is a var() reference into
+ * tokens.css — tokens.css stays the single source of truth (Rules.md);
+ * this block only aliases it into the names Tailwind's utilities expect.
+ */
+@theme inline {
+  --color-void: var(--void);
+  --color-abyss: var(--abyss);
+  --color-deep: var(--deep);
+  --color-orca-cyan: var(--orca-cyan);
+  --color-orca-glow: var(--orca-glow);
+  --color-abyss-teal: var(--abyss-teal);
+  --color-critical: var(--critical);
+  --color-caution: var(--caution);
+  --color-nominal: var(--nominal);
+  --color-leo: var(--leo);
+  --color-meo: var(--meo);
+  --color-geo: var(--geo);
+  --color-heo: var(--heo);
+  --color-debris: var(--debris);
+  --color-text-hi: var(--text-hi);
+  --color-text-mid: var(--text-mid);
+  --color-text-lo: var(--text-lo);
+
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+  --spacing-10: var(--space-10);
+  --spacing-12: var(--space-12);
+  --spacing-16: var(--space-16);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-elev-1: var(--elev-1);
+  --shadow-elev-2: var(--elev-2);
+  --shadow-elev-3: var(--elev-3);
+  --shadow-elev-4: var(--elev-4);
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-mono);
+}
 
 html,
 body,
@@ -7,5 +60,7 @@ body,
   height: 100%;
   background: var(--void);
   color: var(--text-hi);
-  font-family: system-ui, sans-serif;
+  font: var(--t-body);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
 }

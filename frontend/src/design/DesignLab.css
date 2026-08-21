@@ -1,0 +1,102 @@
+.design-lab {
+  position: relative;
+  min-height: 100vh;
+}
+
+.design-lab__canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.design-lab__lighting-toggle {
+  position: fixed;
+  top: var(--space-6);
+  left: var(--space-6);
+  z-index: 20;
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius-pill);
+  background: var(--glass-fill-solid);
+  color: var(--text-mid);
+  padding: 8px 16px;
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+.design-lab__lighting-toggle:hover {
+  color: var(--text-hi);
+  border-color: var(--glass-edge-hover);
+}
+
+.design-lab__lighting-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.design-lab__content {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-6) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.design-lab__header h1 {
+  font: var(--t-h1);
+  color: var(--text-hi);
+  margin: 0 0 var(--space-2);
+}
+
+.design-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.design-section h2 {
+  font: var(--t-h2);
+  color: var(--text-hi);
+  margin: 0;
+}
+
+.design-card {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.design-card h3 {
+  font: var(--t-h3);
+  color: var(--text-mid);
+  margin: 0;
+}
+
+.design-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.design-note {
+  font: var(--t-caption);
+  /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
+  color: var(--text-mid);
+  margin: 0;
+}
+
+.design-card--tether {
+  position: relative;
+}
+
+.design-tether-stage {
+  position: relative;
+  height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}

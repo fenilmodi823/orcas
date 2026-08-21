@@ -1,0 +1,206 @@
+/* Landing sequence — Branding.md#Logo animation. Every animated property
+   here is transform, opacity, or stroke-dashoffset; nothing else (Rules.md,
+   Design.md §5: never a layout property). */
+
+.landing-sequence {
+  pointer-events: none;
+}
+
+.landing-sequence__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  background: var(--void);
+  opacity: 1;
+  transition: opacity 400ms var(--ease-quick);
+  pointer-events: auto;
+}
+.landing-sequence__backdrop[data-dismissed] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.landing-sequence__brand {
+  position: fixed;
+  top: var(--space-6);
+  left: var(--space-6);
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transform-origin: top left;
+  transform: translate(calc(50vw - var(--space-6) - 325px), calc(50vh - var(--space-6) - 70px)) scale(5);
+  transition: transform var(--motion-camera) var(--ease-camera);
+}
+.landing-sequence__brand[data-settled] {
+  transform: translate(0, 0) scale(1);
+}
+
+.landing-sequence__mark {
+  display: block;
+  height: 28px;
+  width: auto;
+  overflow: visible;
+}
+
+.landing-sequence__ring {
+  stroke-dasharray: var(--dash);
+  stroke-dashoffset: var(--dash);
+  opacity: 0;
+  transition:
+    stroke-dashoffset 500ms var(--ease-quick),
+    opacity 200ms var(--ease-quick);
+}
+.landing-sequence[data-phase='rings'] .landing-sequence__ring,
+.landing-sequence[data-phase='tracks'] .landing-sequence__ring,
+.landing-sequence[data-phase='resolve'] .landing-sequence__ring,
+.landing-sequence[data-phase='hold'] .landing-sequence__ring,
+.landing-sequence[data-phase='wordmark'] .landing-sequence__ring,
+.landing-sequence[data-phase='settle'] .landing-sequence__ring,
+.landing-sequence[data-phase='done'] .landing-sequence__ring {
+  opacity: 0.55;
+  stroke-dashoffset: 0;
+}
+
+/* The "tracks" beat: a stroked outline draws itself on. */
+.landing-sequence__body-stroke {
+  fill: none;
+  stroke: var(--orca-cyan);
+  stroke-width: 1.4;
+  stroke-dasharray: var(--dash);
+  stroke-dashoffset: var(--dash);
+  opacity: 0;
+  transition:
+    stroke-dashoffset 800ms var(--ease-camera),
+    opacity 200ms var(--ease-quick);
+}
+.landing-sequence[data-phase='tracks'] .landing-sequence__body-stroke {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+/* The "resolve" beat: the stroke hands off to a filled silhouette — a
+   second, separately-opacity-animated path, not a fill-colour tween. */
+.landing-sequence[data-phase='resolve'] .landing-sequence__body-stroke,
+.landing-sequence[data-phase='hold'] .landing-sequence__body-stroke,
+.landing-sequence[data-phase='wordmark'] .landing-sequence__body-stroke,
+.landing-sequence[data-phase='settle'] .landing-sequence__body-stroke,
+.landing-sequence[data-phase='done'] .landing-sequence__body-stroke {
+  opacity: 0;
+  stroke-dashoffset: 0;
+}
+
+.landing-sequence__body-fill {
+  fill: var(--orca-cyan);
+  opacity: 0;
+  transition: opacity 400ms var(--ease-quick);
+}
+.landing-sequence[data-phase='resolve'] .landing-sequence__body-fill,
+.landing-sequence[data-phase='hold'] .landing-sequence__body-fill,
+.landing-sequence[data-phase='wordmark'] .landing-sequence__body-fill,
+.landing-sequence[data-phase='settle'] .landing-sequence__body-fill,
+.landing-sequence[data-phase='done'] .landing-sequence__body-fill {
+  opacity: 1;
+}
+
+.landing-sequence__hole {
+  opacity: 0;
+  transition: opacity 300ms var(--ease-quick);
+}
+.landing-sequence[data-phase='resolve'] .landing-sequence__hole,
+.landing-sequence[data-phase='hold'] .landing-sequence__hole,
+.landing-sequence[data-phase='wordmark'] .landing-sequence__hole,
+.landing-sequence[data-phase='settle'] .landing-sequence__hole,
+.landing-sequence[data-phase='done'] .landing-sequence__hole {
+  opacity: 1;
+}
+
+/* The "hold" beat: a specular sweep, transform + opacity only. */
+.landing-sequence__sweep {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+.landing-sequence[data-phase='hold'] .landing-sequence__sweep {
+  opacity: 0.45;
+  transform: translateX(40px);
+  transition:
+    transform 400ms var(--ease-quick),
+    opacity 400ms var(--ease-quick);
+}
+.landing-sequence[data-phase='wordmark'] .landing-sequence__sweep,
+.landing-sequence[data-phase='settle'] .landing-sequence__sweep,
+.landing-sequence[data-phase='done'] .landing-sequence__sweep {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 300ms var(--ease-quick);
+}
+
+.landing-sequence__word {
+  font: 700 20px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  color: var(--text-hi);
+  opacity: 0;
+  transition: opacity 400ms var(--ease-quick);
+}
+.landing-sequence[data-phase='wordmark'] .landing-sequence__word,
+.landing-sequence[data-phase='settle'] .landing-sequence__word,
+.landing-sequence[data-phase='done'] .landing-sequence__word {
+  opacity: 1;
+}
+
+/* prefers-reduced-motion mode: everything above is already in its 'done'
+   resting state on first paint (nothing to transition from), so only the
+   brand mark's own 300ms fade-in plays. */
+.landing-sequence[data-mode='reduced'] .landing-sequence__brand {
+  animation: landing-sequence-fade 300ms var(--ease-quick) both;
+}
+@keyframes landing-sequence-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.landing-sequence__skip {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 22;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-edge);
+  background: var(--glass-fill-solid);
+  color: var(--text-mid);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 300ms var(--ease-quick);
+  pointer-events: auto;
+}
+.landing-sequence__skip:hover {
+  color: var(--text-hi);
+  border-color: var(--glass-edge-hover);
+}
+.landing-sequence__skip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.landing-sequence__skip[data-dismissed] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Skip snaps the remaining beats to a near-instant close, not a jump cut. */
+.landing-sequence[data-instant] .landing-sequence__brand,
+.landing-sequence[data-instant] .landing-sequence__backdrop,
+.landing-sequence[data-instant] .landing-sequence__skip,
+.landing-sequence[data-instant] .landing-sequence__body-stroke,
+.landing-sequence[data-instant] .landing-sequence__body-fill,
+.landing-sequence[data-instant] .landing-sequence__hole,
+.landing-sequence[data-instant] .landing-sequence__ring,
+.landing-sequence[data-instant] .landing-sequence__sweep,
+.landing-sequence[data-instant] .landing-sequence__word {
+  transition-duration: 150ms;
+}

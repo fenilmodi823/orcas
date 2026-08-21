@@ -1,0 +1,49 @@
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-edge);
+  background: var(--glass-fill);
+  color: var(--text-mid);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-quick) var(--ease-quick),
+    color var(--motion-quick) var(--ease-quick);
+}
+
+.filter-chip__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--filter-chip-colour);
+}
+
+.filter-chip__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
+  color: var(--text-mid);
+}
+
+.filter-chip[data-active] {
+  color: var(--text-hi);
+  border-color: var(--filter-chip-colour);
+}
+
+.filter-chip:hover:not(:disabled) {
+  border-color: var(--glass-edge-hover);
+}
+
+.filter-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.filter-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

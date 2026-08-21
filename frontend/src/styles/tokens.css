@@ -1,10 +1,7 @@
 /**
- * Design tokens. Source: ORCAS Vault/02 - Design/Design.md §3, §5.
+ * Design tokens. Source: ORCAS Vault/02 - Design/Design.md §3-5 and the
+ * decisions table in ORCAS Vault/00 - Meta/Prompt - Phase 3 Design System.md §1.
  * Every colour in the app lives here — no hex literal elsewhere (Rules.md).
- *
- * Spacing, radii and elevation tokens are NOT here yet: Design.md defers
- * the full token file (colour, spacing, radii, blur, elevation, motion) to
- * Phase 3. Only colour and motion are decided as of this scaffold.
  */
 :root {
   /* Depths */
@@ -32,16 +29,80 @@
   /* Text */
   --text-hi: #eaf0fa;
   --text-mid: #a6b2c6;
-  --text-lo: #6b7789;
+  --text-lo: #6e7b8d; /* P3.5: lightened from #6B7789 — the original failed 4.5:1 even
+    against a fully opaque --void background (4.44:1). See Design.md §9. --text-lo
+    still cannot clear 4.5:1 on ANY glass tier against the worst-case backdrop — it is
+    for large text or fully-opaque (--void, non-glass) contexts only; small text on
+    glass uses --text-mid. */
 
-  /* Glass */
-  --glass-fill: rgba(12, 20, 34, 0.55);
-  --glass-edge: rgba(255, 255, 255, 0.1);
-  --glass-blur: 24px;
+  /* Glass — "Apple-true" tier (decision D2), opacity raised in P3.5's contrast audit
+     (Design.md §9) — D2 anticipated this: "--glass-fill is expected to rise for some
+     surfaces." Values are the minimum that clears 4.5:1 for --text-hi/--text-mid
+     against the worst-case backdrop (Earth's daylit limb), not an arbitrary bump. */
+  --glass-fill: rgba(12, 20, 34, 0.8); /* 1 · base tint */
+  --glass-fill-raised: rgba(12, 20, 34, 0.88); /* legibility tier */
+  --glass-fill-solid: rgba(8, 13, 24, 0.97); /* no-backdrop-filter fallback */
+  --glass-blur: 30px; /* 2 · backdrop blur */
+  --glass-saturate: 200%; /* 3 · saturation lift */
+  --glass-edge: rgba(255, 255, 255, 0.18); /* 4 · specular edge */
+  --glass-specular: rgba(255, 255, 255, 0.22);
+  --glass-underline: rgba(0, 0, 0, 0.28);
+  --glass-shadow: 0 12px 48px rgba(0, 0, 0, 0.45); /* 5 · elevation */
+  --glass-edge-hover: rgba(255, 255, 255, 0.28); /* hover brighten, "the liquid part" */
+  --glass-highlight: rgba(255, 255, 255, 0.1); /* cursor-tracked specular */
+
+  /* Radii — mixed scale (decision D8, overrides the larger "Apple-true" radii) */
+  --radius-xs: 6px; /* swatch, tag */
+  --radius-sm: 8px; /* chip, button */
+  --radius-md: 10px; /* telemetry cell */
+  --radius-lg: 12px; /* docked rail */
+  --radius-xl: 18px; /* floating panel */
+  --radius-2xl: 20px; /* modal */
+  --radius-pill: 999px; /* toggle, time transport */
+
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Elevation */
+  --elev-1: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --elev-3: 0 12px 48px rgba(0, 0, 0, 0.5);
+  --elev-4: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --focus-ring: 0 0 0 2px var(--orca-cyan);
+
+  /* Typography */
+  --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --t-display: 700 48px/52px var(--font-ui);
+  --t-h1: 700 32px/38px var(--font-ui);
+  --t-h2: 600 24px/30px var(--font-ui);
+  --t-h3: 600 18px/24px var(--font-ui);
+  --t-body: 400 15px/24px var(--font-ui);
+  --t-small: 400 13px/20px var(--font-ui);
+  --t-caption: 500 11px/16px var(--font-ui);
+  --t-tel-label: 700 10px/14px var(--font-mono);
+  --t-tel-value: 700 20px/24px var(--font-mono);
 
   /* Motion */
   --motion-instant: 100ms ease-out;
   --motion-quick: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-panel: 320ms; /* pair with --ease-spring, e.g. Framer Motion */
   --motion-camera: 900ms cubic-bezier(0.65, 0, 0.35, 1);
   --motion-scale: 1600ms;
+
+  /* Easing curves — standalone, for consumers (e.g. Framer Motion) that need
+     a raw timing function rather than the combined shorthand above. */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-quick: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.5, 1);
+  --ease-camera: cubic-bezier(0.65, 0, 0.35, 1);
 }

@@ -1,0 +1,80 @@
+.time-scrubber {
+  position: relative;
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.time-scrubber__track {
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.time-scrubber__track::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-edge);
+}
+
+.time-scrubber__track::-moz-range-track {
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-edge);
+}
+
+.time-scrubber__track::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orca-cyan);
+  box-shadow: var(--elev-1);
+}
+
+.time-scrubber__track::-moz-range-thumb {
+  border: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orca-cyan);
+  box-shadow: var(--elev-1);
+}
+
+.time-scrubber__track:focus-visible {
+  outline: none;
+}
+
+/* Two vendor-prefixed pseudo-elements, not one rule — Firefox ignores
+   ::-webkit-slider-thumb entirely, so without the ::-moz-range-thumb twin
+   a keyboard user focusing this control in Firefox got no visible focus
+   ring at all (Design.md §9). */
+.time-scrubber__track:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    var(--focus-ring),
+    var(--elev-1);
+}
+
+.time-scrubber__track:focus-visible::-moz-range-thumb {
+  box-shadow:
+    var(--focus-ring),
+    var(--elev-1);
+}
+
+.time-scrubber__markers {
+  position: absolute;
+  inset: 0 var(--space-4) auto;
+  top: 1px;
+  height: 3px;
+  pointer-events: none;
+}
+
+.time-scrubber__marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 3px;
+  background: var(--critical);
+  transform: translateX(-1px);
+}

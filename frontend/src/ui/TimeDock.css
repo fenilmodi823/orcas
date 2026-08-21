@@ -1,0 +1,13 @@
+.time-dock {
+  display: flex;
+  flex-direction: column;
+  width: min(880px, 100%);
+  margin-inline: auto;
+}
+
+.time-dock__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0;
+}

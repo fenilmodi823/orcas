@@ -1,0 +1,58 @@
+.time-transport {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.time-transport__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: color var(--motion-quick) var(--ease-quick);
+}
+
+.time-transport__icon:hover {
+  color: var(--text-hi);
+}
+
+.time-transport__icon:focus-visible,
+.time-transport__now:focus-visible,
+.time-transport__rate:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.time-transport__rate,
+.time-transport__now {
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font: var(--t-tel-label);
+  letter-spacing: 0.1em;
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: color var(--motion-quick) var(--ease-quick);
+}
+
+.time-transport__rate:hover,
+.time-transport__now:hover {
+  color: var(--orca-cyan);
+}
+
+.time-transport__clock {
+  flex: 1;
+  text-align: center;
+  font: var(--t-caption);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-hi);
+}

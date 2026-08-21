@@ -1,0 +1,86 @@
+.search-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(360px, 100%);
+}
+
+.search-panel__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  /* --text-lo fails contrast on glass at this size (Design.md §9); also
+     colours the search icon (non-text, 3:1 minimum), which --text-lo fails too */
+  color: var(--text-mid);
+  border-bottom: 1px solid var(--glass-edge);
+}
+
+.search-panel__field input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: var(--radius-xs);
+  color: var(--text-hi);
+  font: var(--t-body);
+  font-family: var(--font-ui);
+}
+
+.search-panel__field input:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.search-panel__field input::placeholder {
+  /* --text-lo fails 4.5:1 on glass at this size (Design.md §9) */
+  color: var(--text-mid);
+}
+
+.search-panel__field:focus-within {
+  color: var(--orca-cyan);
+}
+
+.search-panel__results {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.search-panel__results button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-panel__results button[data-active] {
+  background: var(--glass-fill-raised);
+  color: var(--text-hi);
+}
+
+.search-panel__results button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.search-panel__name {
+  color: inherit;
+}
+
+.search-panel__id {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  /* --text-lo fails 4.5:1 on glass at this size (Design.md §9) */
+  color: var(--text-mid);
+}
