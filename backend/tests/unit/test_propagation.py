@@ -8,9 +8,11 @@ or copied from the TS test — this is a regression guard, not a claim about a
 real catalogued object.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
+from sgp4.api import WGS72, Satrec
+from sgp4.conveniences import sat_epoch_datetime
 
 from app.domain.coordinates import eci_to_geodetic_deg
 from app.domain.propagation import PropagationFailedError, propagate, satrec_from_omm
@@ -78,3 +80,24 @@ def test_propagate_raises_on_decayed_orbit() -> None:
     with pytest.raises(PropagationFailedError) as exc_info:
         propagate(satrec, far_future, decayed["NORAD_CAT_ID"])
     assert exc_info.value.norad_id == "90002"
+
+
+def test_decayed_object_22312_fails_with_error_1_not_error_6() -> None:
+    """Vallado's canonical verification case 22312 (real element set,
+    bundled with python-sgp4 as SGP4-VER.TLE) is annotated "decayed
+    2006-04-04" but reports SGP4 error 1 (mean eccentricity out of
+    range), not error 6 ("has decayed") — first failing at t=493 min
+    since epoch, confirmed by direct scan and matching the brief's own
+    measurement of 494.2 min (Part 3.4). A decay predicate that only
+    checks error == 6 would misclassify this as healthy. ORCAS's actual
+    behaviour (raise PropagationFailedError on ANY nonzero error) already
+    gets this right; this test pins that down against future regressions.
+    """
+    line1 = "1 22312U 93002D   06094.46235912  .99999999  81888-5  49949-3 0  3953"
+    line2 = "2 22312  62.1486  77.4698 0308723 267.9229  88.7392 15.95744531 98783"
+    sat = Satrec.twoline2rv(line1, line2, WGS72)
+    at = sat_epoch_datetime(sat) + timedelta(minutes=500)  # past the t=493 min failure point
+
+    with pytest.raises(PropagationFailedError) as exc_info:
+        propagate(sat, at, "22312")
+    assert exc_info.value.sgp4_error == 1

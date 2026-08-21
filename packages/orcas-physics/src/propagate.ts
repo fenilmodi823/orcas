@@ -16,9 +16,17 @@ export class PropagationFailedError extends Error {
  * satellite.js v7 returns `null` on failure (decayed orbit, bad elements) —
  * v6 code returned `{position: false, velocity: false}` instead. Never
  * silently render a garbage position; callers must handle the throw.
+ *
+ * The community decay check (`communityDecayCheckEnabled`, satellite.js
+ * 7.1.0+) is enabled: SGP4's drag model squares its shrinkage factor
+ * (`tempa`), so once `tempa` goes negative the orbit is fictional but
+ * `error` still reads 0 — a plausible-looking position for an object that
+ * has actually re-entered. This is a visualisation platform: a decayed
+ * object rendered at a fake altitude is worse than a missing one. See
+ * ORCAS Vault Phase-4 Engineering Brief Part 3.4, milestone M0.3.
  */
 export function propagate(satrec: SatRec, at: Date, noradId: string): SatState {
-  const result = sgp4Propagate(satrec, at);
+  const result = sgp4Propagate(satrec, at, { communityDecayCheckEnabled: true });
   if (!result || !result.position || !result.velocity) {
     throw new PropagationFailedError(noradId, at);
   }
