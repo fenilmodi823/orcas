@@ -35,6 +35,9 @@ dist/
 
 # AI tooling — guidance/config for coding agents, not program code
 .claude/
+.agents/
+.impeccable/
+skills-lock.json
 .markdownlintignore
 .markdownlint.jsonc
 CLAUDE.md
