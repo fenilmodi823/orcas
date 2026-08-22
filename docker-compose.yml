@@ -79,6 +79,7 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - ./packages:/app/packages
+      - orcas-frontend-node-modules:/app/frontend/node_modules
     depends_on:
       - backend
 
@@ -86,3 +87,4 @@ volumes:
   orcas-postgres-data:
   orcas-backend-venv:
   orcas-worker-venv:
+  orcas-frontend-node-modules:

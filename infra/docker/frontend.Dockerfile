@@ -13,6 +13,7 @@ RUN npm install --no-audit --no-fund
 FROM deps AS dev
 COPY packages/ packages/
 COPY frontend/ frontend/
+RUN chown -R orcas:orcas /app
 USER orcas
 WORKDIR /app/frontend
 EXPOSE 5173
