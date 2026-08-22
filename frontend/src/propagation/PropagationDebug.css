@@ -1,0 +1,74 @@
+.propagation-debug {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.propagation-debug__panel {
+  width: min(960px, 100%);
+  padding: 1.5rem;
+}
+
+.propagation-debug__header h1 {
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.propagation-debug__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.propagation-debug__chart {
+  width: 100%;
+  height: auto;
+  background: var(--glass-fill);
+  border-radius: 8px;
+}
+
+.propagation-debug__line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.propagation-debug__line--direct {
+  stroke: var(--orca-cyan);
+}
+
+.propagation-debug__line--interpolated {
+  stroke: var(--critical);
+  stroke-dasharray: 4 3;
+}
+
+.propagation-debug__legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.propagation-debug__legend-item::before {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.15rem;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.propagation-debug__legend-item--direct::before {
+  background: var(--orca-cyan);
+}
+
+.propagation-debug__legend-item--interpolated::before {
+  background: var(--critical);
+}
+
+.propagation-debug__status {
+  padding: 1rem;
+}

@@ -13,6 +13,9 @@ const DesignLab = lazy(() => import('./design/index.js'));
 const CatalogDebug = lazy(() =>
   import('./data/CatalogDebug.js').then((m) => ({ default: m.CatalogDebug })),
 );
+const PropagationDebug = lazy(() =>
+  import('./propagation/PropagationDebug.js').then((m) => ({ default: m.PropagationDebug })),
+);
 
 /** Mouse orbit/zoom plus arrow-key pan — Design.md §9: "the scene itself has
  * keyboard camera controls." `listenToKeyEvents` isn't wired by drei itself. */
@@ -62,6 +65,13 @@ export function App() {
     return (
       <Suspense fallback={null}>
         <CatalogDebug />
+      </Suspense>
+    );
+  }
+  if (window.location.pathname === '/propagation') {
+    return (
+      <Suspense fallback={null}>
+        <PropagationDebug />
       </Suspense>
     );
   }
