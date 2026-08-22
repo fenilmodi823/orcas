@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { satrecFromOmm, propagate } from '@orcas/physics';
+import { satrecFromOmm, propagate, temeToJ2000Matrix, applyMat3 } from '@orcas/physics';
 import { GlassSurface } from '../ui/GlassSurface.js';
 import { TelemetryReadout } from '../ui/TelemetryReadout.js';
 import { useCatalog } from '../data/use-catalog.js';
@@ -55,15 +55,25 @@ export function PropagationDebug() {
 
     for (let i = 0; i <= SAMPLE_COUNT; i++) {
       const atMs = Math.round(startMs + (periodMs * i) / SAMPLE_COUNT);
-      const directState = propagate(satrec, new Date(atMs), object.norad);
+      const at = new Date(atMs);
+      // buildSegmentChain rotates SGP4's raw TEME output to
+      // approximate-J2000 before storing endpoints (see segment-builder.ts),
+      // so the "direct" reference must be rotated the same way — for a
+      // 2026 epoch that rotation is tens of km, not negligible. Comparing
+      // against raw propagate() output here previously showed a
+      // spurious ~44km "residual" that was actually just this frame
+      // mismatch, not interpolation error (same bug found and fixed in
+      // segment-builder.test.ts's residual test).
+      const rawDirect = propagate(satrec, at, object.norad);
+      const directPositionJ2000 = applyMat3(temeToJ2000Matrix(at), rawDirect.positionEciKm);
       const interpolatedState = sampleChain(chain, atMs);
-      direct.push(altitudeKm(directState.positionEciKm));
+      direct.push(altitudeKm(directPositionJ2000));
       interpolated.push(altitudeKm(interpolatedState.position));
 
       const diffKm = Math.hypot(
-        directState.positionEciKm.x - interpolatedState.position.x,
-        directState.positionEciKm.y - interpolatedState.position.y,
-        directState.positionEciKm.z - interpolatedState.position.z,
+        directPositionJ2000.x - interpolatedState.position.x,
+        directPositionJ2000.y - interpolatedState.position.y,
+        directPositionJ2000.z - interpolatedState.position.z,
       );
       maxResidualM = Math.max(maxResidualM, diffKm * 1000);
     }

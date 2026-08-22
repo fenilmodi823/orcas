@@ -30,6 +30,20 @@ export function propagate(satrec: SatRec, at: Date, noradId: string): SatState {
   if (!result || !result.position || !result.velocity) {
     throw new PropagationFailedError(noradId, at);
   }
+  // satellite.js's own truthiness check above does not catch every
+  // failure mode: a malformed satrec (e.g. an unparseable EPOCH — see
+  // satrec-from-omm.ts's normalizeEpochToZ) can produce a truthy
+  // position/velocity object whose components are NaN, which silently
+  // poisons every consumer instead of throwing. Found live-verifying
+  // M1.1's debug route against a real record. Reject it here, at the
+  // one place every caller goes through.
+  const { position, velocity } = result;
+  const allFinite = [position.x, position.y, position.z, velocity.x, velocity.y, velocity.z].every(
+    Number.isFinite,
+  );
+  if (!allFinite) {
+    throw new PropagationFailedError(noradId, at);
+  }
   return {
     positionEciKm: result.position,
     velocityEciKmS: result.velocity,

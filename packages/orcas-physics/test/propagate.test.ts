@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { satrecFromOmm, propagate, gmstRad, eciToGeodeticDeg } from '../src/index.js';
+import { json2satrec } from 'satellite.js';
+import { satrecFromOmm, propagate, gmstRad, eciToGeodeticDeg, PropagationFailedError } from '../src/index.js';
 import type { OmmRecord } from '../src/index.js';
 
 /**
@@ -61,5 +62,25 @@ describe('propagate — known-position regression', () => {
     const first = propagate(satrec, AT, TEST_OMM.NORAD_CAT_ID);
     const second = propagate(satrec, AT, TEST_OMM.NORAD_CAT_ID);
     expect(second.positionEciKm).toEqual(first.positionEciKm);
+  });
+});
+
+describe('propagate — rejects a NaN-poisoned satrec instead of returning it', () => {
+  it('throws PropagationFailedError, not a silently-NaN position, for an unparseable EPOCH', () => {
+    // Bypasses satrecFromOmm's normalizeEpochToZ on purpose, to construct
+    // the failure mode it exists to prevent: satellite.js's json2satrec
+    // blindly appends 'Z' to an EPOCH that doesn't already end with one,
+    // so a genuinely garbage string becomes an Invalid Date internally —
+    // truthy position/velocity objects, NaN components. Found live via
+    // M1.1's real-ISS-record verification (the specific "+00:00" case is
+    // covered by satrec-from-omm.test.ts); this is the defensive guard
+    // in propagate() itself, independent of that specific root cause.
+    const satrec = json2satrec({
+      ...TEST_OMM,
+      EPOCH: 'not-a-real-timestamp',
+      EPHEMERIS_TYPE: 0,
+      CLASSIFICATION_TYPE: 'U',
+    });
+    expect(() => propagate(satrec, AT, TEST_OMM.NORAD_CAT_ID)).toThrow(PropagationFailedError);
   });
 });
