@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { GlassSurface } from '../ui/GlassSurface.js';
 import { TimeScrubber } from '../ui/TimeScrubber.js';
 import { useCatalog } from '../data/use-catalog.js';
-import { createBrowserPropagationPool } from '../propagation/worker-pool.js';
 import { useSimulationLoop } from './use-simulation-loop.js';
 import { encodeSimulationCoordinate, parseSimulationCoordinate } from '../time/url-state.js';
 import { epochMsToTicks } from '../time/clock.js';
+import type { ObjectMeta } from '../data/catalog-types.js';
 import './SimulationDebug.css';
 
 const TABLE_ROWS = 10;
@@ -17,40 +17,15 @@ function readInitialEpochMs(fallbackMs: number): number {
 }
 
 /** M1.2's debug route (brief §I): no 3D — the segment ring's status, a
- * scrubbable time axis, and a live table of ten objects' positions. */
+ * scrubbable time axis, and a live table of ten objects' positions.
+ * `useCatalog()` resolves asynchronously (starts empty), so the
+ * loop-owning work is split into `SimulationDebugPanel` below and only
+ * mounted once real objects exist — `useSimulationLoop`'s `FrameState`
+ * buffer is sized once at mount from `objects.length`; mounting it
+ * before the catalogue loads would freeze that size at 0. */
 export function SimulationDebug() {
   const { snapshot, loading, error } = useCatalog();
   const objects = snapshot?.objects.slice(0, TABLE_ROWS) ?? [];
-
-  // useState, not useRef: this value is read during render (passed into
-  // useSimulationLoop below) — refs are for effect/handler-only reads
-  // (react-hooks/refs). The setter is never called, so this is a stable
-  // singleton for the component's lifetime, same as a ref would give.
-  const [pool] = useState(() => createBrowserPropagationPool(2));
-  useEffect(() => () => pool.terminate(), [pool]);
-
-  const playingRef = useRef(true);
-  const rateRef = useRef(1);
-  const [playing, setPlaying] = useState(true);
-  const [rate, setRate] = useState(1);
-  const [startEpochMs] = useState(() => readInitialEpochMs(Date.now()));
-
-  const loop = useSimulationLoop(objects, pool, playingRef, rateRef, startEpochMs);
-
-  const [displayEpochMs, setDisplayEpochMs] = useState(startEpochMs);
-  useEffect(() => {
-    const interval = setInterval(() => setDisplayEpochMs(loop.frameStateRef.current.epochMs), POLL_MS);
-    return () => clearInterval(interval);
-  }, [loop.frameStateRef]);
-
-  useEffect(() => {
-    if (!snapshot) return;
-    const next = encodeSimulationCoordinate(new URLSearchParams(window.location.search), {
-      snapshotVersion: snapshot.version,
-      epochTicks: epochMsToTicks(displayEpochMs),
-    });
-    window.history.replaceState(null, '', `?${next.toString()}`);
-  }, [displayEpochMs, snapshot]);
 
   if (loading) {
     return (
@@ -62,7 +37,7 @@ export function SimulationDebug() {
     );
   }
 
-  if (objects.length === 0) {
+  if (objects.length === 0 || snapshot === null) {
     return (
       <div className="simulation-debug">
         <GlassSurface variant="floating" elevation={2}>
@@ -74,6 +49,39 @@ export function SimulationDebug() {
       </div>
     );
   }
+
+  return <SimulationDebugPanel objects={objects} snapshotVersion={snapshot.version} />;
+}
+
+interface SimulationDebugPanelProps {
+  readonly objects: readonly ObjectMeta[];
+  readonly snapshotVersion: number;
+}
+
+/** Only ever mounted with a non-empty, already-loaded `objects` — safe
+ * to size `useSimulationLoop`'s buffers from `objects.length` once. */
+function SimulationDebugPanel({ objects, snapshotVersion }: SimulationDebugPanelProps) {
+  const playingRef = useRef(true);
+  const rateRef = useRef(1);
+  const [playing, setPlaying] = useState(true);
+  const [rate, setRate] = useState(1);
+  const [startEpochMs] = useState(() => readInitialEpochMs(Date.now()));
+
+  const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
+
+  const [displayEpochMs, setDisplayEpochMs] = useState(startEpochMs);
+  useEffect(() => {
+    const interval = setInterval(() => setDisplayEpochMs(loop.frameStateRef.current.epochMs), POLL_MS);
+    return () => clearInterval(interval);
+  }, [loop.frameStateRef]);
+
+  useEffect(() => {
+    const next = encodeSimulationCoordinate(new URLSearchParams(window.location.search), {
+      snapshotVersion,
+      epochTicks: epochMsToTicks(displayEpochMs),
+    });
+    window.history.replaceState(null, '', `?${next.toString()}`);
+  }, [displayEpochMs, snapshotVersion]);
 
   const frameState = loop.frameStateRef.current;
   const ring = loop.ringRef.current;
