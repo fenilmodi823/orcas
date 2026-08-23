@@ -1,0 +1,54 @@
+.simulation-debug {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6, 2rem);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.simulation-debug__panel {
+  width: min(900px, 100%);
+  padding: var(--space-5, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+.simulation-debug__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+}
+
+.simulation-debug__ring-status {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-lo);
+  font-size: 0.85rem;
+}
+
+.simulation-debug__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.simulation-debug__table th,
+.simulation-debug__table td {
+  text-align: right;
+  padding: 0.25rem 0.75rem;
+}
+
+.simulation-debug__table th:first-child,
+.simulation-debug__table td:first-child {
+  text-align: left;
+}
+
+.simulation-debug__status {
+  color: var(--text-lo);
+}
+
+.simulation-debug__status[data-error] {
+  color: var(--critical);
+}

@@ -16,6 +16,9 @@ const CatalogDebug = lazy(() =>
 const PropagationDebug = lazy(() =>
   import('./propagation/PropagationDebug.js').then((m) => ({ default: m.PropagationDebug })),
 );
+const SimulationDebug = lazy(() =>
+  import('./simulation/SimulationDebug.js').then((m) => ({ default: m.SimulationDebug })),
+);
 
 /** Mouse orbit/zoom plus arrow-key pan — Design.md §9: "the scene itself has
  * keyboard camera controls." `listenToKeyEvents` isn't wired by drei itself. */
@@ -72,6 +75,13 @@ export function App() {
     return (
       <Suspense fallback={null}>
         <PropagationDebug />
+      </Suspense>
+    );
+  }
+  if (window.location.pathname === '/keyframes') {
+    return (
+      <Suspense fallback={null}>
+        <SimulationDebug />
       </Suspense>
     );
   }
