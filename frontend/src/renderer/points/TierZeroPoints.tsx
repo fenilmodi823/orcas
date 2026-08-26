@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, type Points } from 'three';
+import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { createPointsGeometry } from './points-geometry.js';
@@ -19,6 +20,8 @@ uniform float uBaseBrightness;
 uniform float uFloorBrightness;
 uniform float uDimFactor;
 uniform float uFocusActive;
+uniform vec3 uCamPos;
+uniform vec3 uEarthRadii;
 
 varying float vBrightness;
 
@@ -35,6 +38,16 @@ void main() {
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
   float dist = max(length(mvPosition.xyz), 1e-6);
 
+  // Earth occlusion (brief §F.5): segment from camera to this object versus
+  // the Earth ellipsoid, in ellipsoid-normalised space so one sphere test
+  // is exact. Analytic, per-vertex, zero CPU cost.
+  vec3 c = uCamPos / uEarthRadii;
+  vec3 p = position / uEarthRadii;
+  vec3 d = p - c;
+  float t = clamp(dot(-c, d) / dot(d, d), 0.0, 1.0);
+  float closest = length(c + t * d);
+  float occlusionFade = mix(0.06, 1.0, smoothstep(0.995, 1.02, closest));
+
   // 1. apparent size, with a floor that does NOT flatten brightness.
   float truePx = aRadius * uPixelsPerRadian / dist;
   float drawPx = max(truePx, uMinPointPx);
@@ -44,9 +57,10 @@ void main() {
   //    area ratio, so distant debris stays visible but recedes.
   float brightness = uBaseBrightness * min(1.0, (truePx * truePx) / (drawPx * drawPx));
   brightness = max(brightness, uFloorBrightness);
+  brightness *= occlusionFade;
 
-  // 3. D6 focus dim — uFocusActive is fixed at 0.0 in M1.3 (no selection
-  //    system exists yet, that's M1.5/M1.6); this line is a no-op today.
+  // 3. D6 focus dim — uFocusActive is fixed at 0.0 in M1.3/M1.4 (no
+  //    selection system exists yet, that's M1.5/M1.6); this line is a no-op today.
   brightness *= mix(1.0, uDimFactor, uFocusActive);
 
   vBrightness = brightness;
@@ -132,6 +146,8 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
         uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uColor: { value: readCyanToken() },
+        uCamPos: { value: new Vector3() },
+        uEarthRadii: { value: new Vector3(WGS84_A_KM, WGS84_A_KM, WGS84_B_KM) },
       },
     });
 
@@ -169,6 +185,7 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
       const verticalFovRad = (camera.fov * Math.PI) / 180;
       material.uniforms.uPixelsPerRadian.value = size.height / verticalFovRad;
     }
+    material.uniforms.uCamPos.value.copy(camera.position);
   });
 
   // frustumCulled disabled: three.js would need to recompute the geometry's
