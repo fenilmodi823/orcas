@@ -7,9 +7,9 @@ export function gmstRad(at: Date): number {
   return gstime(at);
 }
 
-const A_KM = 6378.137; // WGS-84 semi-major axis
+export const WGS84_A_KM = 6378.137; // WGS-84 semi-major axis
 const F = 1 / 298.257223563; // WGS-84 flattening (exact value)
-const B_KM = A_KM * (1 - F); // 6356.752314245 km
+export const WGS84_B_KM = WGS84_A_KM * (1 - F); // 6356.752314245 km
 const E2 = F * (2 - F); // 0.00669437999014132
 const EP2 = E2 / (1 - E2); // second eccentricity squared
 const TWO_PI = 2 * Math.PI;
@@ -34,16 +34,16 @@ export function eciToGeodeticDeg(positionEciKm: EciVec3<number>, gmst: number): 
     // On the spin axis — atan2(y, x) above and the Bowring step below are
     // both singular here.
     const sign = z >= 0 ? 1 : -1;
-    return { latitudeDeg: 90 * sign, longitudeDeg: 0, altitudeKm: Math.abs(z) - B_KM };
+    return { latitudeDeg: 90 * sign, longitudeDeg: 0, altitudeKm: Math.abs(z) - WGS84_B_KM };
   }
 
-  const th = Math.atan2(A_KM * z, B_KM * r);
+  const th = Math.atan2(WGS84_A_KM * z, WGS84_B_KM * r);
   const st = Math.sin(th);
   const ct = Math.cos(th);
-  const lat = Math.atan2(z + EP2 * B_KM * st ** 3, r - E2 * A_KM * ct ** 3);
+  const lat = Math.atan2(z + EP2 * WGS84_B_KM * st ** 3, r - E2 * WGS84_A_KM * ct ** 3);
 
   const sinLat = Math.sin(lat);
-  const n = A_KM / Math.sqrt(1 - E2 * sinLat * sinLat);
+  const n = WGS84_A_KM / Math.sqrt(1 - E2 * sinLat * sinLat);
   // near the poles, r/cos(lat) is ill-conditioned; switch height branch
   // at |lat| > 30 deg (|sin(lat)| > 0.5).
   const height = Math.abs(sinLat) > 0.5 ? z / sinLat - n * (1 - E2) : r / Math.cos(lat) - n;

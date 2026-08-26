@@ -42,9 +42,3 @@ export function packRegimes(objects: readonly ObjectMeta[]): Float32Array {
 export function packRadii(count: number): Float32Array {
   return new Float32Array(count).fill(PLACEHOLDER_RADIUS_KM);
 }
-
-/** `aFlags`. Every object is visible in M1.3 — per-object filtering is
- * M1.4's job. */
-export function packVisibilityFlags(count: number): Float32Array {
-  return new Float32Array(count).fill(FLAG_VISIBLE);
-}

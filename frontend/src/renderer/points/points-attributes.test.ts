@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Regime } from '../../data/catalog-types.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
-import {
-  FLAG_VISIBLE,
-  PLACEHOLDER_RADIUS_KM,
-  packEntityIds,
-  packRegimes,
-  packRadii,
-  packVisibilityFlags,
-} from './points-attributes.js';
+import { PLACEHOLDER_RADIUS_KM, packEntityIds, packRegimes, packRadii } from './points-attributes.js';
 
 function fakeObject(regime: Regime): ObjectMeta {
   return {
@@ -54,12 +47,5 @@ describe('packRadii', () => {
     const expected = Math.fround(PLACEHOLDER_RADIUS_KM);
     const radii = packRadii(4);
     expect(Array.from(radii)).toEqual([expected, expected, expected, expected]);
-  });
-});
-
-describe('packVisibilityFlags', () => {
-  it('marks every entry visible — filtering is not implemented until M1.4', () => {
-    const flags = packVisibilityFlags(3);
-    expect(Array.from(flags)).toEqual([FLAG_VISIBLE, FLAG_VISIBLE, FLAG_VISIBLE]);
   });
 });
