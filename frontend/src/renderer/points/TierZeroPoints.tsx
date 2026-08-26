@@ -120,7 +120,15 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
         uMinPointPx: { value: 1.5 }, // chosen empirically, tune in Task 7
         uDpr: { value: Math.min(window.devicePixelRatio, 2) }, // Rules.md perf ceiling: dpr capped at 2
         uBaseBrightness: { value: 1.0 },
-        uFloorBrightness: { value: 0.05 }, // chosen empirically, tune in Task 7
+        // 0.6, not 0.05: with PLACEHOLDER_RADIUS_KM this small, truePx is
+        // always many orders of magnitude below uMinPointPx for every
+        // object at any real-world distance, so the area-ratio
+        // compensation always crushes brightness to this floor — verified
+        // live in Task 7 (a 0.05 floor rendered as an invisible ~2px,
+        // 5%-alpha additive dot, indistinguishable from the background).
+        // Once real per-object sizes exist, most objects will draw well
+        // above the floor and this value matters far less.
+        uFloorBrightness: { value: 0.6 },
         uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uColor: { value: readCyanToken() },
@@ -141,10 +149,20 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
     const points = pointsRef.current;
     if (!points) return;
 
+    // The mount effect above assigns the real geometry imperatively, and
+    // it can lose the race against this callback's very first rAF tick
+    // (React's passive-effect scheduling isn't guaranteed to land before
+    // R3F's next frame) — until it does, `points.geometry` is still
+    // THREE.Points's own default empty BufferGeometry, which has no
+    // 'position' attribute at all. Bail for that one frame; every frame
+    // after the effect lands finds it and proceeds normally.
+    const positionAttribute = points.geometry.getAttribute('position');
+    if (!positionAttribute) return;
+
     // Zero-allocation per-frame work: flag the SAME position buffer for
     // re-upload (M1.2 already wrote this frame's values into it), and
     // update the two camera-dependent uniforms with cheap arithmetic.
-    points.geometry.getAttribute('position').needsUpdate = true;
+    positionAttribute.needsUpdate = true;
 
     const material = points.material as ShaderMaterial;
     if (camera instanceof PerspectiveCamera) {

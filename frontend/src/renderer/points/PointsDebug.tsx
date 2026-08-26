@@ -86,7 +86,14 @@ function useCrossCheck(objects: readonly ObjectMeta[], loop: SimulationLoopHandl
     const assumedFovRad = (60 * Math.PI) / 180;
     const assumedPixelsPerRadian = window.innerHeight / assumedFovRad;
     const interval = setInterval(() => {
-      setCrossCheck(buildCrossCheckRows(objects, loop.frameStateRef.current, assumedPixelsPerRadian));
+      const frameState = loop.frameStateRef.current;
+      // FrameState starts at epochMs 0 (createFrameState's initial value)
+      // until the simulation loop's first rAF tick writes a real epoch.
+      // Propagating any 2026-fitted element set to the Unix epoch is
+      // legitimately outside SGP4's valid range and throws — skip this
+      // poll rather than crash; the next one lands after the real tick.
+      if (frameState.epochMs <= 0) return;
+      setCrossCheck(buildCrossCheckRows(objects, frameState, assumedPixelsPerRadian));
     }, POLL_MS);
     return () => clearInterval(interval);
   }, [objects, loop.frameStateRef]);
