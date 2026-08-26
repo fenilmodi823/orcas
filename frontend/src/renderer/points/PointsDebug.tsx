@@ -9,6 +9,10 @@ import type { SimulationLoopHandle } from '../../simulation/use-simulation-loop.
 import { TierZeroPoints } from './TierZeroPoints.js';
 import { computePointShading } from './points-shading.js';
 import { PLACEHOLDER_RADIUS_KM } from './points-attributes.js';
+import { countByOrbitClass } from './points-filters.js';
+import { FilterChip } from '../../ui/FilterChip.js';
+import { useViewStore } from '../../state/view-store.js';
+import type { OrbitClass } from '../../state/selection-store.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import './PointsDebug.css';
 
@@ -17,6 +21,15 @@ const EARTH_RADIUS_KM = 6371;
 // (~42,164 km) in view. Chosen empirically for this task; adjust and
 // note the new value here if Task 7's live check finds a better framing.
 const CAMERA_DISTANCE_KM = 60_000;
+
+const ORBIT_CLASS_LABELS: Record<OrbitClass, string> = {
+  leo: 'LEO',
+  meo: 'MEO',
+  geo: 'GEO',
+  heo: 'HEO',
+  debris: 'Debris',
+};
+const ORBIT_CLASSES: readonly OrbitClass[] = ['leo', 'meo', 'geo', 'heo', 'debris'];
 
 const CROSS_CHECK_COUNT = 10;
 const POLL_MS = 100; // matches SimulationDebug.tsx's existing ≤10Hz UI-mirror pattern
@@ -140,6 +153,9 @@ function PointsDebugPanel({ objects }: { objects: readonly ObjectMeta[] }) {
   const [startEpochMs] = useState(() => Date.now());
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
   const crossCheck = useCrossCheck(objects, loop);
+  const activeFilters = useViewStore((state) => state.activeFilters);
+  const toggleFilter = useViewStore((state) => state.toggleFilter);
+  const counts = countByOrbitClass(objects);
 
   return (
     <div className="points-debug">
@@ -161,6 +177,19 @@ function PointsDebugPanel({ objects }: { objects: readonly ObjectMeta[] }) {
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
+
+        <div className="points-debug__filters">
+          {ORBIT_CLASSES.map((orbitClass) => (
+            <FilterChip
+              key={orbitClass}
+              orbitClass={orbitClass}
+              label={ORBIT_CLASS_LABELS[orbitClass]}
+              count={counts[orbitClass]}
+              active={activeFilters.has(orbitClass)}
+              onToggle={() => toggleFilter(orbitClass)}
+            />
+          ))}
+        </div>
 
         <table className="points-debug__table">
           <thead>
