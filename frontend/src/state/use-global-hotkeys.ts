@@ -20,7 +20,7 @@ export function useGlobalHotkeys() {
       if (isTypingTarget(event.target)) return;
 
       if (event.key === 'Escape') {
-        useSelectionStore.getState().select(null);
+        useSelectionStore.getState().setSelected(null);
       } else if (event.key === ' ' || event.code === 'Space') {
         event.preventDefault();
         useSimulationStore.getState().togglePlaying();

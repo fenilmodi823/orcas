@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { NoradId } from '../data/catalog-types.js';
 
 export type OrbitClass = 'leo' | 'meo' | 'geo' | 'heo' | 'debris';
 
@@ -13,16 +14,21 @@ export interface SelectableObject {
 }
 
 interface SelectionState {
-  selected: SelectableObject | null;
-  hovered: SelectableObject | null;
-  select: (target: SelectableObject | null) => void;
-  hover: (target: SelectableObject | null) => void;
+  selectedNorad: NoradId | null;
+  hoveredNorad: NoradId | null;
+  setSelected: (norad: NoradId | null) => void;
+  setHover: (norad: NoradId | null) => void;
 }
 
-/** Selected/hovered object — Architecture.md §5. */
+/**
+ * Identity only — brief §D.7: "no handles, no indices, no positions, no
+ * three.js objects. It survives a page reload and serialises into a URL."
+ * Resolving a NORAD id into the display shape (SelectableObject) is a
+ * separate concern — see points-selection-resolve.ts.
+ */
 export const useSelectionStore = create<SelectionState>((set) => ({
-  selected: null,
-  hovered: null,
-  select: (selected) => set({ selected }),
-  hover: (hovered) => set({ hovered }),
+  selectedNorad: null,
+  hoveredNorad: null,
+  setSelected: (selectedNorad) => set({ selectedNorad }),
+  setHover: (hoveredNorad) => set({ hoveredNorad }),
 }));
