@@ -9,6 +9,7 @@
 **Tech Stack:** Astro 5, TypeScript strict, Vitest (unit tests for the three logic-bearing modules), `@astrojs/sitemap`. No Tailwind (the design system is hand-written CSS custom properties, matching the prototype and [[Design]]'s existing token approach — adding Tailwind now would mean re-deriving utility classes for a system that's already fully specified as CSS variables).
 
 **Spec:**
+
 - `C:\Users\fenil\Downloads\ORCAS-Portfolio-Design-System.md` — tokens, component inventory, motion budget, rules (§5–§13)
 - `C:\Users\fenil\Downloads\fenil-modi-portfolio.html` — the verified reference implementation; all porting tasks below cite exact line ranges in this file
 - `C:\VS Code\orcas\ORCAS Vault\01 - Product\Phases.md` — PA1 deliverables and the reference-artefact corrections note added 2026-08-19
@@ -105,6 +106,7 @@ C:\VS Code\orcas-portfolio\
 ### Task 1: Repo scaffold
 
 **Files:**
+
 - Create: `C:\VS Code\orcas-portfolio\package.json`
 - Create: `C:\VS Code\orcas-portfolio\astro.config.mjs`
 - Create: `C:\VS Code\orcas-portfolio\tsconfig.json`
@@ -113,6 +115,7 @@ C:\VS Code\orcas-portfolio\
 - Create: `C:\VS Code\orcas-portfolio\README.md`
 
 **Interfaces:**
+
 - Produces: an installable Astro project (`npm install` succeeds), `npm run build` produces `dist/`, `npm test` runs Vitest.
 
 - [ ] **Step 1: Create the directory and `package.json`**
@@ -210,6 +213,7 @@ npm run check   # astro + TS diagnostics
 ```
 
 Design spec: see `ORCAS-Portfolio-Design-System.md` (kept alongside this repo, not committed — ask Fenil for the current copy).
+
 ```
 
 - [ ] **Step 7: Install and verify**
@@ -231,10 +235,12 @@ git commit -m "chore: scaffold Astro 5 project"
 ### Task 2: Design tokens and global styles
 
 **Files:**
+
 - Create: `src/styles/tokens.css`
 - Create: `src/styles/global.css`
 
 **Interfaces:**
+
 - Produces: every custom property later components reference by name (`--void`, `--cyan`, `--glass-fill`, etc.) and two base classes (`.wrap`, `.mono`).
 
 - [ ] **Step 1: `tokens.css` — copy the spec's §5 block verbatim**
@@ -293,6 +299,7 @@ git commit -m "feat: design tokens and global styles"
 ### Task 3: Real font files (not base64)
 
 **Files:**
+
 - Create: `public/fonts/plus-jakarta-sans-variable.woff2`
 - Create: `public/fonts/jetbrains-mono-400.woff2`
 - Modify: `src/styles/global.css` (add `@font-face` rules)
@@ -343,11 +350,13 @@ git commit -m "feat: self-hosted font files"
 ### Task 4: Brand assets
 
 **Files:**
+
 - Create: `public/brand/*` (copy from `C:\VS Code\orcas\frontend\public\brand\`)
 
 - [ ] **Step 1: Copy the whole folder**
 
 Run:
+
 ```bash
 cp -r "C:\VS Code\orcas\frontend\public\brand" "C:\VS Code\orcas-portfolio\public\brand"
 ```
@@ -371,11 +380,14 @@ git commit -m "feat: brand assets"
 ### Task 5: Orbital mechanics module (TDD)
 
 **Files:**
+
 - Create: `src/lib/orbital.ts`
 - Test: `src/lib/orbital.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
   export interface OrbitalElements {
     name: string; regime: string;
@@ -388,6 +400,7 @@ git commit -m "feat: brand assets"
   export function propagateEci(el: OrbitalElements, tSeconds: number): EciKm;
   export const CATALOG: OrbitalElements[];
   ```
+
 - Consumed by: Task 16 (`MiniSimulation.astro`).
 
 - [ ] **Step 1: Write the failing tests**
@@ -541,10 +554,12 @@ git commit -m "feat: two-body Keplerian propagation for the mini simulation"
 ### Task 6: Markdown renderer + sanitizer (TDD)
 
 **Files:**
+
 - Create: `src/lib/markdown.ts`
 - Test: `src/lib/markdown.test.ts`
 
 **Interfaces:**
+
 - Produces: `export function renderMarkdown(src: string): string;`
 - Consumed by: content collection rendering is Astro-native (`.md` files render themselves), so this module is specifically for the GitHub README viewer (Task 14's Overlay), where the source is untrusted third-party text.
 
@@ -622,11 +637,14 @@ git commit -m "feat: sanitizing markdown renderer for README previews"
 ### Task 7: GitHub fetch + offline fallback (TDD)
 
 **Files:**
+
 - Create: `src/lib/github.ts`
 - Test: `src/lib/github.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
   export interface RepoSummary {
     name: string; description: string | null; language: string | null;
@@ -636,6 +654,7 @@ git commit -m "feat: sanitizing markdown renderer for README previews"
   export const OFFLINE_SNAPSHOT: RepoSummary[];
   export async function fetchPinnedRepos(user: string, pinnedOrder: string[], fetchImpl?: typeof fetch): Promise<GithubFetchResult>;
   ```
+
 - Consumed by: Task 17 (`RepoGrid.astro`).
 
 - [ ] **Step 1: Write the failing tests**
@@ -783,6 +802,7 @@ git commit -m "feat: GitHub repo fetch with offline fallback"
 ### Task 8: Content collections — the long-form docs, corrected
 
 **Files:**
+
 - Create: `src/content/config.ts`
 - Create: `src/content/docs/orcas.md`
 - Create: `src/content/docs/paper.md`
@@ -793,6 +813,7 @@ git commit -m "feat: GitHub repo fetch with offline fallback"
 - Create: `src/content/docs/cv.md`
 
 **Interfaces:**
+
 - Produces: `collections.docs`, each entry `{ kind: string; title: string }` frontmatter + Markdown body, queryable via `getEntry('docs', 'orcas')` / `getCollection('docs')`.
 - Consumed by: Task 19 (`/research`), Task 21 (`/projects/orcas`), Task 22 (`/cv`).
 
@@ -817,6 +838,7 @@ export const collections = { docs };
 Frontmatter: `kind: Case study`, `title: ORCAS — Orbital Risk and Conjunction Assessment System`.
 
 Body: copy the prototype's content verbatim EXCEPT:
+
 - **"Status and scope" section** — replace "Kessler swarm, density heatmaps, CSV export" from the "Done" list with what's actually built per `Phases.md`'s real progress table: SGP4 propagation, covariance/conjunction pipeline, ML classification, OMM ingestion with a legacy TLE adapter, and the golden-file reconstruction of the 2009 Iridium 33/Cosmos 2251 collision — all backend, all tested. Move Kessler swarm/heatmaps/CSV export/historical replay to "Roadmap" (they're real plans, just not built yet — see `Phases.md` line 328).
 - **"Reproducibility" section** — replace the `git clone https://github.com/fenilmodi823/orcas` block with: "The repository isn't public yet — full open-sourcing is planned once the simulation reaches parity (Phase P6). It will be a one-command `docker compose up` when it opens."
 
@@ -864,6 +886,7 @@ git commit -m "feat: content collection with corrected ORCAS, paper, and resume 
 ### Task 9: Structured data modules
 
 **Files:**
+
 - Create: `src/data/links.ts`
 - Create: `src/data/phases.ts`
 - Create: `src/data/timeline.ts`
@@ -872,6 +895,7 @@ git commit -m "feat: content collection with corrected ORCAS, paper, and resume 
 - Create: `src/data/interests.ts`
 
 **Interfaces:**
+
 - Produces: typed arrays/objects consumed by Task 15's shared components and every page task.
 
 - [ ] **Step 1: `links.ts` — the real links Fenil supplied**
@@ -955,9 +979,11 @@ git commit -m "feat: structured content data (links, real phase progress, timeli
 ### Task 10: BaseLayout
 
 **Files:**
+
 - Create: `src/layouts/BaseLayout.astro`
 
 **Interfaces:**
+
 - Consumes: `LINKS` (Task 9), `tokens.css`/`global.css` (Task 2), `public/brand/favicon.svg` (Task 4).
 - Produces: `<BaseLayout title={string} description={string}><slot /></BaseLayout>` — every page task wraps its content in this.
 
@@ -1007,9 +1033,11 @@ git commit -m "feat: base page layout"
 ### Task 11: Background system (stars, nebulae, filaments, the mark)
 
 **Files:**
+
 - Create: `src/components/Background.astro`
 
 **Interfaces:**
+
 - Consumes: `/brand/logo-tracks.svg` inlined for the architectural mark.
 - Produces: `<Background />`, dropped into `BaseLayout`'s `background` slot.
 
@@ -1044,10 +1072,12 @@ git commit -m "feat: procedural starfield/nebula background with scroll parallax
 ### Task 12: Nav and Dock
 
 **Files:**
+
 - Create: `src/components/Nav.astro`
 - Create: `src/components/Dock.astro`
 
 **Interfaces:**
+
 - Consumes: a `sections` prop — `{ label: string; href: string }[]` — passed per-page (differs on `/` and `/projects/orcas`, which have in-page anchors, versus `/research`/`/cv`, which are single-topic pages and may render a slimmer dock or none).
 - Produces: `<Nav links={...} />`, `<Dock sections={...} />`.
 
@@ -1076,9 +1106,11 @@ git commit -m "feat: nav and dock chrome"
 ### Task 13: ORCAS Plate (footer)
 
 **Files:**
+
 - Create: `src/components/Plate.astro`
 
 **Interfaces:**
+
 - Consumes: `LINKS` (Task 9).
 - Produces: `<Plate />`, used once per page in the footer.
 
@@ -1103,9 +1135,11 @@ git commit -m "feat: ORCAS Plate footer"
 ### Task 14: Overlay (README viewer only)
 
 **Files:**
+
 - Create: `src/components/Overlay.astro`
 
 **Interfaces:**
+
 - Consumes: `renderMarkdown` (Task 6).
 - Produces: `<Overlay id="readme-overlay" />` plus a small script exposing `window.openReadmeOverlay(title: string, markdownSource: string): void` for Task 17 to call.
 
@@ -1145,6 +1179,7 @@ git commit -m "feat: README preview overlay"
 ### Task 15: Shared content components
 
 **Files:**
+
 - Create: `src/components/ProjectCard.astro`
 - Create: `src/components/PaperBlock.astro`
 - Create: `src/components/ResearchRow.astro`
@@ -1152,6 +1187,7 @@ git commit -m "feat: README preview overlay"
 - Create: `src/components/PhaseRail.astro`
 
 **Interfaces:**
+
 - Consumes: `PhaseEntry[]` (Task 9) for `PhaseRail`, `ResearchRow[]` for `ResearchRow`, `SkillGroup[]` for `SkillColumn`.
 - Produces: reusable components for Task 18–21's pages.
 
@@ -1236,9 +1272,11 @@ git commit -m "feat: shared content components"
 ### Task 16: Mini simulation
 
 **Files:**
+
 - Create: `src/components/MiniSimulation.astro`
 
 **Interfaces:**
+
 - Consumes: `CATALOG`, `propagateEci` (Task 5).
 - Produces: `<MiniSimulation />`, embedded once on `/projects/orcas`.
 
@@ -1267,9 +1305,11 @@ git commit -m "feat: mini orbital simulation using the shared orbital.ts module"
 ### Task 17: Repo grid
 
 **Files:**
+
 - Create: `src/components/RepoGrid.astro`
 
 **Interfaces:**
+
 - Consumes: `fetchPinnedRepos` (Task 7), `Overlay`'s `openReadme` (Task 14).
 - Produces: `<RepoGrid />`, used on `/projects`.
 
@@ -1310,14 +1350,17 @@ git commit -m "feat: live GitHub repo grid with honest offline fallback"
 ### Task 18: Home page
 
 **Files:**
+
 - Create: `src/pages/index.astro`
 
 **Interfaces:**
+
 - Consumes: `BaseLayout`, `Background`, `Nav`, `Dock`, `Plate`, `ProjectCard`, `LINKS`, `TIMELINE`.
 
 - [ ] **Step 1: Compose the page**
 
 Source sections, condensed for a home page that links out to full pages rather than containing everything:
+
 - Hero — prototype lines 1061–1086 ("Systems that watch the sky", live UTC, paper status badge)
 - Position/statement — lines 1088–1114
 - About (short form; full trajectory rail can stay here since it's genuinely "about", not a separate page) — lines 1116–1176
@@ -1342,9 +1385,11 @@ git commit -m "feat: home page"
 ### Task 19: Research page
 
 **Files:**
+
 - Create: `src/pages/research.astro`
 
 **Interfaces:**
+
 - Consumes: `getEntry('docs', 'paper')` (Task 8, corrected), `RESEARCH` (Task 9), `PaperBlock`, `ResearchRow`.
 
 - [ ] **Step 1: Compose the page**
@@ -1368,9 +1413,11 @@ git commit -m "feat: research page"
 ### Task 20: Projects index
 
 **Files:**
+
 - Create: `src/pages/projects/index.astro`
 
 **Interfaces:**
+
 - Consumes: `ProjectCard`, `RepoGrid`, `SkillColumn`, `SKILLS`.
 
 - [ ] **Step 1: Compose**
@@ -1393,9 +1440,11 @@ git commit -m "feat: projects index page"
 ### Task 21: ORCAS project page
 
 **Files:**
+
 - Create: `src/pages/projects/orcas.astro`
 
 **Interfaces:**
+
 - Consumes: `getEntry('docs', 'orcas')` (Task 8, corrected), `PhaseRail` + `ORCAS_PHASES` (Task 9/15), `MiniSimulation` (Task 16).
 
 - [ ] **Step 1: Compose**
@@ -1405,10 +1454,12 @@ Render the full corrected `orcas.md` case study, the `PhaseRail`, and the embedd
 - [ ] **Step 2: Verify the honesty corrections actually landed**
 
 Run: `npm run build`, grep the built output for the specific strings that must NOT appear:
+
 ```bash
 grep -r "git clone https://github.com/fenilmodi823/orcas" dist/ && echo "FAIL: dead clone URL present" || echo "OK"
 grep -rE "Kessler swarm.*Complete|CSV export.*Complete" dist/projects/orcas/index.html && echo "FAIL: false completion claim" || echo "OK"
 ```
+
 Expected: both print `OK`.
 
 - [ ] **Step 3: Commit**
@@ -1423,9 +1474,11 @@ git commit -m "feat: ORCAS project page with corrected scope and real phase prog
 ### Task 22: CV page
 
 **Files:**
+
 - Create: `src/pages/cv.astro`
 
 **Interfaces:**
+
 - Consumes: `getEntry('docs', 'resume')`, `getEntry('docs', 'cv')` (Task 8), `LINKS` (Task 9).
 
 - [ ] **Step 1: Compose**
@@ -1453,6 +1506,7 @@ git commit -m "feat: CV page with read-in-place and download options"
 ### Task 23: 404 page
 
 **Files:**
+
 - Create: `src/pages/404.astro`
 
 - [ ] **Step 1: Write a small, on-brand 404**
@@ -1491,10 +1545,12 @@ git commit -m "feat: 404 page"
 ### Task 24: SEO — sitemap, OG, JSON-LD
 
 **Files:**
+
 - Modify: `astro.config.mjs` (sitemap already added in Task 1)
 - Modify: `src/layouts/BaseLayout.astro` (add JSON-LD slot)
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: `/sitemap-index.xml` at build time (from the `@astrojs/sitemap` integration already installed), a `<script type="application/ld+json">` block per page.
 
@@ -1544,12 +1600,14 @@ git commit -m "feat: sitemap and JSON-LD structured data"
 - [ ] **Step 1: Full clean build**
 
 Run:
+
 ```bash
 rm -rf dist .astro
 npm run check
 npm test
 npm run build
 ```
+
 Expected: `astro check` reports 0 errors, all Vitest suites pass (orbital, markdown, github), `npm run build` completes and produces `dist/` with 6 HTML pages plus `sitemap-index.xml`.
 
 - [ ] **Step 2: Local production smoke test**

@@ -48,12 +48,12 @@
   display: flex;
   gap: 1.5rem;
   margin-top: 0.75rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.75rem;
 }
 
 .propagation-debug__legend-item::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 0.75rem;
   height: 0.15rem;

@@ -94,11 +94,7 @@ def ecef_to_geodetic_deg(position_km_ecef: Vec3) -> GeodeticPosition:
     n = _WGS84_A_KM / math.sqrt(1 - _WGS84_E2 * sin_lat * sin_lat)
     # near the poles, r/cos(lat) is ill-conditioned; switch height branch
     # at |lat| > 30 deg (|sin(lat)| > 0.5), same trick as the pole guard.
-    alt = (
-        z / sin_lat - n * (1 - _WGS84_E2)
-        if abs(sin_lat) > 0.5
-        else r / math.cos(lat) - n
-    )
+    alt = z / sin_lat - n * (1 - _WGS84_E2) if abs(sin_lat) > 0.5 else r / math.cos(lat) - n
     return GeodeticPosition(
         latitude_deg=math.degrees(lat), longitude_deg=math.degrees(lon), altitude_km=alt
     )

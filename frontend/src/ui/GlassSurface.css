@@ -5,7 +5,8 @@
   overflow: hidden;
   background: var(--glass-fill);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate));
   border: 1px solid var(--glass-edge);
   box-shadow:
     var(--glass-surface-shadow),
@@ -14,26 +15,26 @@
   transition: border-color var(--motion-quick) var(--ease-quick);
 }
 
-.glass-surface[data-variant='floating'] {
+.glass-surface[data-variant="floating"] {
   border-radius: var(--radius-xl);
 }
-.glass-surface[data-variant='docked'] {
+.glass-surface[data-variant="docked"] {
   border-radius: var(--radius-lg);
 }
-.glass-surface[data-variant='modal'] {
+.glass-surface[data-variant="modal"] {
   border-radius: var(--radius-2xl);
 }
 
-.glass-surface[data-elevation='1'] {
+.glass-surface[data-elevation="1"] {
   --glass-surface-shadow: var(--elev-1);
 }
-.glass-surface[data-elevation='2'] {
+.glass-surface[data-elevation="2"] {
   --glass-surface-shadow: var(--elev-2);
 }
-.glass-surface[data-elevation='3'] {
+.glass-surface[data-elevation="3"] {
   --glass-surface-shadow: var(--elev-3);
 }
-.glass-surface[data-elevation='4'] {
+.glass-surface[data-elevation="4"] {
   --glass-surface-shadow: var(--elev-4);
 }
 

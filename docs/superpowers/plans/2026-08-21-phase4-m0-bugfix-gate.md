@@ -27,6 +27,7 @@
 **Why first:** `backend/app/domain/tle.py:66` currently sets `NORAD_CAT_ID=sat.satnum_str`. The brief's Part 4.1 measured table shows `Satrec.satnum_str` is the **Alpha-5-encoded** form (`100000 → 'A0000'`, `148493 → 'E8493'`), not the decimal string — `sat.satnum` (int) is the decoded decimal. `backend/tests/unit/test_tle.py`'s only fixture is NORAD 25544 (below 100000, where Alpha-5 and decimal are identical), so this has never been exercised by a test. Every TLE-ingested object ≥ 100000 would today get a corrupted `NORAD_CAT_ID` ("E8493" instead of "148493"), silently breaking the "canonical decimal string" rule (P4.D15) the moment the legacy TLE adapter sees a 6-digit object.
 
 **Files:**
+
 - Modify: `backend/app/domain/tle.py:66` (the bug)
 - Modify: `backend/tests/unit/test_tle.py` (regression test for the fix)
 - Create: `backend/tests/unit/test_identity.py` (identity-is-verbatim-string contract + Issue #17 ceiling + Bug 3 xfail)
@@ -34,6 +35,7 @@
 - Modify: `backend/pyproject.toml` (pin `sgp4` exactly — the brief's findings are measured against 2.27)
 
 **Interfaces:**
+
 - Consumes: `app.domain.tle.omm_record_from_tle(line1, line2, object_name) -> OmmRecord` (existing), `app.domain.propagation.satrec_from_omm(record: OmmRecord) -> Satrec` (existing), `satrecFromOmm(record: OmmRecord) -> SatRec` (existing, `packages/orcas-physics/src/satrec-from-omm.ts`)
 - Produces: nothing new — this task only corrects and pins down existing identity behavior.
 
@@ -248,12 +250,14 @@ git commit -m "fix(backend): normalise Alpha-5 TLE catalog numbers to decimal NO
 **Why:** `backend/app/domain/coordinates.py`'s `ecef_to_geodetic_deg()` uses the same flawed `r / cos(lat) - c` height formula as `satellite.js`'s `eciToGeodetic` — independently reproducible: at `x=y=0, z=6800`, `atan2(6800, 0)` gives `lat = π/2` exactly, `cos(π/2)` is `~6.12e-17` (not exactly zero in floating point), so `alt = 0/6.12e-17 - 6399.59 ≈ -6399.59 km` instead of the true `+443.25 km`. This is the *same* singularity as the brief's Bug 2, present in the hand-rolled Python implementation too, not just `satellite.js`. Both stacks get the Bowring closed-form fix.
 
 **Files:**
+
 - Modify: `backend/app/domain/coordinates.py` (replace the 8-iteration loop)
 - Create: `backend/tests/unit/test_coordinates.py`
 - Modify: `packages/orcas-physics/src/coordinates.ts` (replace the `satellite.js` `eciToGeodetic` call)
 - Create: `packages/orcas-physics/test/coordinates.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Vec3`/`GeodeticPosition` (backend, `app.domain.types`); `EciVec3<number>`/`GeodeticPosition` (frontend, `./types.js`)
 - Produces: `ecef_to_geodetic_deg(position_km_ecef: Vec3) -> GeodeticPosition` (backend, same signature as today — callers in `eci_to_geodetic_deg` and elsewhere are unaffected); `eciToGeodeticDeg(positionEciKm: EciVec3<number>, gmst: number) -> GeodeticPosition` (frontend, same signature as today)
 
@@ -523,11 +527,13 @@ git commit -m "fix(physics): replace iterative geodetic conversion with pole-saf
 **Why:** Both propagators already fail *safely* today — `backend/app/domain/propagation.py` raises `PropagationFailedError` on **any** nonzero SGP4 error code (not just 6), and `packages/orcas-physics/src/propagate.ts` throws on any falsy/null result. Neither has the anti-pattern the brief warns about (checking `error === 6` alone). What's missing: the frontend doesn't yet opt into `communityDecayCheckEnabled`, which the brief recommends specifically for a visualisation platform (catches long-decayed objects whose `tempa` has gone negative and which SGP4 would otherwise report as a "successful", fictitious position); and there's no regression test proving a real decayed object (Vallado's canonical case 22312) is correctly treated as unrenderable despite reporting error 1, not error 6.
 
 **Files:**
+
 - Modify: `packages/orcas-physics/src/propagate.ts` (enable the community decay check)
 - Modify: `backend/tests/unit/test_propagation.py` (add the object-22312 regression case)
 - Modify: `packages/orcas-physics/test/propagate.test.ts` (mirror, if a JS-side fixture is available — see Step 4)
 
 **Interfaces:**
+
 - Consumes: `sgp4Propagate(satrec, at, options?)` from `satellite.js` (existing import in `propagate.ts`)
 - Produces: `propagate(satrec: SatRec, at: Date, noradId: string): SatState` — same signature, unchanged; only the internal call to `sgp4Propagate` gains an options argument.
 
@@ -538,10 +544,13 @@ Object 22312 ("SL-6 R/B(2)... decayed 2006-04-04") is one of the 33 cases in `py
 ```bash
 docker compose run --rm backend python -c "import sgp4, os; print(os.path.dirname(sgp4.__file__))"
 ```
+
 then read `SGP4-VER.TLE` from that directory for the block starting `22312`, **or** fetch it directly:
+
 ```bash
 curl -s https://raw.githubusercontent.com/brandon-rhodes/python-sgp4/master/sgp4/SGP4-VER.TLE | grep -A2 "^# .*22312\|^1 22312"
 ```
+
 Extract the two element lines (and the case's stated start/stop/step if present) for use in Step 2.
 
 - [ ] **Step 2: Write the failing regression test (backend)**
@@ -614,6 +623,7 @@ git commit -m "fix(physics): enable community decay check on frontend, pin backe
 **Why:** Purely a documentation task — the code-level conclusion ("no integer side door exists; the ceiling is a storage constraint") is already evidenced by `test_identity.py`'s `test_nine_digit_id_has_no_satrec_but_keeps_its_identity` (Task 1). This task records that in the vault so a future agent doesn't re-open the same dead end, and folds forward the brief's Part 10 decision tables per this vault's established "layer corrections, don't rewrite history" pattern (see memory.md's own Cloudflare-Pages-to-Vercel precedent).
 
 **Files:**
+
 - Modify: `ORCAS Vault/00 - Meta/memory.md`
 
 **Steps (no test cycle — this is documentation, verified by re-reading the diff, not by running anything):**

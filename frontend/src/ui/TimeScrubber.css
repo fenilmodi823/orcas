@@ -51,15 +51,11 @@
    a keyboard user focusing this control in Firefox got no visible focus
    ring at all (Design.md §9). */
 .time-scrubber__track:focus-visible::-webkit-slider-thumb {
-  box-shadow:
-    var(--focus-ring),
-    var(--elev-1);
+  box-shadow: var(--focus-ring), var(--elev-1);
 }
 
 .time-scrubber__track:focus-visible::-moz-range-thumb {
-  box-shadow:
-    var(--focus-ring),
-    var(--elev-1);
+  box-shadow: var(--focus-ring), var(--elev-1);
 }
 
 .time-scrubber__markers {

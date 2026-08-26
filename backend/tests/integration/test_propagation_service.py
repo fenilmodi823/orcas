@@ -58,10 +58,16 @@ async def _seed_and_cleanup():
 
     async with get_session() as session:
         rows = (
-            await session.execute(
-                select(SpaceObject).where(SpaceObject.norad_id.in_([TEST_NORAD_ID, EMPTY_NORAD_ID]))
+            (
+                await session.execute(
+                    select(SpaceObject).where(
+                        SpaceObject.norad_id.in_([TEST_NORAD_ID, EMPTY_NORAD_ID])
+                    )
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         for obj in rows:
             await session.execute(delete(ElementSet).where(ElementSet.object_id == obj.id))
             await session.execute(delete(SpaceObject).where(SpaceObject.id == obj.id))

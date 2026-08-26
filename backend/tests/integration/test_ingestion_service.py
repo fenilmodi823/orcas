@@ -69,8 +69,14 @@ async def test_ingest_gp_creates_object_and_element_set(monkeypatch: pytest.Monk
         ).scalar_one()
         assert space_object.name == "ORCAS-TEST-OBJECT"
         rows = (
-            await session.execute(select(ElementSet).where(ElementSet.object_id == space_object.id))
-        ).scalars().all()
+            (
+                await session.execute(
+                    select(ElementSet).where(ElementSet.object_id == space_object.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
         assert len(rows) == 1
         assert rows[0].mean_motion == 15.5
 
@@ -102,7 +108,13 @@ async def test_ingest_gp_is_append_only_on_re_ingestion(monkeypatch: pytest.Monk
         # identity updates in place — same row, latest name
         assert space_object.name == "ORCAS-TEST-OBJECT-RENAMED"
         rows = (
-            await session.execute(select(ElementSet).where(ElementSet.object_id == space_object.id))
-        ).scalars().all()
+            (
+                await session.execute(
+                    select(ElementSet).where(ElementSet.object_id == space_object.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
         # but element_set never updates — two epochs, both preserved
         assert len(rows) == 2

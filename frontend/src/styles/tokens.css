@@ -48,7 +48,12 @@
   --glass-specular: rgba(255, 255, 255, 0.22);
   --glass-underline: rgba(0, 0, 0, 0.28);
   --glass-shadow: 0 12px 48px rgba(0, 0, 0, 0.45); /* 5 · elevation */
-  --glass-edge-hover: rgba(255, 255, 255, 0.28); /* hover brighten, "the liquid part" */
+  --glass-edge-hover: rgba(
+    255,
+    255,
+    255,
+    0.28
+  ); /* hover brighten, "the liquid part" */
   --glass-highlight: rgba(255, 255, 255, 0.1); /* cursor-tracked specular */
 
   /* Radii — mixed scale (decision D8, overrides the larger "Apple-true" radii) */
@@ -80,8 +85,10 @@
   --focus-ring: 0 0 0 2px var(--orca-cyan);
 
   /* Typography */
-  --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --font-ui:
+    "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --t-display: 700 48px/52px var(--font-ui);
   --t-h1: 700 32px/38px var(--font-ui);
   --t-h2: 600 24px/30px var(--font-ui);
