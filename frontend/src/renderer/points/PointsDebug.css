@@ -1,0 +1,44 @@
+.points-debug {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.points-debug__panel {
+  position: absolute;
+  top: var(--space-4, 1rem);
+  left: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+}
+
+.points-debug__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.points-debug__status {
+  color: var(--text-lo);
+}
+
+.points-debug__status[data-error] {
+  color: var(--critical);
+}
+
+.points-debug__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+}
+
+.points-debug__table th,
+.points-debug__table td {
+  text-align: right;
+  padding: 0.25rem 0.75rem;
+}
+
+.points-debug__table th:first-child,
+.points-debug__table td:first-child {
+  text-align: left;
+}
