@@ -7,69 +7,7 @@ import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useViewStore } from '../../state/view-store.js';
 import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js';
-
-const VERTEX_SHADER = /* glsl */ `
-attribute float aEntityId;
-attribute float aRegime;
-attribute float aRadius;
-attribute float aFlags;
-attribute float aStale;
-
-uniform float uPixelsPerRadian;
-uniform float uMinPointPx;
-uniform float uDpr;
-uniform float uBaseBrightness;
-uniform float uFloorBrightness;
-uniform float uDimFactor;
-uniform float uFocusActive;
-uniform vec3 uCamPos;
-uniform vec3 uEarthRadii;
-
-varying float vBrightness;
-
-void main() {
-  if (aFlags < 0.5) {
-    // Filtered-out objects are moved off clip space in the shader, not
-    // culled on the CPU (brief §B.3) — no object exists in M1.3, this
-    // branch exists for M1.4 to actually use.
-    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-    vBrightness = 0.0;
-    return;
-  }
-
-  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-  float dist = max(length(mvPosition.xyz), 1e-6);
-
-  // Earth occlusion (brief §F.5): segment from camera to this object versus
-  // the Earth ellipsoid, in ellipsoid-normalised space so one sphere test
-  // is exact. Analytic, per-vertex, zero CPU cost.
-  vec3 c = uCamPos / uEarthRadii;
-  vec3 p = position / uEarthRadii;
-  vec3 d = p - c;
-  float t = clamp(dot(-c, d) / dot(d, d), 0.0, 1.0);
-  float closest = length(c + t * d);
-  float occlusionFade = mix(0.06, 1.0, smoothstep(0.995, 1.02, closest));
-
-  // 1. apparent size, with a floor that does NOT flatten brightness.
-  float truePx = aRadius * uPixelsPerRadian / dist;
-  float drawPx = max(truePx, uMinPointPx);
-  gl_PointSize = drawPx * uDpr;
-
-  // 2. compensate: an object drawn larger than reality is dimmed by the
-  //    area ratio, so distant debris stays visible but recedes.
-  float brightness = uBaseBrightness * min(1.0, (truePx * truePx) / (drawPx * drawPx));
-  brightness = max(brightness, uFloorBrightness);
-  brightness *= occlusionFade;
-  brightness *= mix(1.0, 0.4, aStale); // brief §I: stale objects render at 40%
-
-  // 3. D6 focus dim — uFocusActive is fixed at 0.0 in M1.3/M1.4 (no
-  //    selection system exists yet, that's M1.5/M1.6); this line is a no-op today.
-  brightness *= mix(1.0, uDimFactor, uFocusActive);
-
-  vBrightness = brightness;
-  gl_Position = projectionMatrix * mvPosition;
-}
-`;
+import { POINTS_VERTEX_SHADER, PICK_LAYER } from './points-shader-core.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -132,7 +70,7 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
       useViewStore.getState().activeFilters,
     );
     const material = new ShaderMaterial({
-      vertexShader: VERTEX_SHADER,
+      vertexShader: POINTS_VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
       transparent: true,
       depthWrite: false,
@@ -153,6 +91,7 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
         uFloorBrightness: { value: 0.6 },
         uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
+        uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
         uColor: { value: readCyanToken() },
         uCamPos: { value: new Vector3() },
         uEarthRadii: { value: new Vector3(WGS84_A_KM, WGS84_A_KM, WGS84_B_KM) },
@@ -219,5 +158,10 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
   // frustumCulled disabled: three.js would need to recompute the geometry's
   // bounding sphere from `position` every time it changes to cull correctly,
   // which is exactly the per-frame CPU cost this component exists to avoid.
-  return <points ref={pointsRef} frustumCulled={false} />;
+  // onUpdate enables PICK_LAYER in addition to the default layer, so the
+  // pick pass's restricted camera can see this object while Earth (which
+  // never joins PICK_LAYER) stays excluded.
+  return (
+    <points ref={pointsRef} frustumCulled={false} onUpdate={(self) => self.layers.enable(PICK_LAYER)} />
+  );
 }
