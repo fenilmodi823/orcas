@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -6,8 +6,17 @@ import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useViewStore } from '../../state/view-store.js';
+import { useSelectionStore } from '../../state/selection-store.js';
 import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js';
 import { POINTS_VERTEX_SHADER, PICK_LAYER } from './points-shader-core.js';
+import { usePointsPicking } from './use-points-picking.js';
+import {
+  INITIAL_HOVER_DEBOUNCE_STATE,
+  debounceHover,
+  resolveEntityIndexToNorad,
+  type HoverDebounceState,
+} from './points-pick-resolve.js';
+import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -32,6 +41,11 @@ void main() {
 interface TierZeroPointsProps {
   readonly objects: readonly ObjectMeta[];
   readonly frameStateRef: MutableRefObject<FrameState>;
+  readonly tetherRef: MutableRefObject<ObjectTetherHandle | null>;
+}
+
+export interface TierZeroPointsHandle {
+  requestPick(px: number, py: number): void;
 }
 
 /** Reads --orca-cyan from tokens.css rather than hardcoding the hex —
@@ -55,9 +69,19 @@ function readCyanToken(): Color {
  * imperative-mutation-via-ref pattern `Satellites.tsx` and
  * `use-simulation-loop.ts` already use elsewhere in this codebase.
  */
-export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) {
+export const TierZeroPoints = forwardRef<TierZeroPointsHandle, TierZeroPointsProps>(function TierZeroPoints(
+  { objects, frameStateRef, tetherRef },
+  forwardedRef,
+) {
   const pointsRef = useRef<Points>(null);
   const { size, camera } = useThree();
+  const pick = usePointsPicking(pointsRef);
+  const hoverRef = useRef<HoverDebounceState>(INITIAL_HOVER_DEBOUNCE_STATE);
+  const projectedRef = useRef(new Vector3());
+
+  useImperativeHandle(forwardedRef, () => ({
+    requestPick: pick.requestPick,
+  }));
 
   useEffect(() => {
     const points = pointsRef.current;
@@ -153,6 +177,54 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
       material.uniforms.uPixelsPerRadian.value = size.height / verticalFovRad;
     }
     material.uniforms.uCamPos.value.copy(camera.position);
+
+    // Advance the pick pipeline by at most one step (brief §D.2/§D.3),
+    // debounce the result into a hover value (§D.4), and write the
+    // SelectionStore only when it actually changes.
+    const hit = pick.pollPick();
+    const entityIndex = hit ? hit.entityIndex : null;
+    const norad = entityIndex === null ? null : resolveEntityIndexToNorad(entityIndex, objects);
+    hoverRef.current = debounceHover(norad, hoverRef.current);
+    if (hoverRef.current.value !== useSelectionStore.getState().hoveredNorad) {
+      useSelectionStore.getState().setHover(hoverRef.current.value);
+    }
+
+    // D6 focus dim: exempt the selected object from the uniform dim via
+    // uSelectedEntityId, and only activate the dim at all once something
+    // is selected.
+    const selectedNorad = useSelectionStore.getState().selectedNorad;
+    const selectedIndex = selectedNorad === null ? -1 : objects.findIndex((o) => o.norad === selectedNorad);
+    material.uniforms.uSelectedEntityId.value = selectedIndex;
+    material.uniforms.uFocusActive.value = selectedNorad === null ? 0.0 : 1.0;
+
+    // Hover tether: project the hovered object's LIVE position to screen
+    // space every frame, direct imperative DOM write — never React state
+    // (brief §D.6, Rules.md "React state updated every frame"). Behind
+    // the camera (z > 1 in NDC) hides it, matching the brief's
+    // CameraSystem.projectToScreen contract, reproduced inline here since
+    // M1.6 (camera) doesn't exist yet.
+    const hoverIndex =
+      hoverRef.current.value === null ? -1 : objects.findIndex((o) => o.norad === hoverRef.current.value);
+    const tether = tetherRef.current;
+    if (tether) {
+      if (hoverIndex === -1) {
+        tether.setVisible(false);
+      } else {
+        const positions = frameStateRef.current.positions;
+        projectedRef.current
+          .set(positions[hoverIndex * 3], positions[hoverIndex * 3 + 1], positions[hoverIndex * 3 + 2])
+          .project(camera);
+        if (projectedRef.current.z > 1) {
+          tether.setVisible(false);
+        } else {
+          tether.setPosition(
+            (projectedRef.current.x * 0.5 + 0.5) * size.width,
+            (1 - (projectedRef.current.y * 0.5 + 0.5)) * size.height,
+          );
+          tether.setVisible(true);
+        }
+      }
+    }
   });
 
   // frustumCulled disabled: three.js would need to recompute the geometry's
@@ -164,4 +236,4 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
   return (
     <points ref={pointsRef} frustumCulled={false} onUpdate={(self) => self.layers.enable(PICK_LAYER)} />
   );
-}
+});
