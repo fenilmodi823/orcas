@@ -5,13 +5,15 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
-import { createPointsGeometry } from './points-geometry.js';
+import { useViewStore } from '../../state/view-store.js';
+import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js';
 
 const VERTEX_SHADER = /* glsl */ `
 attribute float aEntityId;
 attribute float aRegime;
 attribute float aRadius;
 attribute float aFlags;
+attribute float aStale;
 
 uniform float uPixelsPerRadian;
 uniform float uMinPointPx;
@@ -58,6 +60,7 @@ void main() {
   float brightness = uBaseBrightness * min(1.0, (truePx * truePx) / (drawPx * drawPx));
   brightness = max(brightness, uFloorBrightness);
   brightness *= occlusionFade;
+  brightness *= mix(1.0, 0.4, aStale); // brief §I: stale objects render at 40%
 
   // 3. D6 focus dim — uFocusActive is fixed at 0.0 in M1.3/M1.4 (no
   //    selection system exists yet, that's M1.5/M1.6); this line is a no-op today.
@@ -122,7 +125,12 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
     const points = pointsRef.current;
     if (!points) return;
 
-    const geometry = createPointsGeometry(objects, frameStateRef.current.positions);
+    const geometry = createPointsGeometry(
+      objects,
+      frameStateRef.current.positions,
+      frameStateRef.current.flags,
+      useViewStore.getState().activeFilters,
+    );
     const material = new ShaderMaterial({
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
@@ -161,6 +169,23 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- objects/frameStateRef are stable for the route's lifetime, same precedent as use-simulation-loop.ts
   }, []);
 
+  useEffect(() => {
+    // Vanilla Zustand subscribe, not the React hook — this runs outside
+    // React's render cycle, matching this component's existing "Tier 3
+    // never enters React state" discipline from M1.2/M1.3. aFlags is
+    // rewritten in place only when the filter set actually changes
+    // (brief: "filter re-evaluation on filter change only, never per
+    // frame"), never inside useFrame.
+    const unsubscribe = useViewStore.subscribe((state, previousState) => {
+      if (state.activeFilters === previousState.activeFilters) return;
+      const points = pointsRef.current;
+      if (!points) return;
+      updateFlagsAttribute(points.geometry, objects, state.activeFilters);
+    });
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- objects is stable for the route's lifetime, same precedent as the mount effect above
+  }, []);
+
   useFrame(() => {
     const points = pointsRef.current;
     if (!points) return;
@@ -179,6 +204,9 @@ export function TierZeroPoints({ objects, frameStateRef }: TierZeroPointsProps) 
     // re-upload (M1.2 already wrote this frame's values into it), and
     // update the two camera-dependent uniforms with cheap arithmetic.
     positionAttribute.needsUpdate = true;
+
+    const staleAttribute = points.geometry.getAttribute('aStale');
+    if (staleAttribute) staleAttribute.needsUpdate = true;
 
     const material = points.material as ShaderMaterial;
     if (camera instanceof PerspectiveCamera) {
