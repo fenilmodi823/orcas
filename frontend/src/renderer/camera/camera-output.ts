@@ -6,6 +6,7 @@ import { lookRotation } from './look-rotation.js';
 import { computeNearFarKm } from './near-far.js';
 
 const R_EARTH_A_KM = 6378.137;
+const NEAR_FAR_EPSILON = 0.01; // 1% — skip a projection rebuild for a tiny change
 const _pos = new Vector3();
 const _fwd = new Vector3();
 const _view = new Vector3();
@@ -24,15 +25,30 @@ export function writeCameraFromRig(camera: PerspectiveCamera, rig: CameraRig, re
   camera.updateMatrixWorld(true);
 }
 
-/** Per-frame near/far (brief §C.7, single-pass reduction — see near-far.ts). */
-export function nearFarForFrame(
+/**
+ * Per-frame near/far (brief §C.7, single-pass reduction — see near-far.ts).
+ * Applies the result to the camera in place (only rebuilding the projection
+ * matrix when it moved more than 1 %) and also returns it for the
+ * `nearFarKm` query. Recomputed AFTER the pose is final and BEFORE the next
+ * render, per §C.7's warning about pick/render projection mismatch.
+ */
+export function applyNearFar(
   camera: PerspectiveCamera,
   inObjectMode: boolean,
   rigRadiusKm: number,
 ): { nearKm: number; farKm: number } {
   const camDist = camera.position.length();
   const nearestSurface = inObjectMode ? Math.max(0.001, rigRadiusKm) : Math.max(0.001, camDist - R_EARTH_A_KM);
-  return computeNearFarKm(nearestSurface, camDist);
+  const nf = computeNearFarKm(nearestSurface, camDist);
+  if (
+    Math.abs(camera.near - nf.nearKm) / nf.nearKm > NEAR_FAR_EPSILON ||
+    Math.abs(camera.far - nf.farKm) / nf.farKm > NEAR_FAR_EPSILON
+  ) {
+    camera.near = nf.nearKm;
+    camera.far = nf.farKm;
+    camera.updateProjectionMatrix();
+  }
+  return nf;
 }
 
 /** NDC x/y into `out`; returns false when the point is behind the camera

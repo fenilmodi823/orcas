@@ -4,7 +4,7 @@ import { clamp } from './easing.js';
 import { createRig, dampRigAngles, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
 import { ECI_UP, refUpForFreeOrbit, refUpForObjectLvlh } from './look-rotation.js';
 import { clampFreeOrbitRadiusKm, R_EARTH_A_KM } from './collision.js';
-import { nearFarForFrame, projectToScreen, writeCameraFromRig } from './camera-output.js';
+import { applyNearFar, projectToScreen, writeCameraFromRig } from './camera-output.js';
 import { CancelledError } from './errors.js';
 import type { FlightEndpoint } from './flight-path.js';
 import { FlightController } from './flight-controller.js';
@@ -184,7 +184,7 @@ class CameraSystemImpl implements CameraSystem {
         break;
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
-    this._nearFar = nearFarForFrame(this.camera, this._state.kind === 'object', this.rig.radiusKm);
+    this._nearFar = applyNearFar(this.camera, this._state.kind === 'object', this.rig.radiusKm);
   }
 
   private updateFreeOrbit(dt: number): void {
