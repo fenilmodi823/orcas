@@ -87,3 +87,37 @@ export function debounceHover(candidate: NoradId | null, state: HoverDebounceSta
   // A different candidate than the one we were counting — restart.
   return { value: state.value, pendingCandidate: candidate, sameCandidateFrameCount: 1 };
 }
+
+export interface HoverTracking {
+  /**
+   * The most recent ACTUAL pick resolution — a hit's NORAD id, or null for
+   * an empty window. Held unchanged across idle frames (the ~N-1 frames in
+   * N where the async GPU readback hasn't landed yet) so the frame-count
+   * debounce below can accumulate against a stable value.
+   */
+  readonly lastResolved: NoradId | null;
+  readonly debounce: HoverDebounceState;
+}
+
+export const INITIAL_HOVER_TRACKING: HoverTracking = {
+  lastResolved: null,
+  debounce: INITIAL_HOVER_DEBOUNCE_STATE,
+};
+
+/**
+ * One frame's advance of hover state. `resolved` carries a value ONLY on
+ * the frame the async pick actually reads back — a hit's NORAD id, or null
+ * for an empty window (or an out-of-range index); on every other frame it
+ * is `undefined` and the previous resolution is reused.
+ *
+ * Feeding the raw per-frame pick output straight into `debounceHover` was
+ * the M1.5 Task 10 bug: `pollPick` returns "nothing" on every non-readback
+ * frame, which reset the debounce counter every frame, so the 2-frame
+ * debounce never elapsed and hover never appeared. Distinguishing "no
+ * result yet" (`undefined`, hold) from "resolved to nothing" (`null`,
+ * clear) is the fix.
+ */
+export function advanceHover(resolved: NoradId | null | undefined, tracking: HoverTracking): HoverTracking {
+  const lastResolved = resolved === undefined ? tracking.lastResolved : resolved;
+  return { lastResolved, debounce: debounceHover(lastResolved, tracking.debounce) };
+}

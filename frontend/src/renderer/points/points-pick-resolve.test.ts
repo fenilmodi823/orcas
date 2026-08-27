@@ -3,6 +3,8 @@ import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
 import { packIdBytes, TIER_POINT } from './points-pick-id.js';
 import {
   INITIAL_HOVER_DEBOUNCE_STATE,
+  INITIAL_HOVER_TRACKING,
+  advanceHover,
   debounceHover,
   findBestPixel,
   resolveEntityIndexToNorad,
@@ -95,5 +97,38 @@ describe('debounceHover', () => {
     state = debounceHover(a, state);
     state = debounceHover(null, state);
     expect(state.value).toBeNull();
+  });
+});
+
+describe('advanceHover', () => {
+  const a = '90000' as ObjectMeta['norad'];
+
+  it('promotes a hit that resolved on ONE frame then went idle — the async-readback case (M1.5 Task 10 bug)', () => {
+    // The GPU pick resolves on only ~1 frame in N; every other frame the
+    // poll is idle. Feeding those idle frames' "nothing" straight into
+    // debounceHover reset its counter every frame, so the 2-frame debounce
+    // could never elapse and hover never appeared.
+    let t = advanceHover(a, INITIAL_HOVER_TRACKING); // frame 1: resolved -> hit a
+    expect(t.debounce.value).toBeNull(); // debounce frame 1, not promoted yet
+    t = advanceHover(undefined, t); // frame 2: idle poll — a is HELD, debounce advances
+    expect(t.debounce.value).toBe(a); // promoted despite the idle poll
+  });
+
+  it('holds the promoted value across a long run of idle frames (stationary cursor)', () => {
+    let t = advanceHover(a, INITIAL_HOVER_TRACKING);
+    t = advanceHover(undefined, t); // promoted
+    for (let i = 0; i < 20; i++) t = advanceHover(undefined, t);
+    expect(t.debounce.value).toBe(a);
+    expect(t.lastResolved).toBe(a);
+  });
+
+  it('clears the hover only once a pick actually resolves to an empty window', () => {
+    let t = advanceHover(a, INITIAL_HOVER_TRACKING);
+    t = advanceHover(undefined, t); // promoted
+    t = advanceHover(undefined, t); // idle — still there
+    expect(t.debounce.value).toBe(a);
+    t = advanceHover(null, t); // resolved: window empty -> clear immediately
+    expect(t.debounce.value).toBeNull();
+    expect(t.lastResolved).toBeNull();
   });
 });

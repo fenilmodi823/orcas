@@ -4,11 +4,27 @@
   height: 100vh;
 }
 
+.points-debug__viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .points-debug__panel {
   position: absolute;
   top: var(--space-4, 1rem);
   left: var(--space-4, 1rem);
   padding: var(--space-4, 1rem);
+}
+
+/* The object dock is anchored to the bottom of the viewport; TimeDock
+   itself carries no positioning (it's placed by its host on every route). */
+.points-debug__dock {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-4, 1rem);
+  transform: translateX(-50%);
+  width: min(880px, calc(100vw - 2 * var(--space-4, 1rem)));
 }
 
 .points-debug__count {

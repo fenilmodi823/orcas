@@ -214,7 +214,12 @@ function PointsDebugPanel({
 
   return (
     <div className="points-debug">
-      <div onPointerMove={handlePointerMove} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
+      <div
+        className="points-debug__viewport"
+        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
         <Canvas camera={{ position: [0, 0, CAMERA_DISTANCE_KM], near: 1, far: 500_000 }}>
           <ambientLight intensity={0.4} />
           <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
@@ -223,10 +228,10 @@ function PointsDebugPanel({
             <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
           </mesh>
           <TierZeroPoints
-            ref={pointsHandleRef}
             objects={objects}
             frameStateRef={loop.frameStateRef}
             tetherRef={tetherRef}
+            pickHandleRef={pointsHandleRef}
           />
           <OrbitControls
             makeDefault
@@ -243,12 +248,14 @@ function PointsDebugPanel({
         />
       </div>
       {resolvedSelected && selectedObjectMeta && (
-        <TimeDock
-          mode="object"
-          object={resolvedSelected}
-          detail={resolveObjectDetail(selectedObjectMeta)}
-          onBack={() => setSelected(null)}
-        />
+        <div className="points-debug__dock">
+          <TimeDock
+            mode="object"
+            object={resolvedSelected}
+            detail={resolveObjectDetail(selectedObjectMeta)}
+            onBack={() => setSelected(null)}
+          />
+        </div>
       )}
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>

@@ -14,6 +14,24 @@ interface PendingRead {
   fence: WebGLSync;
 }
 
+export interface PickHit {
+  readonly entityIndex: number;
+  readonly tierTag: number;
+}
+
+/**
+ * What `pollPick` saw this frame. `resolved: false` means the async
+ * readback hasn't landed (or nothing is queued) — the caller must HOLD its
+ * hover state, not clear it. `resolved: true` with `hit: null` means the
+ * pick pass genuinely found nothing under the cursor. Conflating the two
+ * was the M1.5 Task 10 hover bug.
+ */
+export type PickPollOutcome =
+  | { readonly resolved: false }
+  | { readonly resolved: true; readonly hit: PickHit | null };
+
+const PICK_IDLE: PickPollOutcome = { resolved: false };
+
 export interface PointsPickingHandle {
   /** Enqueue a pick at these canvas-pixel coordinates (same coordinate
    * space as `size.width`/`size.height` from useThree() — CSS pixels
@@ -23,9 +41,9 @@ export interface PointsPickingHandle {
   requestPick(px: number, py: number): void;
   /** Call once per frame (from useFrame). Advances the pick pipeline by
    * at most one step: starts a render if one was requested and none is
-   * in flight, or polls a fence that's already in flight. Returns a
-   * decoded hit only on the frame it actually resolves, else null. */
-  pollPick(): { entityIndex: number; tierTag: number } | null;
+   * in flight, or polls a fence that's already in flight. Reports a
+   * resolution only on the frame the readback actually lands. */
+  pollPick(): PickPollOutcome;
 }
 
 /**
@@ -92,7 +110,11 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
     const points = pointsRef.current;
     const pbo = pboRef.current;
     const renderTarget = renderTargetRef.current;
-    if (!points || !pbo || !renderTarget) return;
+    // Never start a second render while a readback is still in flight — it
+    // would clobber the PBO before getBufferSubData reads it (the driver's
+    // "READ-usage buffer written again before being read back" warning).
+    // Leaving requestedRef set means it retries on the next idle frame.
+    if (!points || !pbo || !renderTarget || pendingRef.current !== null) return;
 
     const context = gl.getContext() as WebGL2RenderingContext;
     const previousMaterial = points.material;
@@ -128,7 +150,7 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
     requestedRef.current = null;
   }
 
-  function pollPick(): { entityIndex: number; tierTag: number } | null {
+  function pollPick(): PickPollOutcome {
     const pending = pendingRef.current;
     const pbo = pboRef.current;
     if (pending && pbo) {
@@ -143,14 +165,14 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
         pendingRef.current = null;
 
         const bestOffset = findBestPixel(pixels, WINDOW_SIZE);
-        return bestOffset === null ? null : unpackIdBytes(pixels, bestOffset);
+        return { resolved: true, hit: bestOffset === null ? null : unpackIdBytes(pixels, bestOffset) };
       }
-      return null; // not signaled yet — check again next frame, per brief §D.2
+      return PICK_IDLE; // fence not signalled yet — check again next frame, per brief §D.2
     }
 
     const requested = requestedRef.current;
     if (requested) startPickRender(requested.px, requested.py);
-    return null;
+    return PICK_IDLE;
   }
 
   return { requestPick, pollPick };

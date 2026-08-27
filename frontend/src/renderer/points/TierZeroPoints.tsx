@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -11,10 +11,10 @@ import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js
 import { POINTS_VERTEX_SHADER, PICK_LAYER } from './points-shader-core.js';
 import { usePointsPicking } from './use-points-picking.js';
 import {
-  INITIAL_HOVER_DEBOUNCE_STATE,
-  debounceHover,
+  INITIAL_HOVER_TRACKING,
+  advanceHover,
   resolveEntityIndexToNorad,
-  type HoverDebounceState,
+  type HoverTracking,
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 
@@ -38,14 +38,25 @@ void main() {
 }
 `;
 
+export interface TierZeroPointsHandle {
+  requestPick(px: number, py: number): void;
+}
+
 interface TierZeroPointsProps {
   readonly objects: readonly ObjectMeta[];
   readonly frameStateRef: MutableRefObject<FrameState>;
   readonly tetherRef: MutableRefObject<ObjectTetherHandle | null>;
-}
-
-export interface TierZeroPointsHandle {
-  requestPick(px: number, py: number): void;
+  /**
+   * A plain ref passed as a prop, assigned imperatively — NOT React's
+   * `ref`/`forwardRef`/`useImperativeHandle`. Verified live: `forwardRef`
+   * silently fails to attach for a component rendered inside R3F's
+   * custom reconciler in this project's dependency versions —
+   * `useImperativeHandle`'s factory never ran, with no error anywhere.
+   * This is the same "ref passed as prop, assigned in an effect" pattern
+   * `frameStateRef`/`tetherRef` already use successfully in this exact
+   * file, so it sidesteps the broken path entirely rather than fighting it.
+   */
+  readonly pickHandleRef: MutableRefObject<TierZeroPointsHandle | null>;
 }
 
 /** Reads --orca-cyan from tokens.css rather than hardcoding the hex —
@@ -69,19 +80,20 @@ function readCyanToken(): Color {
  * imperative-mutation-via-ref pattern `Satellites.tsx` and
  * `use-simulation-loop.ts` already use elsewhere in this codebase.
  */
-export const TierZeroPoints = forwardRef<TierZeroPointsHandle, TierZeroPointsProps>(function TierZeroPoints(
-  { objects, frameStateRef, tetherRef },
-  forwardedRef,
-) {
+export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRef }: TierZeroPointsProps) {
   const pointsRef = useRef<Points>(null);
   const { size, camera } = useThree();
   const pick = usePointsPicking(pointsRef);
-  const hoverRef = useRef<HoverDebounceState>(INITIAL_HOVER_DEBOUNCE_STATE);
+  const hoverTrackingRef = useRef<HoverTracking>(INITIAL_HOVER_TRACKING);
   const projectedRef = useRef(new Vector3());
 
-  useImperativeHandle(forwardedRef, () => ({
-    requestPick: pick.requestPick,
-  }));
+  useEffect(() => {
+    pickHandleRef.current = { requestPick: pick.requestPick };
+    return () => {
+      pickHandleRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pickHandleRef is stable for the route's lifetime, same precedent as the other mount effects in this file
+  }, []);
 
   useEffect(() => {
     const points = pointsRef.current;
@@ -178,15 +190,21 @@ export const TierZeroPoints = forwardRef<TierZeroPointsHandle, TierZeroPointsPro
     }
     material.uniforms.uCamPos.value.copy(camera.position);
 
-    // Advance the pick pipeline by at most one step (brief §D.2/§D.3),
-    // debounce the result into a hover value (§D.4), and write the
-    // SelectionStore only when it actually changes.
-    const hit = pick.pollPick();
-    const entityIndex = hit ? hit.entityIndex : null;
-    const norad = entityIndex === null ? null : resolveEntityIndexToNorad(entityIndex, objects);
-    hoverRef.current = debounceHover(norad, hoverRef.current);
-    if (hoverRef.current.value !== useSelectionStore.getState().hoveredNorad) {
-      useSelectionStore.getState().setHover(hoverRef.current.value);
+    // Advance the pick pipeline by at most one step (brief §D.2/§D.3). The
+    // GPU readback resolves on only ~1 frame in N; advanceHover holds the
+    // last real resolution across the idle frames so the 2-frame hover
+    // debounce can actually elapse (brief §D.4). Write the SelectionStore
+    // only when the debounced value actually changes.
+    const poll = pick.pollPick();
+    const resolved = !poll.resolved
+      ? undefined
+      : poll.hit === null
+        ? null
+        : resolveEntityIndexToNorad(poll.hit.entityIndex, objects);
+    hoverTrackingRef.current = advanceHover(resolved, hoverTrackingRef.current);
+    const hoveredNorad = hoverTrackingRef.current.debounce.value;
+    if (hoveredNorad !== useSelectionStore.getState().hoveredNorad) {
+      useSelectionStore.getState().setHover(hoveredNorad);
     }
 
     // D6 focus dim: exempt the selected object from the uniform dim via
@@ -203,8 +221,7 @@ export const TierZeroPoints = forwardRef<TierZeroPointsHandle, TierZeroPointsPro
     // the camera (z > 1 in NDC) hides it, matching the brief's
     // CameraSystem.projectToScreen contract, reproduced inline here since
     // M1.6 (camera) doesn't exist yet.
-    const hoverIndex =
-      hoverRef.current.value === null ? -1 : objects.findIndex((o) => o.norad === hoverRef.current.value);
+    const hoverIndex = hoveredNorad === null ? -1 : objects.findIndex((o) => o.norad === hoveredNorad);
     const tether = tetherRef.current;
     if (tether) {
       if (hoverIndex === -1) {
@@ -236,4 +253,4 @@ export const TierZeroPoints = forwardRef<TierZeroPointsHandle, TierZeroPointsPro
   return (
     <points ref={pointsRef} frustumCulled={false} onUpdate={(self) => self.layers.enable(PICK_LAYER)} />
   );
-});
+}
