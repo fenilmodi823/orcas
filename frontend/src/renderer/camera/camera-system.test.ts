@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector2, Vector3 } from 'three';
-import { createCameraSystem } from './camera-system.js';
+import { CancelledError, createCameraSystem, type CameraSystem } from './camera-system.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 
 function fakeFrame(positionsKm: number[][]): FrameState {
@@ -83,5 +83,90 @@ describe('createCameraSystem — freeOrbit', () => {
     sys.update(1 / 60, fakeFrame([[7000, 0, 0]]));
     expect(sys.nearFarKm.farKm).toBeGreaterThan(42164);
     expect(sys.nearFarKm.nearKm).toBeGreaterThanOrEqual(0.001);
+  });
+});
+
+/** Advance a flyTo/flyToEarth promise to completion by pumping frames, with
+ * the target advancing along +Y at 7.6 km/s. */
+async function runFlight(sys: CameraSystem, p: Promise<void>, frame: FrameState, frames = 320): Promise<void> {
+  let epochMs = frame.epochMs;
+  for (let i = 0; i < frames; i++) {
+    epochMs += 1000 / 60;
+    frame.positions[1] = 7.6 * ((epochMs - 1_000_000) / 1000);
+    (frame as { epochMs: number }).epochMs = epochMs;
+    sys.update(1 / 60, frame);
+  }
+  await p;
+}
+
+describe('CameraSystem — flyTo', () => {
+  it('transitions freeOrbit → focusFlight → object, resolving the promise', async () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame); // one freeOrbit frame so the rig has a real pose
+    const p = sys.flyTo(0);
+    expect(sys.state.kind).toBe('focusFlight');
+    await runFlight(sys, p, frame);
+    expect(sys.state.kind).toBe('object');
+  });
+
+  it('arrives with the moving target within ~2% of frame centre (brief §I test class 2)', async () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    const p = sys.flyTo(0);
+    await runFlight(sys, p, frame, 400);
+    cam.updateMatrixWorld(true);
+    const targetNow = new Vector3(7000, frame.positions[1], 0);
+    const ndc = targetNow.clone().project(cam);
+    expect(Math.hypot(ndc.x, ndc.y)).toBeLessThan(0.06);
+  });
+
+  it('a second flyTo cancels the first (CancelledError), no position jump', async () => {
+    const cam = new PerspectiveCamera(35, 1, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0], [0, 7000, 0]]);
+    sys.update(1 / 60, frame);
+    const p1 = sys.flyTo(0);
+    for (let i = 0; i < 30; i++) sys.update(1 / 60, frame);
+    const before = cam.position.clone();
+    const p2 = sys.flyTo(1);
+    sys.update(1 / 60, frame);
+    expect(cam.position.distanceTo(before)).toBeLessThan(before.length() * 0.1); // continuous, no snap
+    await expect(p1).rejects.toBeInstanceOf(CancelledError);
+    for (let i = 0; i < 320; i++) sys.update(1 / 60, frame);
+    await expect(p2).resolves.toBeUndefined();
+  });
+
+  it('grabbing input mid-flight rejects the flight, drops to freeOrbit, keeps the pose continuous', async () => {
+    const cam = new PerspectiveCamera(35, 1, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    const p = sys.flyTo(0);
+    for (let i = 0; i < 40; i++) sys.update(1 / 60, frame);
+    const before = cam.position.clone();
+    sys.applyManualInput({ dAzimuthRad: 0.05, dElevationRad: 0, dLnRadius: 0 });
+    sys.update(1 / 60, frame);
+    expect(sys.state.kind).toBe('freeOrbit');
+    expect(cam.position.distanceTo(before)).toBeLessThan(before.length() * 0.1);
+    await expect(p).rejects.toBeInstanceOf(CancelledError);
+  });
+
+  it('never lets the fly-to arc pass through the Earth', async () => {
+    const cam = new PerspectiveCamera(35, 1, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[6771, 0, 0]]); // a 393 km LEO object
+    sys.update(1 / 60, frame);
+    const p = sys.flyTo(0);
+    let minDist = Infinity;
+    for (let i = 0; i < 320; i++) {
+      sys.update(1 / 60, frame);
+      minDist = Math.min(minDist, cam.position.length());
+    }
+    await p;
+    expect(minDist).toBeGreaterThan(6378 + 100); // stayed outside Earth + atmosphere
   });
 });

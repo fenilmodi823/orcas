@@ -1,5 +1,5 @@
 import { Quaternion, Vector3 } from 'three';
-import { clamp } from './easing.js';
+import { clamp, damp } from './easing.js';
 
 export const DEFAULT_FOV_DEG = 35;
 const EPS_ELEVATION = 0.001;
@@ -51,6 +51,36 @@ export function createRig(): CameraRig {
 
 export function clampElevation(elRad: number): number {
   return clamp(elRad, -MAX_ELEVATION_RAD, MAX_ELEVATION_RAD);
+}
+
+/**
+ * Half-life-damp `rig`'s azimuth / elevation / ln(radius) / roll toward
+ * `target` (brief §C.12). Damping ln(radius) not the raw radius keeps zoom
+ * feeling the same speed at every scale. `pivotKm` and `frame` are not
+ * damped here — the caller sets them (Earth centre in freeOrbit, the
+ * tracked target in object mode).
+ */
+export function dampRigAngles(
+  rig: CameraRig,
+  target: CameraRig,
+  dtSec: number,
+  azHalfLifeSec: number,
+  radiusHalfLifeSec: number,
+  rollHalfLifeSec: number,
+): void {
+  rig.azimuthRad = damp(rig.azimuthRad, target.azimuthRad, azHalfLifeSec, dtSec);
+  rig.elevationRad = clampElevation(damp(rig.elevationRad, target.elevationRad, azHalfLifeSec, dtSec));
+  rig.radiusKm = Math.exp(damp(Math.log(rig.radiusKm), Math.log(target.radiusKm), radiusHalfLifeSec, dtSec));
+  rig.rollRad = damp(rig.rollRad, 0, rollHalfLifeSec, dtSec);
+}
+
+/** Copy a rig's live az/el/radius into `target` so manual input, when it
+ * takes over, continues from exactly where an automatic transition left the
+ * camera rather than a stale value. */
+export function syncTargetAngles(target: CameraRig, source: CameraRig): void {
+  target.azimuthRad = source.azimuthRad;
+  target.elevationRad = source.elevationRad;
+  target.radiusKm = source.radiusKm;
 }
 
 const _offset = new Vector3();
