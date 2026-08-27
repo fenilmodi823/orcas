@@ -30,12 +30,13 @@ describe('ellipsoidNormalizedDistance — Earth is 21 km flatter at the poles', 
 });
 
 describe('requiredExtraSwellGain — low-to-low arc lift', () => {
-  it('is zero when either endpoint already clears R_earth + 200', () => {
-    expect(requiredExtraSwellGain(R_EARTH_A_KM + 500, R_EARTH_A_KM + 300)).toBe(0);
+  it('is zero when either camera endpoint already clears R_earth + 200 (the common Earth→satellite case)', () => {
+    expect(requiredExtraSwellGain(R_EARTH_A_KM + 500, 40000)).toBe(0);
+    expect(requiredExtraSwellGain(R_EARTH_A_KM + 300, R_EARTH_A_KM + 250)).toBe(0);
   });
 
-  it('is positive when BOTH endpoints are low — lifts the arc over the limb', () => {
-    const low = R_EARTH_A_KM + 400; // two 400 km LEO objects
+  it('is positive when BOTH camera endpoints sit below the 200 km clearance — lifts the arc over the limb', () => {
+    const low = R_EARTH_A_KM + 150; // camera framing two very-low-LEO objects
     const gain = requiredExtraSwellGain(low, low);
     expect(gain).toBeGreaterThan(0);
     expect(low * (1 + gain)).toBeGreaterThanOrEqual(R_EARTH_A_KM + 200 - 1e-3);

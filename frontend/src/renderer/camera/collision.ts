@@ -25,18 +25,22 @@ export function ellipsoidNormalizedDistance(posKm: Vector3): number {
 }
 
 /**
- * Layer 3 (brief §C.8): only needed when BOTH endpoints are low and the
- * angular separation is large — flying from one 400 km LEO object to
- * another on the far side of the planet. Grow the arc swell so the path's
- * minimum radius clears R_earth + 200 km. The camera arcs up over the limb
- * and back down — which is how you would actually shoot it, and it makes
- * the Earth's curvature legible during the move.
+ * Layer 3 (brief §C.8): only needed when BOTH camera endpoints sit low
+ * over the planet — flying from a very-low-LEO framing to another on the
+ * far side. `camDist0Km` / `camDist1Km` are the camera positions' distances
+ * from Earth's centre at the two endpoints. Grow the arc swell so the
+ * path's minimum radius clears R_earth + 200 km: the camera arcs up over
+ * the limb and back down, which is how you would actually shoot it and
+ * makes the Earth's curvature legible during the move.
  *
- *   A = max(A, r_min_required / min(r0, r1) − 1)
+ *   A = max(A, r_min_required / min(camDist0, camDist1) − 1)
+ *
+ * For the common Earth-view → satellite flight, both endpoints clear
+ * comfortably and this returns 0.
  */
-export function requiredExtraSwellGain(r0Km: number, r1Km: number): number {
+export function requiredExtraSwellGain(camDist0Km: number, camDist1Km: number): number {
   const rMinRequired = R_EARTH_A_KM + FLIGHT_CLEARANCE_ALT_KM;
-  const rPathMin = Math.min(r0Km, r1Km);
+  const rPathMin = Math.min(camDist0Km, camDist1Km);
   if (rPathMin >= rMinRequired) return 0;
   return rMinRequired / rPathMin - 1;
 }
