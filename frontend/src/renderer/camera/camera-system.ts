@@ -10,7 +10,7 @@ import type { FlightEndpoint } from './flight-path.js';
 import { FlightController } from './flight-controller.js';
 import { applyImmediateArrival, buildFlightEndpoints, targetPositionAt } from './flight-setup.js';
 import { accumulateManualInput, type ManualInput } from './manual-input.js';
-import { Flight, type FlyOpts } from './flight.js';
+import { makeDeferred, type Deferred, type FlyOpts } from './flight.js';
 import { INITIAL_CAMERA_STATE, reduceCameraState, type CameraEvent, type CameraState } from './camera-state-machine.js';
 
 const DT_CLAMP_SEC = 0.1;
@@ -63,7 +63,7 @@ class CameraSystemImpl implements CameraSystem {
   private targetIndex = -1;
   private readonly preFocusDir = new Vector3(1, 0, 0);
   private preFocusRadiusKm = 42164;
-  private pendingArrival = false;
+  private pendingArrival: Deferred | null = null;
 
   constructor(
     private readonly camera: PerspectiveCamera,
@@ -155,8 +155,9 @@ class CameraSystemImpl implements CameraSystem {
   private jumpTo(): Promise<void> {
     this.flights.cancel();
     applyImmediateArrival(this.rig, this.targetRig, this.refUp, _to, this.opts.onCrossFade);
-    this.pendingArrival = true;
-    return new Flight(_from, _to, 0.001, 0).promise;
+    this.pendingArrival?.resolve(); // supersede an un-consumed jump
+    this.pendingArrival = makeDeferred();
+    return this.pendingArrival.promise;
   }
 
   update(dtSec: number, frame: FrameState): void {
@@ -164,8 +165,10 @@ class CameraSystemImpl implements CameraSystem {
     this.frameRef = frame;
 
     if (this.pendingArrival) {
-      this.pendingArrival = false;
+      const d = this.pendingArrival;
+      this.pendingArrival = null;
       this.dispatch({ type: 'flightArrived' });
+      d.resolve();
     }
 
     switch (this._state.kind) {

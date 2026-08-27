@@ -170,3 +170,74 @@ describe('CameraSystem — flyTo', () => {
     expect(minDist).toBeGreaterThan(6378 + 100); // stayed outside Earth + atmosphere
   });
 });
+
+describe('CameraSystem — object mode', () => {
+  it('keeps a moving target centred, with the horizon level (up ≈ target radial)', async () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    await runFlight(sys, sys.flyTo(0), frame, 400);
+    expect(sys.state.kind).toBe('object');
+
+    // 3 more seconds of object mode, target still moving
+    let epochMs = frame.epochMs;
+    for (let i = 0; i < 180; i++) {
+      epochMs += 1000 / 60;
+      frame.positions[1] = 7.6 * ((epochMs - 1_000_000) / 1000);
+      (frame as { epochMs: number }).epochMs = epochMs;
+      sys.update(1 / 60, frame);
+    }
+    cam.updateMatrixWorld(true);
+    const targetNow = new Vector3(7000, frame.positions[1], 0);
+    const ndc = targetNow.clone().project(cam);
+    expect(Math.hypot(ndc.x, ndc.y)).toBeLessThan(0.05);
+
+    const up = new Vector3(0, 1, 0).applyQuaternion(cam.quaternion);
+    const rHat = targetNow.clone().normalize();
+    expect(up.dot(rHat)).toBeGreaterThan(0); // Earth below, object level
+  });
+
+  it('exitToFree flies back to an Earth framing and ends in freeOrbit', async () => {
+    const cam = new PerspectiveCamera(35, 1, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    await runFlight(sys, sys.flyTo(0), frame, 400);
+    const back = sys.exitToFree();
+    for (let i = 0; i < 240; i++) sys.update(1 / 60, frame);
+    await expect(back).resolves.toBeUndefined();
+    expect(sys.state.kind).toBe('freeOrbit');
+    expect(cam.position.length()).toBeGreaterThan(6378 + 120);
+  });
+});
+
+describe('CameraSystem — reduced motion (P4.D21)', () => {
+  it('jumps to the target immediately, fires the cross-fade, never interpolates a flight', async () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    let crossFades = 0;
+    const sys = createCameraSystem(cam, { reducedMotion: true, onCrossFade: () => crossFades++ });
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    const p = sys.flyTo(0);
+    sys.update(1 / 60, frame);
+    await expect(p).resolves.toBeUndefined();
+    expect(crossFades).toBe(1);
+    expect(sys.state.kind).toBe('object');
+    cam.updateMatrixWorld(true);
+    const ndc = new Vector3(7000, 0, 0).project(cam);
+    expect(Math.hypot(ndc.x, ndc.y)).toBeLessThan(0.1); // already framing the target
+  });
+
+  it('reduced-motion Esc jumps back to freeOrbit', async () => {
+    const cam = new PerspectiveCamera(35, 1, 1, 1e6);
+    const sys = createCameraSystem(cam, { reducedMotion: true });
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    await runFlight(sys, sys.flyTo(0), frame, 4);
+    const back = sys.flyToEarth();
+    sys.update(1 / 60, frame);
+    await expect(back).resolves.toBeUndefined();
+    expect(sys.state.kind).toBe('freeOrbit');
+  });
+});
