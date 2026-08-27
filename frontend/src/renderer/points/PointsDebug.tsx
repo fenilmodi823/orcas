@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { satrecFromOmm, propagate, temeToJ2000Matrix, applyMat3 } from '@orcas/physics';
@@ -6,13 +7,18 @@ import { GlassSurface } from '../../ui/GlassSurface.js';
 import { useCatalog } from '../../data/use-catalog.js';
 import { useSimulationLoop } from '../../simulation/use-simulation-loop.js';
 import type { SimulationLoopHandle } from '../../simulation/use-simulation-loop.js';
-import { TierZeroPoints } from './TierZeroPoints.js';
+import { TierZeroPoints, type TierZeroPointsHandle } from './TierZeroPoints.js';
 import { computePointShading } from './points-shading.js';
 import { PLACEHOLDER_RADIUS_KM } from './points-attributes.js';
 import { countByOrbitClass } from './points-filters.js';
 import { FilterChip } from '../../ui/FilterChip.js';
+import { TimeDock } from '../../ui/TimeDock.js';
+import { ObjectTether, type ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { useViewStore } from '../../state/view-store.js';
+import { useSelectionStore } from '../../state/selection-store.js';
 import type { OrbitClass } from '../../state/selection-store.js';
+import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
+import { isClickNotDrag } from './points-pick-schedule.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import './PointsDebug.css';
 
@@ -144,10 +150,16 @@ export function PointsDebug() {
     );
   }
 
-  return <PointsDebugPanel objects={snapshot.objects} />;
+  return <PointsDebugPanel objects={snapshot.objects} byNorad={snapshot.byNorad} />;
 }
 
-function PointsDebugPanel({ objects }: { objects: readonly ObjectMeta[] }) {
+function PointsDebugPanel({
+  objects,
+  byNorad,
+}: {
+  objects: readonly ObjectMeta[];
+  byNorad: Readonly<Record<string, number>>;
+}) {
   const playingRef = useRef(true);
   const rateRef = useRef(1);
   const [startEpochMs] = useState(() => Date.now());
@@ -157,23 +169,94 @@ function PointsDebugPanel({ objects }: { objects: readonly ObjectMeta[] }) {
   const toggleFilter = useViewStore((state) => state.toggleFilter);
   const counts = countByOrbitClass(objects);
 
+  const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
+  const tetherRef = useRef<ObjectTetherHandle>(null);
+  const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
+  const selectedNorad = useSelectionStore((state) => state.selectedNorad);
+  const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
+  const setSelected = useSelectionStore((state) => state.setSelected);
+
+  function toCanvasPixels(event: { clientX: number; clientY: number }, canvas: HTMLCanvasElement) {
+    const rect = canvas.getBoundingClientRect();
+    return { px: event.clientX - rect.left, py: event.clientY - rect.top };
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const canvas = event.currentTarget.querySelector('canvas');
+    if (!canvas || !pointsHandleRef.current) return;
+    const { px, py } = toCanvasPixels(event, canvas);
+    pointsHandleRef.current.requestPick(px, py);
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const canvas = event.currentTarget.querySelector('canvas');
+    if (!canvas) return;
+    pointerDownRef.current = toCanvasPixels(event, canvas);
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    const canvas = event.currentTarget.querySelector('canvas');
+    const down = pointerDownRef.current;
+    if (!canvas || !down) return;
+    const up = toCanvasPixels(event, canvas);
+    pointerDownRef.current = null;
+    if (!isClickNotDrag(down.px, down.py, up.px, up.py)) return; // brief §D.5
+    setSelected(hoveredNorad);
+  }
+
+  const resolvedHovered =
+    hoveredNorad === null ? null : resolveSelectableObject(hoveredNorad, objects, byNorad, loop.frameStateRef.current);
+  const resolvedSelected =
+    selectedNorad === null
+      ? null
+      : resolveSelectableObject(selectedNorad, objects, byNorad, loop.frameStateRef.current);
+  const selectedObjectMeta = selectedNorad === null ? null : objects.find((o) => o.norad === selectedNorad) ?? null;
+
   return (
     <div className="points-debug">
-      <Canvas camera={{ position: [0, 0, CAMERA_DISTANCE_KM], near: 1, far: 500_000 }}>
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
-        <mesh>
-          <sphereGeometry args={[EARTH_RADIUS_KM, 64, 64]} />
-          <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
-        </mesh>
-        <TierZeroPoints objects={objects} frameStateRef={loop.frameStateRef} />
-        <OrbitControls
-          makeDefault
-          enableDamping={false}
-          minDistance={EARTH_RADIUS_KM * 1.05}
-          maxDistance={200_000}
+      <div
+        className="points-debug__viewport"
+        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
+        <Canvas camera={{ position: [0, 0, CAMERA_DISTANCE_KM], near: 1, far: 500_000 }}>
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
+          <mesh>
+            <sphereGeometry args={[EARTH_RADIUS_KM, 64, 64]} />
+            <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
+          </mesh>
+          <TierZeroPoints
+            objects={objects}
+            frameStateRef={loop.frameStateRef}
+            tetherRef={tetherRef}
+            pickHandleRef={pointsHandleRef}
+          />
+          <OrbitControls
+            makeDefault
+            enableDamping={false}
+            minDistance={EARTH_RADIUS_KM * 1.05}
+            maxDistance={200_000}
+          />
+        </Canvas>
+        <ObjectTether
+          ref={tetherRef}
+          name={resolvedHovered?.name ?? ''}
+          orbitClass={resolvedHovered?.orbitClass ?? 'debris'}
+          altitudeKm={resolvedHovered?.altitudeKm ?? 0}
         />
-      </Canvas>
+      </div>
+      {resolvedSelected && selectedObjectMeta && (
+        <div className="points-debug__dock">
+          <TimeDock
+            mode="object"
+            object={resolvedSelected}
+            detail={resolveObjectDetail(selectedObjectMeta)}
+            onBack={() => setSelected(null)}
+          />
+        </div>
+      )}
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
