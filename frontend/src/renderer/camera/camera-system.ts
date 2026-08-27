@@ -184,7 +184,7 @@ class CameraSystemImpl implements CameraSystem {
         break;
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
-    this._nearFar = applyNearFar(this.camera, this._state.kind === 'object', this.rig.radiusKm);
+    this._nearFar = applyNearFar(this.camera, this.rig.radiusKm);
   }
 
   private updateFreeOrbit(dt: number): void {

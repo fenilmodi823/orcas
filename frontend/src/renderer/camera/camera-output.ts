@@ -32,13 +32,13 @@ export function writeCameraFromRig(camera: PerspectiveCamera, rig: CameraRig, re
  * `nearFarKm` query. Recomputed AFTER the pose is final and BEFORE the next
  * render, per §C.7's warning about pick/render projection mismatch.
  */
-export function applyNearFar(
-  camera: PerspectiveCamera,
-  inObjectMode: boolean,
-  rigRadiusKm: number,
-): { nearKm: number; farKm: number } {
+export function applyNearFar(camera: PerspectiveCamera, rigRadiusKm: number): { nearKm: number; farKm: number } {
   const camDist = camera.position.length();
-  const nearestSurface = inObjectMode ? Math.max(0.001, rigRadiusKm) : Math.max(0.001, camDist - R_EARTH_A_KM);
+  // Nearest rendered thing: whichever is closer — the Earth surface along
+  // the view axis, or whatever the rig is orbiting (a satellite framed at
+  // ~0.45 km during a focus flight / object mode). Using only the Earth
+  // term would clip a satellite the camera is metres from.
+  const nearestSurface = Math.max(0.001, Math.min(rigRadiusKm, camDist - R_EARTH_A_KM));
   const nf = computeNearFarKm(nearestSurface, camDist);
   if (
     Math.abs(camera.near - nf.nearKm) / nf.nearKm > NEAR_FAR_EPSILON ||
