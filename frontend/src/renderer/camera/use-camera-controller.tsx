@@ -5,9 +5,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
+import { useCameraTunables } from './camera-tunables.js';
 
-const DRAG_RAD_PER_PX = 0.005;
-const WHEEL_LN_PER_UNIT = 0.001;
 const CROSSFADE_CLASS = 'points-debug__viewport--crossfade';
 
 function prefersReducedMotion(): boolean {
@@ -29,6 +28,10 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
   const { camera } = useThree();
   const sysRef = useRef<CameraSystem | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  // dev-panel tunables read via a ref so the mount-effect listeners always
+  // see the current value without re-subscribing.
+  const tunablesRef = useRef(useCameraTunables.getState());
+  useEffect(() => useCameraTunables.subscribe((s) => (tunablesRef.current = s)), []);
 
   useEffect(() => {
     const container = canvasContainerRef.current;
@@ -72,13 +75,14 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
       const dy = e.clientY - d.y;
       d.x = e.clientX;
       d.y = e.clientY;
-      sys.applyManualInput({ dAzimuthRad: -dx * DRAG_RAD_PER_PX, dElevationRad: -dy * DRAG_RAD_PER_PX, dLnRadius: 0 });
+      const k = tunablesRef.current.dragRadPerPx;
+      sys.applyManualInput({ dAzimuthRad: -dx * k, dElevationRad: -dy * k, dLnRadius: 0 });
     };
     const onPointerUp = () => {
       dragRef.current = null;
     };
     const onWheel = (e: WheelEvent) => {
-      sys.applyManualInput({ dAzimuthRad: 0, dElevationRad: 0, dLnRadius: e.deltaY * WHEEL_LN_PER_UNIT });
+      sys.applyManualInput({ dAzimuthRad: 0, dElevationRad: 0, dLnRadius: e.deltaY * tunablesRef.current.wheelLnPerUnit });
     };
 
     const el: HTMLElement | Window = container ?? window;

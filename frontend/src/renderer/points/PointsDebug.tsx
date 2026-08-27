@@ -19,6 +19,7 @@ import type { OrbitClass } from '../../state/selection-store.js';
 import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
 import { isClickNotDrag } from './points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
+import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import './PointsDebug.css';
@@ -271,6 +272,7 @@ function PointsDebugPanel({
           />
         </div>
       )}
+      <CameraDevPanel />
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
