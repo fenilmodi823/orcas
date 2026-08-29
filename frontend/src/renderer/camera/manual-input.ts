@@ -26,3 +26,22 @@ export function accumulateManualInput(targetRig: CameraRig, input: ManualInput, 
   }
   targetRig.radiusKm = Math.max(minRadiusKm, next);
 }
+
+/**
+ * Screen-space drag delta (CSS px) → one `ManualInput`.
+ *
+ * Direct manipulation, the same contract drei's `OrbitControls`, Google Earth
+ * and NASA Eyes use: **the globe follows the pointer.** Drag right and the
+ * near face travels right, which swings the camera the other way, so azimuth
+ * *decreases*. Drag down and the near face travels down, which lifts the
+ * camera over the pole, so elevation *increases* — `dyPx` is therefore NOT
+ * negated even though screen-y grows downward.
+ *
+ * Both signs are load-bearing and neither is guessable from the rig maths, so
+ * they are pinned by tests: M1.6 shipped with the vertical one inverted and
+ * 90 green camera tests said nothing, because the mapping lived inline in a
+ * DOM event handler where nothing could reach it.
+ */
+export function dragToManualInput(dxPx: number, dyPx: number, radPerPx: number): ManualInput {
+  return { dAzimuthRad: -dxPx * radPerPx, dElevationRad: dyPx * radPerPx, dLnRadius: 0 };
+}
