@@ -5,6 +5,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
+import { dragToManualInput } from './manual-input.js';
 import { useCameraTunables } from './camera-tunables.js';
 
 const CROSSFADE_CLASS = 'points-debug__viewport--crossfade';
@@ -75,8 +76,7 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
       const dy = e.clientY - d.y;
       d.x = e.clientX;
       d.y = e.clientY;
-      const k = tunablesRef.current.dragRadPerPx;
-      sys.applyManualInput({ dAzimuthRad: -dx * k, dElevationRad: -dy * k, dLnRadius: 0 });
+      sys.applyManualInput(dragToManualInput(dx, dy, tunablesRef.current.dragRadPerPx));
     };
     const onPointerUp = () => {
       dragRef.current = null;
