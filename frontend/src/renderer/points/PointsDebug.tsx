@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { MutableRefObject, PointerEvent as ReactPointerEvent } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import { satrecFromOmm, propagate, temeToJ2000Matrix, applyMat3 } from '@orcas/physics';
 import { GlassSurface } from '../../ui/GlassSurface.js';
 import { useCatalog } from '../../data/use-catalog.js';
@@ -19,14 +18,29 @@ import { useSelectionStore } from '../../state/selection-store.js';
 import type { OrbitClass } from '../../state/selection-store.js';
 import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
 import { isClickNotDrag } from './points-pick-schedule.js';
+import { useCameraController } from '../camera/use-camera-controller.js';
+import { CameraDevPanel } from '../camera/CameraDevPanel.js';
+import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import './PointsDebug.css';
 
 const EARTH_RADIUS_KM = 6371;
-// Frames the full LEO shell (~160-2,000 km altitude) plus the GEO ring
-// (~42,164 km) in view. Chosen empirically for this task; adjust and
-// note the new value here if Task 7's live check finds a better framing.
-const CAMERA_DISTANCE_KM = 60_000;
+// R_GEO — matches the camera rig's default radius so the first frame does not jump.
+const CAMERA_DISTANCE_KM = 42_164;
+
+/** Runs the real camera system inside the R3F context (needs useThree/useFrame). */
+function CameraController({
+  frameStateRef,
+  byNorad,
+  canvasContainerRef,
+}: {
+  frameStateRef: MutableRefObject<FrameState>;
+  byNorad: Readonly<Record<string, number>>;
+  canvasContainerRef: MutableRefObject<HTMLElement | null>;
+}) {
+  useCameraController({ frameStateRef, byNorad, canvasContainerRef });
+  return null;
+}
 
 const ORBIT_CLASS_LABELS: Record<OrbitClass, string> = {
   leo: 'LEO',
@@ -171,6 +185,7 @@ function PointsDebugPanel({
 
   const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
   const tetherRef = useRef<ObjectTetherHandle>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const selectedNorad = useSelectionStore((state) => state.selectedNorad);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
@@ -215,12 +230,13 @@ function PointsDebugPanel({
   return (
     <div className="points-debug">
       <div
+        ref={viewportRef}
         className="points-debug__viewport"
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <Canvas camera={{ position: [0, 0, CAMERA_DISTANCE_KM], near: 1, far: 500_000 }}>
+        <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
           <ambientLight intensity={0.4} />
           <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
           <mesh>
@@ -233,11 +249,10 @@ function PointsDebugPanel({
             tetherRef={tetherRef}
             pickHandleRef={pointsHandleRef}
           />
-          <OrbitControls
-            makeDefault
-            enableDamping={false}
-            minDistance={EARTH_RADIUS_KM * 1.05}
-            maxDistance={200_000}
+          <CameraController
+            frameStateRef={loop.frameStateRef}
+            byNorad={byNorad}
+            canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
           />
         </Canvas>
         <ObjectTether
@@ -257,6 +272,7 @@ function PointsDebugPanel({
           />
         </div>
       )}
+      <CameraDevPanel />
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>

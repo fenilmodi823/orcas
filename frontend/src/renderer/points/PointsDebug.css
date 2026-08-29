@@ -8,6 +8,12 @@
   position: relative;
   width: 100%;
   height: 100%;
+  transition: opacity 130ms ease-out;
+}
+
+/* Reduced-motion fly-to: a brief opacity dip instead of a 2 s flight (P4.D21). */
+.points-debug__viewport--crossfade {
+  opacity: 0.25;
 }
 
 .points-debug__panel {
