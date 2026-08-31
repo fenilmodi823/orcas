@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
+import { AdditiveBlending, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
@@ -18,6 +18,7 @@ import {
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
+import { readCyanToken } from '../scene-colors.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -63,11 +64,6 @@ interface TierZeroPointsProps {
 /** Reads --orca-cyan from tokens.css rather than hardcoding the hex —
  * Rules.md bans colour literals outside tokens.css; a GLSL uniform can't
  * reference a CSS variable directly, so this is the one-time bridge. */
-function readCyanToken(): Color {
-  const hex = getComputedStyle(document.documentElement).getPropertyValue('--orca-cyan').trim();
-  return new Color(hex || '#00E5FF');
-}
-
 /**
  * Tier 0 GPU point renderer (brief §B.3): one `THREE.Points`, one draw
  * call, every object in the catalogue. Positions come from M1.2's
