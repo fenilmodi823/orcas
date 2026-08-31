@@ -5,13 +5,19 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { readCyanToken } from '../scene-colors.js';
+import { useSelectionStore } from '../../state/selection-store.js';
+import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
 import { createTier1Buffer, selectTier1, TIER1_CAP } from '../lod/tier1-select.js';
 import { writeTier1Instances } from './tier1-write.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
+  /** norad → catalogue index, for resolving selection and hover. */
+  readonly byNorad: Readonly<Record<string, number>>;
   /** Written each frame so the debug panel can read membership. */
   readonly memberCountRef?: MutableRefObject<number>;
+  /** Written each frame: the size of the active set (brief §G.6). */
+  readonly activeCountRef?: MutableRefObject<number>;
 }
 
 /**
@@ -29,10 +35,22 @@ interface Props {
  * flew to". The machinery is size-driven and correct; the visual payoff
  * arrives with real per-object sizes.
  */
-export function Tier1Objects({ frameStateRef, memberCountRef }: Props): React.ReactElement {
+export function Tier1Objects({
+  frameStateRef,
+  byNorad,
+  memberCountRef,
+  activeCountRef,
+}: Props): React.ReactElement {
   const { camera, size } = useThree();
   const meshRef = useRef<InstancedMesh>(null);
   const members = useMemo(() => createTier1Buffer(), []);
+  const activeSet = useMemo(() => createActiveSetBuffer(), []);
+  // Selection and hover reach the frame loop through refs, kept current by a
+  // vanilla subscribe outside React's render cycle — the same pattern
+  // use-camera-controller.tsx uses, and the reason this component never
+  // re-renders on a selection change.
+  const selectedIndexRef = useRef(-1);
+  const hoveredIndexRef = useRef(-1);
   // Read once — the cyan token, like every other colour in the renderer.
   const tint = useMemo(() => readCyanToken(), []);
 
@@ -40,6 +58,17 @@ export function Tier1Objects({ frameStateRef, memberCountRef }: Props): React.Re
     const mesh = meshRef.current;
     if (mesh) mesh.count = 0; // nothing promoted until the first frame says so
   }, []);
+
+  useEffect(() => {
+    const resolve = (norad: string | null): number =>
+      norad === null ? -1 : byNorad[norad] ?? -1;
+    const read = (state: { selectedNorad: string | null; hoveredNorad: string | null }) => {
+      selectedIndexRef.current = resolve(state.selectedNorad);
+      hoveredIndexRef.current = resolve(state.hoveredNorad);
+    };
+    read(useSelectionStore.getState());
+    return useSelectionStore.subscribe(read);
+  }, [byNorad]);
 
   useFrame(() => {
     const mesh = meshRef.current;
@@ -69,6 +98,20 @@ export function Tier1Objects({ frameStateRef, memberCountRef }: Props): React.Re
       tint,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
+
+    // ACTIVE SET = selected ∪ hovered ∪ tier 1 (brief §G.6). Its consumers
+    // (trails, orbit paths) arrive in M1.7b; building it here now means it
+    // runs every frame under real membership rather than shipping untested.
+    const activeCount = buildActiveSet(
+      {
+        tier1: members,
+        tier1Count: memberCount,
+        selectedIndex: selectedIndexRef.current,
+        hoveredIndex: hoveredIndexRef.current,
+      },
+      activeSet,
+    );
+    if (activeCountRef) activeCountRef.current = activeCount;
   });
 
   return (

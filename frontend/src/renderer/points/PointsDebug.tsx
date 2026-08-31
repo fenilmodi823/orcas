@@ -20,6 +20,8 @@ import { resolveObjectDetail, resolveSelectableObject } from './points-selection
 import { isClickNotDrag } from './points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
+import { Tier1Objects } from '../instanced/Tier1Objects.js';
+import { Tier1Readout } from './Tier1Readout.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import './PointsDebug.css';
@@ -186,6 +188,8 @@ function PointsDebugPanel({
   const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
   const tetherRef = useRef<ObjectTetherHandle>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const tier1CountRef = useRef(0);
+  const activeCountRef = useRef(0);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const selectedNorad = useSelectionStore((state) => state.selectedNorad);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
@@ -248,6 +252,11 @@ function PointsDebugPanel({
             frameStateRef={loop.frameStateRef}
             tetherRef={tetherRef}
             pickHandleRef={pointsHandleRef}
+          />          <Tier1Objects
+            frameStateRef={loop.frameStateRef}
+            byNorad={byNorad}
+            memberCountRef={tier1CountRef}
+            activeCountRef={activeCountRef}
           />
           <CameraController
             frameStateRef={loop.frameStateRef}
@@ -275,7 +284,7 @@ function PointsDebugPanel({
       <CameraDevPanel />
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
-        <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
+        <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} />
 
         <div className="points-debug__filters">
           {ORBIT_CLASSES.map((orbitClass) => (
