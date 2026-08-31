@@ -1,6 +1,6 @@
 import { Flag } from '../../simulation/flags.js';
 import { apparentPx } from '../points/points-shading.js';
-import { LOD_BAND_PX } from './lod-band.js';
+import { LOD_BAND_PX, type LodBand } from './lod-band.js';
 
 /** Brief §B.4. Bounded cost is the entire point of the tier. */
 export const TIER1_CAP = 2000;
@@ -14,6 +14,8 @@ export interface Tier1SelectArgs {
   readonly camPosKm: { readonly x: number; readonly y: number; readonly z: number };
   readonly pixelsPerRadian: number;
   readonly radiusKm: number;
+  /** Defaults to the brief band; the dev panel overrides it live. */
+  readonly band?: LodBand;
 }
 
 /** Allocate once at mount; `selectTier1` refills it forever after. */
@@ -52,7 +54,7 @@ function countAbove(a: Tier1SelectArgs, threshold: number): number {
  */
 export function selectTier1(args: Tier1SelectArgs, out: Uint32Array): number {
   const cap = out.length;
-  let threshold = LOD_BAND_PX.loPx;
+  let threshold = (args.band ?? LOD_BAND_PX).loPx;
 
   if (countAbove(args, threshold) > cap) {
     let lo = threshold;

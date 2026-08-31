@@ -22,13 +22,17 @@ export interface LodBand {
 // tunables. Literal types would make both a type error.
 export const LOD_BAND_PX: LodBand = { loPx: 3, hiPx: 6 };
 
-/** Tier 1's alpha: 0 below the band, 1 above it, smooth across. */
-export function tier1Alpha(px: number): number {
-  return smoothstep(LOD_BAND_PX.loPx, LOD_BAND_PX.hiPx, px);
+/** Tier 1's alpha: 0 below the band, 1 above it, smooth across.
+ *
+ * `band` defaults to the brief's values and is only ever overridden by the
+ * dev panel's live sliders — the point of the parameter is that BOTH tiers
+ * take the same override, so the sum-to-one guarantee survives tuning. */
+export function tier1Alpha(px: number, band: LodBand = LOD_BAND_PX): number {
+  return smoothstep(band.loPx, band.hiPx, px);
 }
 
 /** Tier 0's alpha. Derived from `tier1Alpha`, never computed independently,
  * so the two provably sum to 1 rather than merely being tuned to. */
-export function tier0Alpha(px: number): number {
-  return 1 - tier1Alpha(px);
+export function tier0Alpha(px: number, band: LodBand = LOD_BAND_PX): number {
+  return 1 - tier1Alpha(px, band);
 }

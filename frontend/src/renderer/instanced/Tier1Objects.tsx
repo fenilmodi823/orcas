@@ -8,6 +8,8 @@ import { readCyanToken } from '../scene-colors.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
 import { createTier1Buffer, selectTier1, TIER1_CAP } from '../lod/tier1-select.js';
+import { useCameraTunables } from '../camera/camera-tunables.js';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writeTier1Instances } from './tier1-write.js';
 
 interface Props {
@@ -45,6 +47,9 @@ export function Tier1Objects({
   const meshRef = useRef<InstancedMesh>(null);
   const members = useMemo(() => createTier1Buffer(), []);
   const activeSet = useMemo(() => createActiveSetBuffer(), []);
+  // A ref, not a memo: it is mutated inside useFrame, which the React
+  // compiler rightly refuses for a memoised value.
+  const bandRef = useRef({ loPx: LOD_BAND_PX.loPx, hiPx: LOD_BAND_PX.hiPx });
   // Selection and hover reach the frame loop through refs, kept current by a
   // vanilla subscribe outside React's render cycle — the same pattern
   // use-camera-controller.tsx uses, and the reason this component never
@@ -74,7 +79,14 @@ export function Tier1Objects({
     const mesh = meshRef.current;
     if (!mesh || !(camera instanceof PerspectiveCamera)) return;
     const frame = frameStateRef.current;
-    const pixelsPerRadian = size.height / ((camera.fov * Math.PI) / 180);
+    const pixelsPerRadian = size.height / ((camera.fov * Math.PI) / 180);    // One read per frame, shared by membership and brightness — and it is
+    // the SAME store TierZeroPoints reads for its uniforms, which is what
+    // keeps the two alphas summing to one while the sliders move. Mutated
+    // in place rather than rebuilt: this runs 60 times a second.
+    const tunables = useCameraTunables.getState();
+    const band = bandRef.current;
+    band.loPx = tunables.lodLoPx;
+    band.hiPx = tunables.lodHiPx;
 
     const memberCount = selectTier1(
       {
@@ -84,6 +96,7 @@ export function Tier1Objects({
         camPosKm: camera.position,
         pixelsPerRadian,
         radiusKm: PLACEHOLDER_RADIUS_KM,
+        band,
       },
       members,
     );
@@ -96,6 +109,7 @@ export function Tier1Objects({
       camPosKm: camera.position,
       pixelsPerRadian,
       tint,
+      band,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
 

@@ -252,7 +252,8 @@ function PointsDebugPanel({
             frameStateRef={loop.frameStateRef}
             tetherRef={tetherRef}
             pickHandleRef={pointsHandleRef}
-          />          <Tier1Objects
+          />
+          <Tier1Objects
             frameStateRef={loop.frameStateRef}
             byNorad={byNorad}
             memberCountRef={tier1CountRef}
@@ -284,7 +285,8 @@ function PointsDebugPanel({
       <CameraDevPanel />
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
-        <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} />
+        <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
+        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} />
 
         <div className="points-debug__filters">
           {ORBIT_CLASSES.map((orbitClass) => (

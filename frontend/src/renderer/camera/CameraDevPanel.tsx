@@ -14,6 +14,12 @@ interface SliderSpec {
 const SLIDERS: readonly SliderSpec[] = [
   { key: 'dragRadPerPx', label: 'drag rad/px', min: 0.001, max: 0.02, step: 0.001 },
   { key: 'wheelLnPerUnit', label: 'wheel ln/unit', min: 0.0002, max: 0.004, step: 0.0002 },
+
+  // Pulled far below the brief's 3/6 px so Tier 1 can be made to engage at
+  // orbital distances: with a 10 m assumed radius, 3 px is only reached at
+  // ~4 km, which no free-orbit review ever gets near.
+  { key: 'lodLoPx', label: 'lod lo px', min: 0.005, max: 10, step: 0.005 },
+  { key: 'lodHiPx', label: 'lod hi px', min: 0.005, max: 10, step: 0.005 },
 ];
 
 /** Minimal live-tuning panel for the M1.6 subjective camera review (brief §I

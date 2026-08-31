@@ -18,6 +18,7 @@ import {
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
+import { useCameraTunables } from '../camera/camera-tunables.js';
 import { readCyanToken } from '../scene-colors.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
@@ -187,7 +188,13 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
       const verticalFovRad = (camera.fov * Math.PI) / 180;
       material.uniforms.uPixelsPerRadian.value = size.height / verticalFovRad;
     }
-    material.uniforms.uCamPos.value.copy(camera.position);
+    material.uniforms.uCamPos.value.copy(camera.position);
+    // The LOD band is a dev-panel tunable (M1.7a Task 11). Tier 1 reads the
+    // same two values from the same store in the same frame, so the two
+    // alphas keep summing to one at whatever band the reviewer dials in.
+    const band = useCameraTunables.getState();
+    material.uniforms.uLodLoPx.value = band.lodLoPx;
+    material.uniforms.uLodHiPx.value = band.lodHiPx;
 
     // Advance the pick pipeline by at most one step (brief §D.2/§D.3). The
     // GPU readback resolves on only ~1 frame in N; advanceHover holds the

@@ -3,7 +3,7 @@ import type { InstancedMesh } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { apparentPx } from '../points/points-shading.js';
-import { tier1Alpha } from '../lod/lod-band.js';
+import { LOD_BAND_PX, tier1Alpha, type LodBand } from '../lod/lod-band.js';
 import { lvlhQuaternion } from './lvlh-pose.js';
 
 /** The proxy is drawn at the same assumed extent the LOD band thresholds
@@ -22,8 +22,9 @@ export function instanceBrightness(
   distanceKm: number,
   pixelsPerRadian: number,
   radiusKm: number,
+  band: LodBand = LOD_BAND_PX,
 ): number {
-  return tier1Alpha(apparentPx(radiusKm, distanceKm, pixelsPerRadian));
+  return tier1Alpha(apparentPx(radiusKm, distanceKm, pixelsPerRadian), band);
 }
 
 const _pos = new Vector3();
@@ -40,6 +41,7 @@ export interface Tier1WriteArgs {
   readonly camPosKm: Vector3;
   readonly pixelsPerRadian: number;
   readonly tint: Color;
+  readonly band: LodBand;
 }
 
 /**
@@ -50,7 +52,7 @@ export interface Tier1WriteArgs {
  * Allocation-free: every temporary is module-scope and reused forever.
  */
 export function writeTier1Instances(args: Tier1WriteArgs): number {
-  const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, tint } = args;
+  const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, tint, band } = args;
   for (let slot = 0; slot < memberCount; slot++) {
     const i = members[slot];
     _pos.set(frame.positions[i * 3], frame.positions[i * 3 + 1], frame.positions[i * 3 + 2]);
@@ -63,6 +65,7 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
       _pos.distanceTo(camPosKm),
       pixelsPerRadian,
       PLACEHOLDER_RADIUS_KM,
+      band,
     );
     _color.copy(tint).multiplyScalar(brightness);
     mesh.setColorAt(slot, _color);
