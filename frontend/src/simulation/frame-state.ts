@@ -1,11 +1,9 @@
 import type { ObjectMeta } from '../data/catalog-types.js';
 import type { KeyframeRing } from './keyframe-ring.js';
 import { sampleSegment } from '../propagation/segment-builder.js';
+import { Flag } from './flags.js';
 
-export const enum Flag {
-  None = 0,
-  Stale = 1 << 0, // no segment covers this object at the current epoch
-}
+export { Flag };
 
 /**
  * Hot, read-every-frame state — brief §A.3 "Structure-of-arrays for hot
