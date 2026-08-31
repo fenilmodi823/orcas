@@ -12,7 +12,15 @@ import { smoothstep } from '../camera/easing.js';
  *
  * ⚠️ Never inline these numbers into a shader string or a component.
  */
-export const LOD_BAND_PX = { loPx: 3, hiPx: 6 } as const;
+export interface LodBand {
+  readonly loPx: number;
+  readonly hiPx: number;
+}
+
+// Typed `number`, not `as const` literals: consumers assign the edges into
+// mutable locals (tier1-select's bisection) and, from Task 11, into dev-panel
+// tunables. Literal types would make both a type error.
+export const LOD_BAND_PX: LodBand = { loPx: 3, hiPx: 6 };
 
 /** Tier 1's alpha: 0 below the band, 1 above it, smooth across. */
 export function tier1Alpha(px: number): number {
