@@ -6,7 +6,6 @@ import { TIER_POINT } from './points-pick-id.js';
 const PICK_FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
 
-varying float vBrightness;
 varying float vEntityId;
 
 vec4 packId(float id, float tierTag) {
