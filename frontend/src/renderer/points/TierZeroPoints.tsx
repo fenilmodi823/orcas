@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { AdditiveBlending, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
+import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
@@ -18,7 +18,7 @@ import {
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
-import { useCameraTunables } from '../camera/camera-tunables.js';
+import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
@@ -175,26 +175,7 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
     const positionAttribute = points.geometry.getAttribute('position');
     if (!positionAttribute) return;
 
-    // Zero-allocation per-frame work: flag the SAME position buffer for
-    // re-upload (M1.2 already wrote this frame's values into it), and
-    // update the two camera-dependent uniforms with cheap arithmetic.
-    positionAttribute.needsUpdate = true;
-
-    const staleAttribute = points.geometry.getAttribute('aStale');
-    if (staleAttribute) staleAttribute.needsUpdate = true;
-
-    const material = points.material as ShaderMaterial;
-    if (camera instanceof PerspectiveCamera) {
-      const verticalFovRad = (camera.fov * Math.PI) / 180;
-      material.uniforms.uPixelsPerRadian.value = size.height / verticalFovRad;
-    }
-    material.uniforms.uCamPos.value.copy(camera.position);
-    // The LOD band is a dev-panel tunable (M1.7a Task 11). Tier 1 reads the
-    // same two values from the same store in the same frame, so the two
-    // alphas keep summing to one at whatever band the reviewer dials in.
-    const band = useCameraTunables.getState();
-    material.uniforms.uLodLoPx.value = band.lodLoPx;
-    material.uniforms.uLodHiPx.value = band.lodHiPx;
+    const material = writePerFrameUniforms(points, positionAttribute, camera, size.height);
 
     // Advance the pick pipeline by at most one step (brief §D.2/§D.3). The
     // GPU readback resolves on only ~1 frame in N; advanceHover holds the
