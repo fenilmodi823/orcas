@@ -1,4 +1,17 @@
 /**
+ * Apparent angular size in screen pixels, small-angle. This is the exact
+ * expression `points-shader-core.ts` computes as `truePx` in GLSL, and
+ * the LOD band (renderer/lod/lod-band.ts) thresholds on it — so it lives
+ * in one place with two TypeScript callers rather than three copies.
+ *
+ * km for both radius and distance; `pixelsPerRadian` is viewport height
+ * divided by the vertical field of view in radians.
+ */
+export function apparentPx(radiusKm: number, distanceKm: number, pixelsPerRadian: number): number {
+  return (radiusKm * pixelsPerRadian) / Math.max(distanceKm, 1e-6);
+}
+
+/**
  * The Tier 0 apparent-size/brightness law (brief §B.3). Mirrors exactly
  * what the vertex shader in TierZeroPoints.tsx computes in GLSL — this
  * function exists so the formula is unit-testable without a GPU
@@ -16,7 +29,7 @@ export function computePointShading(
   baseBrightness: number,
   floorBrightness: number,
 ): { drawPx: number; brightness: number } {
-  const truePx = (radiusKm * pixelsPerRadian) / distanceKm;
+  const truePx = apparentPx(radiusKm, distanceKm, pixelsPerRadian);
   const drawPx = Math.max(truePx, minPointPx);
   const areaRatio = Math.min(1, (truePx * truePx) / (drawPx * drawPx));
   const brightness = Math.max(baseBrightness * areaRatio, floorBrightness);

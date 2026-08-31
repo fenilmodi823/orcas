@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computePointShading } from './points-shading.js';
+import { apparentPx, computePointShading } from './points-shading.js';
 
 describe('computePointShading', () => {
   it('draws at true apparent size when it is above the legibility floor', () => {
@@ -28,5 +28,28 @@ describe('computePointShading', () => {
   it('brightness never exceeds baseBrightness even at true size', () => {
     const { brightness } = computePointShading(10, 10, 1000, 0.5, 1, 0);
     expect(brightness).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('apparentPx', () => {
+  it('is the small-angle law the vertex shader uses: r * pxPerRad / d', () => {
+    expect(apparentPx(0.01, 100, 1188)).toBeCloseTo(0.1188, 10);
+  });
+
+  it('halves when the distance doubles', () => {
+    expect(apparentPx(0.01, 200, 1188)).toBeCloseTo(apparentPx(0.01, 100, 1188) / 2, 12);
+  });
+
+  // Guards the divide. A zero distance means the camera is inside the
+  // object; returning Infinity would propagate NaN through smoothstep.
+  it('clamps a zero or negative distance instead of dividing by it', () => {
+    expect(Number.isFinite(apparentPx(0.01, 0, 1188))).toBe(true);
+    expect(apparentPx(0.01, 0, 1188)).toBeGreaterThan(0);
+  });
+
+  it('agrees with computePointShading, which must not keep its own copy', () => {
+    const px = apparentPx(0.01, 3.96, 1188);
+    const shading = computePointShading(0.01, 3.96, 1188, 1.5, 1.0, 0.6);
+    expect(shading.drawPx).toBeCloseTo(Math.max(px, 1.5), 12);
   });
 });
