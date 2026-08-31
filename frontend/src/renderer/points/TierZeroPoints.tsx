@@ -17,6 +17,7 @@ import {
   type HoverTracking,
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -126,6 +127,8 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
         // above the floor and this value matters far less.
         uFloorBrightness: { value: 0.6 },
         uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
+        uLodLoPx: { value: LOD_BAND_PX.loPx },
+        uLodHiPx: { value: LOD_BAND_PX.hiPx },
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
         uColor: { value: readCyanToken() },

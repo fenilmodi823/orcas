@@ -1,5 +1,6 @@
 import { ShaderMaterial } from 'three';
 import { POINTS_VERTEX_SHADER } from './points-shader-core.js';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { TIER_POINT } from './points-pick-id.js';
 
 const PICK_FRAGMENT_SHADER = /* glsl */ `
@@ -33,6 +34,15 @@ void main() {
 export function createPickMaterial(): ShaderMaterial {
   return new ShaderMaterial({
     vertexShader: POINTS_VERTEX_SHADER,
+    // The shared source computes `smoothstep(uLodLoPx, uLodHiPx, truePx)`,
+    // which is undefined in GLSL when edge0 == edge1. Every other uniform in
+    // the shared shader is left at its GL default here, but leaving these two
+    // at 0 would be undefined behaviour rather than merely a zero, so the pick
+    // material reads the same band the display material does.
+    uniforms: {
+      uLodLoPx: { value: LOD_BAND_PX.loPx },
+      uLodHiPx: { value: LOD_BAND_PX.hiPx },
+    },
     fragmentShader: PICK_FRAGMENT_SHADER,
     transparent: false,
     depthWrite: true,
