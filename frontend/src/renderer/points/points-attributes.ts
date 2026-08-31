@@ -1,15 +1,7 @@
 import type { ObjectMeta } from '../../data/catalog-types.js';
+import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 
-/**
- * No per-object physical size exists in the ingested data: `OmmRecord`
- * (packages/orcas-physics/src/types.ts) carries no RCS_SIZE field at all —
- * verified by reading the CelesTrak OMM schema this codebase actually
- * ingests, not assumed. Rather than invent a per-object size (Rules.md
- * §7, "never invent numbers"), every point uses this one placeholder —
- * 10 metres, a plausible order of magnitude for a small satellite, not a
- * measurement. Real RCS ingestion is a Data-Strategy follow-up.
- */
-export const PLACEHOLDER_RADIUS_KM = 0.01;
+export { PLACEHOLDER_RADIUS_KM };
 
 /** aFlags sentinel: bit 0 set means "visible." M1.4 adds more bits later
  * without renaming this attribute. */

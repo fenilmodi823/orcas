@@ -1,12 +1,11 @@
 import { Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
+import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { framingDistanceKm } from './framing.js';
 import type { FlightEndpoint } from './flight-path.js';
 import type { CameraRig } from './camera-rig.js';
 import { deriveAzElRadius, rigCameraPosition, syncTargetAngles } from './camera-rig.js';
 import { ECI_UP } from './look-rotation.js';
-
-const TARGET_EXTENTS_RADIUS_KM = 0.01; // PLACEHOLDER_RADIUS_KM — real per-object sizes are a Data-Strategy follow-up
 
 /**
  * Linear extrapolation of a catalogue object's position to an arbitrary
@@ -73,7 +72,7 @@ export function buildFlightEndpoints(args: {
   targetPositionAt(args.frame, args.targetIndex, args.frame.epochMs, _tp);
   to.pivotKm.copy(_tp);
   to.dir.copy(from.dir); // approach from where you are
-  to.radiusKm = framingDistanceKm(TARGET_EXTENTS_RADIUS_KM, rig.fovDeg, args.framingScale);
+  to.radiusKm = framingDistanceKm(PLACEHOLDER_RADIUS_KM, rig.fovDeg, args.framingScale);
   to.refUp.copy(_tp).normalize();
   return { camDist0Km: _pos.length(), camDist1Km: _tp.length() };
 }
