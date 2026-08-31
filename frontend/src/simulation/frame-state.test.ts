@@ -40,6 +40,23 @@ describe('evaluateFrame', () => {
     expect(a.flags).toEqual(b.flags);
   });
 
+  // The enum's value changed in M1.7a (1 << 0 -> 1 << 2). A test that only
+  // checks the constants would not catch evaluateFrame writing one bit while
+  // a consumer reads another, so pin the round trip through the real path.
+  it('still flags an uncovered object Stale after the M1.7a renumbering', () => {
+    // `Flag` is a const enum, so an assertion against `Flag.Stale` is inlined
+    // at compile time and would pass whatever the bit is. Assert the literal.
+    const result = evaluateFrame(createFrameState(objects.length), createEmptyRing(), objects, T0_MS);
+    expect(result.flags[0]).toBe(4); // 1 << 2, the brief's bit — not 1
+  });
+
+  it('clears Stale when a segment does cover the epoch', async () => {
+    const ring = await buildTestRing();
+    const frameState = createFrameState(objects.length);
+    const result = evaluateFrame(frameState, ring, objects, T0_MS);
+    expect(result.flags[0] & Flag.Stale).toBe(0);
+  });
+
   it('flags an object Stale, never NaN, when no segment covers it yet', async () => {
     const frameState = createFrameState(objects.length);
     evaluateFrame(frameState, createEmptyRing(), objects, T0_MS);

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { AdditiveBlending, Color, PerspectiveCamera, ShaderMaterial, Vector3, type Points } from 'three';
+import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
 import type { ObjectMeta } from '../../data/catalog-types.js';
@@ -17,6 +17,9 @@ import {
   type HoverTracking,
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
+import { writePerFrameUniforms } from './points-frame-uniforms.js';
+import { readCyanToken } from '../scene-colors.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -62,11 +65,6 @@ interface TierZeroPointsProps {
 /** Reads --orca-cyan from tokens.css rather than hardcoding the hex —
  * Rules.md bans colour literals outside tokens.css; a GLSL uniform can't
  * reference a CSS variable directly, so this is the one-time bridge. */
-function readCyanToken(): Color {
-  const hex = getComputedStyle(document.documentElement).getPropertyValue('--orca-cyan').trim();
-  return new Color(hex || '#00E5FF');
-}
-
 /**
  * Tier 0 GPU point renderer (brief §B.3): one `THREE.Points`, one draw
  * call, every object in the catalogue. Positions come from M1.2's
@@ -126,6 +124,8 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
         // above the floor and this value matters far less.
         uFloorBrightness: { value: 0.6 },
         uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
+        uLodLoPx: { value: LOD_BAND_PX.loPx },
+        uLodHiPx: { value: LOD_BAND_PX.hiPx },
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
         uColor: { value: readCyanToken() },
@@ -175,20 +175,7 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
     const positionAttribute = points.geometry.getAttribute('position');
     if (!positionAttribute) return;
 
-    // Zero-allocation per-frame work: flag the SAME position buffer for
-    // re-upload (M1.2 already wrote this frame's values into it), and
-    // update the two camera-dependent uniforms with cheap arithmetic.
-    positionAttribute.needsUpdate = true;
-
-    const staleAttribute = points.geometry.getAttribute('aStale');
-    if (staleAttribute) staleAttribute.needsUpdate = true;
-
-    const material = points.material as ShaderMaterial;
-    if (camera instanceof PerspectiveCamera) {
-      const verticalFovRad = (camera.fov * Math.PI) / 180;
-      material.uniforms.uPixelsPerRadian.value = size.height / verticalFovRad;
-    }
-    material.uniforms.uCamPos.value.copy(camera.position);
+    const material = writePerFrameUniforms(points, positionAttribute, camera, size.height);
 
     // Advance the pick pipeline by at most one step (brief §D.2/§D.3). The
     // GPU readback resolves on only ~1 frame in N; advanceHover holds the

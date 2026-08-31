@@ -5,6 +5,7 @@ import { createRig, dampRigAngles, deriveAzElRadius, syncTargetAngles, type Came
 import { ECI_UP, refUpForFreeOrbit, refUpForObjectLvlh } from './look-rotation.js';
 import { clampFreeOrbitRadiusKm, R_EARTH_A_KM } from './collision.js';
 import { applyNearFar, projectToScreen, writeCameraFromRig } from './camera-output.js';
+import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { CancelledError } from './errors.js';
 import type { FlightEndpoint } from './flight-path.js';
 import { FlightController } from './flight-controller.js';
@@ -19,8 +20,7 @@ const RADIUS_HL = 0.13;
 const ROLL_HL = 0.25;
 const EXIT_DURATION_SEC = 1.2;
 const FREE_ORBIT_MIN_RADIUS_KM = R_EARTH_A_KM + 120;
-const TARGET_EXTENTS_RADIUS_KM = 0.01; // PLACEHOLDER_RADIUS_KM — real per-object sizes are a Data-Strategy follow-up
-const OBJECT_MIN_RADIUS_KM = TARGET_EXTENTS_RADIUS_KM * 1.8;
+const OBJECT_MIN_RADIUS_KM = PLACEHOLDER_RADIUS_KM * 1.8;
 
 export { CancelledError };
 export type { FlyOpts, ManualInput };

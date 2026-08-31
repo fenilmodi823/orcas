@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
 
 /**
  * The camera constants most likely to need a subjective tweak, exposed
@@ -11,11 +12,17 @@ import { create } from 'zustand';
 export interface CameraTunables {
   dragRadPerPx: number;
   wheelLnPerUnit: number;
+  lodLoPx: number;
+  lodHiPx: number;
 }
 
 export const CAMERA_TUNABLE_DEFAULTS: CameraTunables = {
   dragRadPerPx: 0.005,
   wheelLnPerUnit: 0.001,
+  // Referenced, never restated: a second copy of 3 and 6 is exactly the
+  // drift brief §F.7 warns about.
+  lodLoPx: LOD_BAND_PX.loPx,
+  lodHiPx: LOD_BAND_PX.hiPx,
 };
 
 interface Store extends CameraTunables {

@@ -28,6 +28,8 @@ uniform float uDpr;
 uniform float uBaseBrightness;
 uniform float uFloorBrightness;
 uniform float uDimFactor;
+uniform float uLodLoPx;
+uniform float uLodHiPx;
 uniform float uFocusActive;
 uniform float uSelectedEntityId;
 uniform vec3 uCamPos;
@@ -79,6 +81,11 @@ void main() {
   //    (both sides are small whole numbers with no accumulated error).
   float isSelected = step(abs(aEntityId - uSelectedEntityId), 0.5);
   brightness *= mix(1.0, mix(uDimFactor, 1.0, isSelected), uFocusActive);
+  // 4. Tier 0 / Tier 1 cross-fade (brief §B.6). Tier 1 uses the SAME band
+  //    via lod-band.ts's tier1Alpha, so the two alphas sum to 1 and the eye
+  //    sees no event at the crossover. The band arrives as uniforms exactly
+  //    so it cannot drift from the TypeScript side (§F.7).
+  brightness *= 1.0 - smoothstep(uLodLoPx, uLodHiPx, truePx);
 
   vBrightness = brightness;
   gl_Position = projectionMatrix * mvPosition;

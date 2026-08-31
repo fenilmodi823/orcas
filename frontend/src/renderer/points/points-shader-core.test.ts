@@ -18,3 +18,21 @@ describe('PICK_LAYER', () => {
     expect(PICK_LAYER).toBeGreaterThan(0);
   });
 });
+
+describe('Tier 0 cross-fade', () => {
+  it('declares the band uniforms', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('uniform float uLodLoPx;');
+    expect(POINTS_VERTEX_SHADER).toContain('uniform float uLodHiPx;');
+  });
+
+  it('fades brightness out across the band using truePx', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('1.0 - smoothstep(uLodLoPx, uLodHiPx, truePx)');
+  });
+
+  // Brief §F.7: the constants must reach the shader as uniforms. A literal
+  // 3.0 or 6.0 in the GLSL is exactly the drift this milestone prevents.
+  it('never hard-codes the band values into the shader source', () => {
+    expect(POINTS_VERTEX_SHADER).not.toContain('smoothstep(3.0');
+    expect(POINTS_VERTEX_SHADER).not.toContain('smoothstep(6.0');
+  });
+});
