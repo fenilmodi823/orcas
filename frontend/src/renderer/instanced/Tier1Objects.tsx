@@ -11,6 +11,7 @@ import { createTier1Buffer, selectTier1, TIER1_CAP } from '../lod/tier1-select.j
 import { useCameraTunables } from '../camera/camera-tunables.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writeTier1Instances } from './tier1-write.js';
+import { createSatelliteProxyGeometry } from './satellite-proxy.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -24,8 +25,10 @@ interface Props {
 
 /**
  * Tier 1 (brief §B.4): objects large enough on screen that a point sprite
- * reads as a dot rather than an object are drawn as low-poly octahedra,
- * nadir-aligned, cross-faded against Tier 0 across a shared band.
+ * reads as a dot rather than an object are drawn as a low-poly satellite
+ * silhouette, nadir-aligned, cross-faded against Tier 0 across a shared
+ * band. The silhouette is generic and says nothing about any particular
+ * object — see satellite-proxy.ts.
  *
  * A raw InstancedMesh, not drei's <Instances> — §6.1 notes <Instances>
  * needs one React element per instance, and our cap is 2,000 against a
@@ -58,6 +61,8 @@ export function Tier1Objects({
   const hoveredIndexRef = useRef(-1);
   // Read once — the cyan token, like every other colour in the renderer.
   const tint = useMemo(() => readCyanToken(), []);
+  const geometry = useMemo(() => createSatelliteProxyGeometry(), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   useEffect(() => {
     const mesh = meshRef.current;
@@ -79,7 +84,8 @@ export function Tier1Objects({
     const mesh = meshRef.current;
     if (!mesh || !(camera instanceof PerspectiveCamera)) return;
     const frame = frameStateRef.current;
-    const pixelsPerRadian = size.height / ((camera.fov * Math.PI) / 180);    // One read per frame, shared by membership and brightness — and it is
+    const pixelsPerRadian = size.height / ((camera.fov * Math.PI) / 180);
+    // One read per frame, shared by membership and brightness — and it is
     // the SAME store TierZeroPoints reads for its uniforms, which is what
     // keeps the two alphas summing to one while the sliders move. Mutated
     // in place rather than rebuilt: this runs 60 times a second.
@@ -129,8 +135,7 @@ export function Tier1Objects({
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, TIER1_CAP]} frustumCulled={false}>
-      <octahedronGeometry args={[1, 0]} />
+    <instancedMesh ref={meshRef} args={[geometry, undefined, TIER1_CAP]} frustumCulled={false}>
       <meshStandardMaterial roughness={0.6} />
     </instancedMesh>
   );

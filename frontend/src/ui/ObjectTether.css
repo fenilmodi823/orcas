@@ -49,3 +49,14 @@
   /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
   color: var(--text-mid);
 }
+
+/* The selected chip sits under the hover chip in the stack and reads
+   quieter — it is a persistent label on the focus target, not a pointer
+   response. Its job is to be findable during a fly-to, not to shout. */
+.object-tether[data-selected] {
+  z-index: 11;
+}
+
+.object-tether[data-selected] .object-tether__chip {
+  opacity: 0.78;
+}

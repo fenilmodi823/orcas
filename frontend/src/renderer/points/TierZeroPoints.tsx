@@ -17,6 +17,7 @@ import {
   type HoverTracking,
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { writeTetherPosition } from './points-tether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
@@ -49,6 +50,9 @@ interface TierZeroPointsProps {
   readonly objects: readonly ObjectMeta[];
   readonly frameStateRef: MutableRefObject<FrameState>;
   readonly tetherRef: MutableRefObject<ObjectTetherHandle | null>;
+  /** The persistent chip on the selected object — optional so other hosts of
+   * this component need not adopt it. */
+  readonly selectedTetherRef?: MutableRefObject<ObjectTetherHandle | null>;
   /**
    * A plain ref passed as a prop, assigned imperatively — NOT React's
    * `ref`/`forwardRef`/`useImperativeHandle`. Verified live: `forwardRef`
@@ -78,7 +82,13 @@ interface TierZeroPointsProps {
  * imperative-mutation-via-ref pattern `Satellites.tsx` and
  * `use-simulation-loop.ts` already use elsewhere in this codebase.
  */
-export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRef }: TierZeroPointsProps) {
+export function TierZeroPoints({
+  objects,
+  frameStateRef,
+  tetherRef,
+  selectedTetherRef,
+  pickHandleRef,
+}: TierZeroPointsProps) {
   const pointsRef = useRef<Points>(null);
   const { size, camera } = useThree();
   const pick = usePointsPicking(pointsRef);
@@ -202,33 +212,25 @@ export function TierZeroPoints({ objects, frameStateRef, tetherRef, pickHandleRe
     material.uniforms.uSelectedEntityId.value = selectedIndex;
     material.uniforms.uFocusActive.value = selectedNorad === null ? 0.0 : 1.0;
 
-    // Hover tether: project the hovered object's LIVE position to screen
-    // space every frame, direct imperative DOM write — never React state
-    // (brief §D.6, Rules.md "React state updated every frame"). Behind
-    // the camera (z > 1 in NDC) hides it, matching the brief's
-    // CameraSystem.projectToScreen contract, reproduced inline here since
-    // M1.6 (camera) doesn't exist yet.
+    // Two tethers, one shared projection (brief §D.6: at most one for
+    // `selected`, one for `hover`). The SELECTED one is what makes a
+    // fly-to legible — without it the target is a 1.5 px dot for most of
+    // the flight and the M1.7a review reported not being able to see what
+    // it was flying to at all.
+    const positions = frameStateRef.current.positions;
     const hoverIndex = hoveredNorad === null ? -1 : objects.findIndex((o) => o.norad === hoveredNorad);
-    const tether = tetherRef.current;
-    if (tether) {
-      if (hoverIndex === -1) {
-        tether.setVisible(false);
-      } else {
-        const positions = frameStateRef.current.positions;
-        projectedRef.current
-          .set(positions[hoverIndex * 3], positions[hoverIndex * 3 + 1], positions[hoverIndex * 3 + 2])
-          .project(camera);
-        if (projectedRef.current.z > 1) {
-          tether.setVisible(false);
-        } else {
-          tether.setPosition(
-            (projectedRef.current.x * 0.5 + 0.5) * size.width,
-            (1 - (projectedRef.current.y * 0.5 + 0.5)) * size.height,
-          );
-          tether.setVisible(true);
-        }
-      }
-    }
+    writeTetherPosition(tetherRef.current, hoverIndex, positions, camera, size.width, size.height, projectedRef.current);
+    writeTetherPosition(
+      selectedTetherRef?.current ?? null,
+      // Hide the selected tether while the same object is hovered — two
+      // chips stacked on one dot reads as a rendering fault.
+      selectedIndex === hoverIndex ? -1 : selectedIndex,
+      positions,
+      camera,
+      size.width,
+      size.height,
+      projectedRef.current,
+    );
   });
 
   // frustumCulled disabled: three.js would need to recompute the geometry's

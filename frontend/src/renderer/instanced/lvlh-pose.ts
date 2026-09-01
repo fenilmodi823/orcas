@@ -1,7 +1,7 @@
 import { Quaternion, Vector3 } from 'three';
 import { refUpForObjectLvlh } from '../camera/look-rotation.js';
 
-const LONG_AXIS = new Vector3(0, 1, 0); // the octahedron's local long axis
+const LONG_AXIS = new Vector3(0, 1, 0); // the proxy's local nadir axis — see satellite-proxy.ts
 const _radial = new Vector3();
 const _nadir = new Vector3();
 

@@ -19,6 +19,10 @@ export interface ObjectTetherProps {
   name: string;
   orbitClass: OrbitClass;
   altitudeKm: number;
+  /** The persistent chip on the SELECTED object, as opposed to the
+   * transient hover one. Styled quieter so it labels the target during a
+   * fly-to without competing with the hover chip (brief §D.6). */
+  selected?: boolean;
 }
 
 /**
@@ -28,7 +32,7 @@ export interface ObjectTetherProps {
  * (Design.md §6; Rules.md "React state updated every frame").
  */
 export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(function ObjectTether(
-  { name, orbitClass, altitudeKm },
+  { name, orbitClass, altitudeKm, selected = false },
   forwardedRef,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -47,7 +51,7 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
   }));
 
   return (
-    <div ref={rootRef} className="object-tether" style={{ opacity: 0 }}>
+    <div ref={rootRef} className="object-tether" data-selected={selected ? '' : undefined} style={{ opacity: 0 }}>
       <span className="object-tether__lead" aria-hidden />
       <div className="object-tether__chip">
         <span className="object-tether__dot" style={{ background: ORBIT_CLASS_VAR[orbitClass] }} aria-hidden />
