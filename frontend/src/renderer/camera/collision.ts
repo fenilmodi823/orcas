@@ -5,7 +5,8 @@ export const R_EARTH_B_KM = 6356.752;
 
 const FREE_ORBIT_MIN_ALT_KM = 120; // atmosphere shell inner boundary / near-plane clipping
 const FLIGHT_CLEARANCE_ALT_KM = 200;
-const SOFT_REPULSION_BAND_KM = 300;
+const SOFT_REPULSION_BAND_CAP_KM = 300;
+const SOFT_REPULSION_BAND_RATIO = 2;
 
 /** Layer 1 (brief §C.8): in freeOrbit, radius ≥ R_earth + 120 km. */
 export function clampFreeOrbitRadiusKm(radiusKm: number): number {
@@ -47,17 +48,29 @@ export function requiredExtraSwellGain(camDist0Km: number, camDist1Km: number): 
 
 /**
  * Soft repulsion for manual zoom (brief §C.8): rather than hard-clamping
- * `radius` when the user drags toward the surface (which feels like hitting
- * a wall), scale the zoom-in delta down as it enters the last 300 km. The
+ * `radius` when the user drags toward a surface (which feels like hitting
+ * a wall), scale the zoom-in delta down as it enters the last stretch. The
  * user feels the camera getting heavy. Returns 0..1 — multiply the
  * intended inward radius change by it.
  *
+ * ⭐ The band is a RATIO of the floor, not a fixed distance, because the
+ * same function serves two floors nine orders of magnitude apart: Earth's
+ * 6,498 km and an object's 18 m. A flat 300 km band is ~5% of the Earth
+ * floor (right) but ~17,000× the object floor (catastrophic) — it made
+ * every zoom-in inside 300 km of a satellite crawl to a standstill, so
+ * once you zoomed out you could never get back. Capped so Earth keeps the
+ * 300 km approach the M1.6 review signed off on.
+ *
+ * A ratio is also what the rest of the camera already does: zoom damps in
+ * log space (`dampRigAngles`) and accumulates as `exp(dLnRadius)`.
+ *
  * The brief's `1/(r − r_min)` is the sharper alternative; a bounded ramp is
- * gentler and cannot blow up. Tune in Task 15.
+ * gentler and cannot blow up.
  */
 export function softRepulsionScale(radiusKm: number, rMinKm: number): number {
+  const band = Math.min(SOFT_REPULSION_BAND_CAP_KM, rMinKm * SOFT_REPULSION_BAND_RATIO);
   const over = radiusKm - rMinKm;
-  if (over >= SOFT_REPULSION_BAND_KM) return 1;
+  if (over >= band) return 1;
   if (over <= 0) return 0;
-  return over / SOFT_REPULSION_BAND_KM;
+  return over / band;
 }

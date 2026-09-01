@@ -43,13 +43,32 @@ describe('requiredExtraSwellGain — low-to-low arc lift', () => {
   });
 });
 
+// Tested against the two floors that actually ship — freeOrbit's
+// R_earth + 120 km and object mode's 1.8 x the 10 m proxy radius — not a
+// degenerate rMin of 0. The M1.7a review's defect (c) lived exactly in the
+// gap between those two scales: a flat band sized for Earth froze zoom-in
+// near an object, and a test at rMin = 0 could not see it.
+const FREE_ORBIT_FLOOR_KM = R_EARTH_A_KM + 120;
+const OBJECT_FLOOR_KM = 0.018;
+
 describe('softRepulsionScale', () => {
-  it('is 1 (no resistance) more than 300 km above the floor', () => {
-    expect(softRepulsionScale(1000, 0)).toBe(1);
+  it('leaves the Earth approach exactly as M1.6 tuned it — 300 km, ramping to 0', () => {
+    expect(softRepulsionScale(FREE_ORBIT_FLOOR_KM + 300, FREE_ORBIT_FLOOR_KM)).toBe(1);
+    expect(softRepulsionScale(FREE_ORBIT_FLOOR_KM + 150, FREE_ORBIT_FLOOR_KM)).toBeCloseTo(0.5, 6);
+    expect(softRepulsionScale(FREE_ORBIT_FLOOR_KM, FREE_ORBIT_FLOOR_KM)).toBe(0);
   });
 
-  it('ramps to 0 as radius approaches the floor', () => {
-    expect(softRepulsionScale(150, 0)).toBeCloseTo(0.5, 6);
-    expect(softRepulsionScale(0, 0)).toBe(0);
+  it('does not resist zoom-in a kilometre from an object', () => {
+    expect(softRepulsionScale(1, OBJECT_FLOOR_KM)).toBe(1);
+  });
+
+  it('still ramps to 0 at the object floor itself', () => {
+    const band = OBJECT_FLOOR_KM * 2;
+    expect(softRepulsionScale(OBJECT_FLOOR_KM + band / 2, OBJECT_FLOOR_KM)).toBeCloseTo(0.5, 6);
+    expect(softRepulsionScale(OBJECT_FLOOR_KM, OBJECT_FLOOR_KM)).toBe(0);
+  });
+
+  it('never resists at the object-mode framing distance a fly-to arrives at', () => {
+    expect(softRepulsionScale(0.0825, OBJECT_FLOOR_KM)).toBe(1);
   });
 });
