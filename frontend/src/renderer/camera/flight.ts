@@ -63,6 +63,13 @@ export class Flight {
     return clamp(this.elapsed / this.durationSec, 0, 1);
   }
 
+  /** Seconds left before arrival. This is the flight's OWN clock, and it is
+   * what the pivot retarget must lead the target by — see
+   * FlightController.tick. */
+  get remainingSec(): number {
+    return Math.max(0, this.durationSec - this.elapsed);
+  }
+
   /** `approachBlend` is passed per tick, not captured at construction, so
    * the dev panel can reshape a flight that is already in the air. */
   sample(

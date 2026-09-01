@@ -1,3 +1,19 @@
+/**
+ * ⚠️ CURRENTLY UNUSED BY PRODUCT CODE, retained deliberately (2026-09-01).
+ *
+ * FlightController used to call this every tick to re-solve the arrival
+ * time. That was wrong for an in-flight retarget: the duration function it
+ * iterates is floored at DUR_MIN, so the solved arrival never came closer
+ * than ~1.2 s, which parked the camera ~9 km from a LEO target for the whole
+ * flight and produced the "object appears out of nowhere" pop. An active
+ * flight already knows its arrival time; it does not need solving.
+ *
+ * Kept, with its tests, because the fixed point IS the right tool for the
+ * question it was written for — "how long will a flight to a moving target
+ * take, given that the answer changes where it ends?" — which M1.7b/M1.9's
+ * followOrbit mode will ask when choosing a duration up front. Delete it at
+ * a phase boundary if that never materialises.
+ */
 import { Vector3 } from 'three';
 
 const PICARD_ITERATIONS = 3;

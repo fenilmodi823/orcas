@@ -35,6 +35,12 @@ export interface CameraSystem {
   /** Live distance from the pivot, km. Read by the dev panel: tuning the
    * flight curve is impossible without seeing the number it shapes. */
   readonly radiusKm: number;
+  /** Live distance from the camera to the TARGET OBJECT, km — which is
+   * NOT `radiusKm` during a flight. The pivot leads the object by the
+   * predictive retarget (§C.10), so the camera can be metres from the
+   * rendezvous point while the object is still kilometres away. This is
+   * the distance that decides whether anything is visible on screen. */
+  readonly targetDistanceKm: number;
   /** Where the flight's radius curve sits between geometric and
    * reciprocal — flight-path.ts's `blendRadiusKm`. Settable mid-flight so
    * the dev panel can retune a move that is already playing. */
@@ -64,6 +70,7 @@ class CameraSystemImpl implements CameraSystem {
   private readonly prevUp = new Vector3().copy(ECI_UP);
   private readonly refUp = new Vector3().copy(ECI_UP);
   private _nearFar = { nearKm: 1, farKm: 1e6 };
+  private _targetDistanceKm = 0;
   private frameRef!: FrameState;
 
   private readonly flights = new FlightController();
@@ -85,6 +92,10 @@ class CameraSystemImpl implements CameraSystem {
 
   get radiusKm(): number {
     return this.rig.radiusKm;
+  }
+
+  get targetDistanceKm(): number {
+    return this._targetDistanceKm;
   }
 
   get approachBlend(): number {
@@ -207,6 +218,14 @@ class CameraSystemImpl implements CameraSystem {
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
     this._nearFar = applyNearFar(this.camera, this.rig.radiusKm);
+    // Measured AFTER the pose is final, against the object's position NOW
+    // rather than the pivot the flight is aiming at.
+    if (this.targetIndex >= 0) {
+      targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp);
+      this._targetDistanceKm = this.camera.position.distanceTo(_tp);
+    } else {
+      this._targetDistanceKm = 0;
+    }
   }
 
   private updateFreeOrbit(dt: number): void {
@@ -219,7 +238,7 @@ class CameraSystemImpl implements CameraSystem {
   }
 
   private updateFlight(dt: number): void {
-    const tick = this.flights.tick(dt, this.camera.position, this.frameRef.epochMs, (t, o) =>
+    const tick = this.flights.tick(dt, this.frameRef.epochMs, (t, o) =>
       targetPositionAt(this.frameRef, this.targetIndex, t, o),
     );
     if (!tick) return;

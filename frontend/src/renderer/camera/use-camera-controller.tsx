@@ -22,6 +22,9 @@ interface Args {
   /** Written every frame for the dev panel's readout. A ref, not state —
    * this is the per-frame path. */
   readonly radiusKmRef?: MutableRefObject<number>;
+  /** Camera-to-object distance, which is what actually decides whether
+   * anything is on screen. See CameraSystem.targetDistanceKm. */
+  readonly targetDistanceKmRef?: MutableRefObject<number>;
 }
 
 /**
@@ -29,7 +32,13 @@ interface Args {
  * pointer, the selection store and Esc. The system itself is headless — this
  * hook is the only place it touches React / the DOM (brief §C.13, §D.5).
  */
-export function useCameraController({ frameStateRef, byNorad, canvasContainerRef, radiusKmRef }: Args): void {
+export function useCameraController({
+  frameStateRef,
+  byNorad,
+  canvasContainerRef,
+  radiusKmRef,
+  targetDistanceKmRef,
+}: Args): void {
   const { camera } = useThree();
   const sysRef = useRef<CameraSystem | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -134,5 +143,6 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
     const kind = sys.state.kind;
     useCameraStatus.getState().setFlying(kind === 'focusFlight' || kind === 'exit');
     if (radiusKmRef) radiusKmRef.current = sys.radiusKm;
+    if (targetDistanceKmRef) targetDistanceKmRef.current = sys.targetDistanceKm;
   });
 }

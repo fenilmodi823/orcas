@@ -1,5 +1,4 @@
 import { Vector3 } from 'three';
-import { smoothDamp } from './easing.js';
 import {
   angleBetweenDirs,
   APPROACH_BLEND,
@@ -8,10 +7,7 @@ import {
   type FlightSample,
 } from './flight-path.js';
 import { requiredExtraSwellGain } from './collision.js';
-import { solveArrivalTimeMs } from './predictive-arrival.js';
 import { Flight } from './flight.js';
-
-const PIVOT_TRACK_SMOOTHTIME_SEC = 0.18;
 
 export interface FlightBegin {
   readonly from: FlightEndpoint;
@@ -54,7 +50,6 @@ export class FlightController {
     refUp: new Vector3(),
   };
   private readonly pivotEstimate = new Vector3();
-  private readonly pivotVel = { x: { value: 0 }, y: { value: 0 }, z: { value: 0 } };
   private readonly _retargetPos = new Vector3();
 
   get flight(): Flight | null {
@@ -71,7 +66,6 @@ export class FlightController {
     this.thetaRad = angleBetweenDirs(this.from.dir, this.to.dir);
     this.elapsed = 0;
     this.pivotEstimate.copy(this.to.pivotKm);
-    this.pivotVel.x.value = this.pivotVel.y.value = this.pivotVel.z.value = 0;
 
     const dur =
       input.durationSec ?? flightDurationSec(this.from.radiusKm, this.to.radiusKm, this.thetaRad);
@@ -86,13 +80,11 @@ export class FlightController {
 
   /**
    * Advance the flight by `dt`. `targetPositionAt` evaluates the target at
-   * an arbitrary future epoch (linear extrapolation from FrameState). Pass
-   * a camera position for the arrival-time fixed point. Returns null if no
-   * flight is active.
+   * an arbitrary future epoch (linear extrapolation from FrameState).
+   * Returns null if no flight is active.
    */
   tick(
     dt: number,
-    camPosKm: Vector3,
     frameEpochMs: number,
     targetPositionAt: (epochMs: number, out: Vector3) => Vector3,
   ): FlightTick | null {
@@ -101,12 +93,49 @@ export class FlightController {
     this.elapsed += dt;
 
     if (this.targetIndex >= 0) {
-      const durFn = (distKm: number) => flightDurationSec(distKm, this.to.radiusKm, this.thetaRad);
-      const tArriveMs = solveArrivalTimeMs(camPosKm, targetPositionAt, frameEpochMs, durFn);
-      targetPositionAt(tArriveMs, this._retargetPos);
-      this.pivotEstimate.x = smoothDamp(this.pivotEstimate.x, this._retargetPos.x, this.pivotVel.x, PIVOT_TRACK_SMOOTHTIME_SEC, dt);
-      this.pivotEstimate.y = smoothDamp(this.pivotEstimate.y, this._retargetPos.y, this.pivotVel.y, PIVOT_TRACK_SMOOTHTIME_SEC, dt);
-      this.pivotEstimate.z = smoothDamp(this.pivotEstimate.z, this._retargetPos.z, this.pivotVel.z, PIVOT_TRACK_SMOOTHTIME_SEC, dt);
+      // ⭐ Lead the target by the flight's OWN REMAINING TIME.
+      //
+      // This used to re-solve the arrival time from scratch every tick with
+      // `solveArrivalTimeMs`, whose duration function is floored at
+      // DUR_MIN = 1.2 s. That floor never expires, so the aim point stayed a
+      // fixed ~1.2 s ahead of the object for the whole flight — and at
+      // 7.66 km/s that is ~9 km. Measured on /points: the camera sat 7.85 km
+      // from the satellite for 1.7 seconds (1.5 px, invisible), then snapped
+      // to 82 m the instant the state machine reached `object` mode and the
+      // pivot became the object's real position. That snap WAS the "appears
+      // out of nowhere".
+      //
+      // Once a flight is in the air its arrival time is not a fixed point to
+      // solve — it is known. `remainingSec` goes to zero, so the aim point
+      // converges onto the object exactly at arrival and the camera closes
+      // on it smoothly the whole way in.
+      // Aim at where the object IS, and copy it directly.
+      //
+      // Both halves are measured, not assumed, and both were wrong before:
+      //
+      // 1. It used to aim where the object WILL BE, via `solveArrivalTimeMs`
+      //    whose duration is floored at DUR_MIN = 1.2 s. That floor never
+      //    expires, so the aim point stayed ~1.2 s x 7.66 km/s = ~9 km ahead
+      //    for the whole flight. Measured: the camera sat 7.85 km from the
+      //    satellite (1.5 px, invisible) for 1.7 s, then snapped to 82 m when
+      //    object mode took over. That snap WAS "it appears out of nowhere".
+      //    Leading by the flight's own remaining time fixed the snap but left
+      //    the closing LINEAR in time, because the lead itself is v x t.
+      //
+      // 2. smoothDamp toward a target moving at constant velocity carries a
+      //    steady-state offset of roughly smoothTime x speed. At 0.18 s and
+      //    7.66 km/s that is 1.38 km — measured as a 1.35 km plateau holding
+      //    for 1.5 s, then a 16x jump in one frame at handover.
+      //
+      // With a direct copy of the live position the camera sits exactly
+      // `radius(u)` from the object for the whole focused part of the flight,
+      // so apparent size follows blendRadiusKm — the curve that is actually
+      // tuned for this — instead of being set by a tracking artefact. The
+      // position comes from a deterministic propagator, not a noisy sensor,
+      // so there is no jitter for the damping to earn its lag against. Object
+      // mode already tracks by hard copy for exactly this reason.
+      targetPositionAt(frameEpochMs, this._retargetPos);
+      this.pivotEstimate.copy(this._retargetPos);
       this.to.refUp.copy(this.pivotEstimate).normalize();
     }
 

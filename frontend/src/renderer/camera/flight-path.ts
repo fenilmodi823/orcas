@@ -9,6 +9,16 @@ const DUR_MIN = 1.2;
 const DUR_MAX = 3.4; // raised 2026-09-01: the extra time lands in the final approach, which is the only part with anything to look at
 const SWELL_GAIN = 0.35;
 
+/** How much of the timeline the pivot takes to slide from where the camera
+ * was orbiting onto the target. Tightened 0.35 -> 0.15 on 2026-09-01: the
+ * camera-to-object distance is only governed by radius(u) AFTER the pivot
+ * has locked on, so a long handover leaves the object jumping into view at
+ * whatever size the radius curve had already reached. Measured: with 0.35
+ * the object entered the visible range as a 27x single-frame jump to 13 px.
+ * Locking earlier also strictly helps the through-the-Earth guard, which is
+ * why the handover was front-loaded in the first place. */
+const PIVOT_LOCK_U = 0.15;
+
 /**
  * Flight duration (brief §C.6). Grows with the LOGARITHM of distance, so a
  * million-fold zoom is only about twice as long as a ten-fold one and no
@@ -84,7 +94,7 @@ const _dir = new Vector3();
  *   dir(u)    = slerp(dir0, dir1, u)                    great-circle arc, pivot→camera
  *   radius(u) = blendRadiusKm(r0, r1, u, p) · (1 + A·sin(π·u))   see blendRadiusKm
  *               A = max(SWELL_GAIN·(θ/π), extraSwellGain)
- *   pivot(u)  = lerp(pivot0, toPivotEstimate, smoothstep(0, 0.35, u))
+ *   pivot(u)  = lerp(pivot0, toPivotEstimate, smoothstep(0, PIVOT_LOCK_U, u))
  *                                                        STEEPLY FRONT-LOADED: the
  *                                                        geometric radius drops below
  *                                                        R_earth very early in the
@@ -135,7 +145,7 @@ export function sampleFlightPath(
   const a = Math.max(SWELL_GAIN * (theta / Math.PI), extraSwellGain);
   const radius = geom * (1 + a * Math.sin(Math.PI * u));
 
-  out.pivotKm.copy(from.pivotKm).lerp(toPivotEstimateKm, smoothstep(0, 0.35, u));
+  out.pivotKm.copy(from.pivotKm).lerp(toPivotEstimateKm, smoothstep(0, PIVOT_LOCK_U, u));
   out.positionKm.copy(out.pivotKm).addScaledVector(_dir, radius);
 
   // Hard safety net: keep the camera outside the Earth ellipsoid + 120 km.
