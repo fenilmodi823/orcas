@@ -58,6 +58,15 @@ export function resolveSelectableObject(
  * verbatim on the canonical OMM record — no computation needed.
  * mahalanobisDistance/probabilityOfCollision stay undefined: conjunction
  * screening doesn't exist in this codebase yet (Phase 5).
+ *
+ * The epoch comes from `epochMs`, which catalog-validate.ts already
+ * produced with `Date.parse` and rejected the record over if unparseable —
+ * so it cannot be NaN here. Re-parsing `record.EPOCH` instead is what
+ * shipped, and it crashed the whole route: the backend emits ISO offsets
+ * (`…+00:00`), the parser appended a `Z` to anything not already ending in
+ * one, and `…+00:00Z` is an Invalid Date whose `toISOString()` throws
+ * inside StatusPill. Never re-derive a value the validated layer already
+ * carries.
  */
 export function resolveObjectDetail(object: ObjectMeta): ObjectDetailData {
   return {
@@ -65,6 +74,6 @@ export function resolveObjectDetail(object: ObjectMeta): ObjectDetailData {
     raanDeg: object.record.RA_OF_ASC_NODE,
     argPericenterDeg: object.record.ARG_OF_PERICENTER,
     meanAnomalyDeg: object.record.MEAN_ANOMALY,
-    epoch: new Date(object.record.EPOCH.endsWith('Z') ? object.record.EPOCH : `${object.record.EPOCH}Z`),
+    epoch: new Date(object.epochMs),
   };
 }

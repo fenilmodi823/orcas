@@ -4,6 +4,11 @@ import { resolveObjectDetail, resolveSelectableObject } from './points-selection
 
 const EARTH_RADIUS_KM = 6371; // same sphere approximation PropagationDebug.tsx already uses
 
+// The exact shape the backend emits — verified against a live
+// GET /api/v1/catalog/snapshot, not invented. The offset suffix, not a
+// trailing 'Z', is what broke the shipped parser.
+const REAL_EPOCH = '2026-08-01T00:00:00.287648+00:00';
+
 function fakeObject(overrides: Partial<ObjectMeta> = {}): ObjectMeta {
   return {
     norad: '25544' as ObjectMeta['norad'],
@@ -13,11 +18,11 @@ function fakeObject(overrides: Partial<ObjectMeta> = {}): ObjectMeta {
     regime: Regime.LEO,
     isActive: true,
     sourceType: 'live',
-    epochMs: 0,
+    epochMs: Date.parse(REAL_EPOCH),
     record: {
       OBJECT_NAME: 'ISS (ZARYA)',
       OBJECT_ID: '1998-067A',
-      EPOCH: '2026-08-01T00:00:00.000000',
+      EPOCH: REAL_EPOCH,
       MEAN_MOTION: 15.5,
       ECCENTRICITY: 0.0004,
       INCLINATION: 51.6,
@@ -85,7 +90,18 @@ describe('resolveObjectDetail', () => {
     expect(detail.raanDeg).toBe(247.46);
     expect(detail.argPericenterDeg).toBe(130.5);
     expect(detail.meanAnomalyDeg).toBe(325.0);
-    expect(detail.epoch).toEqual(new Date('2026-08-01T00:00:00.000000Z'));
+    expect(detail.epoch).toEqual(new Date(REAL_EPOCH));
+  });
+
+  // The M1.7a review's defect (d): the whole route was torn down when the
+  // dock expanded, because StatusPill called toISOString() on an Invalid
+  // Date. Re-parsing record.EPOCH produced one for every real record —
+  // '…+00:00' + 'Z' does not parse. Only the offset form discriminates,
+  // which is why the old fixture's offset-less epoch passed.
+  it('yields a valid Date for the offset form the backend actually emits', () => {
+    const detail = resolveObjectDetail(fakeObject());
+    expect(Number.isNaN(detail.epoch.getTime())).toBe(false);
+    expect(() => detail.epoch.toISOString()).not.toThrow();
   });
 
   it('omits Pc/D_M — no conjunction screening exists yet (Phase 5)', () => {
