@@ -41,3 +41,32 @@ export function writeTetherPosition(
   tether.setVisible(true);
   return true;
 }
+
+/**
+ * Drive both tethers from one projection (brief §D.6 allows exactly two:
+ * one for `selected`, one for `hover`).
+ *
+ * When both resolve to the SAME object the HOVER chip is suppressed and the
+ * selected one kept — never the other way round. Hover comes from an async
+ * GPU readback that resolves on roughly one frame in N, so suppressing the
+ * selected chip on hover made the name blink on and off wherever the cursor
+ * sat over its own satellite, which is most of the screen once you are
+ * zoomed in on it. The persistent label has to be the stable one.
+ */
+export function writeTethers(args: {
+  readonly hoverTether: ObjectTetherHandle | null;
+  readonly selectedTether: ObjectTetherHandle | null;
+  readonly hoverIndex: number;
+  readonly selectedIndex: number;
+  readonly positions: Float32Array;
+  readonly camera: Camera;
+  readonly widthPx: number;
+  readonly heightPx: number;
+  readonly scratch: Vector3;
+}): void {
+  const { hoverTether, selectedTether, hoverIndex, selectedIndex } = args;
+  const { positions, camera, widthPx, heightPx, scratch } = args;
+  const hoverVisibleIndex = hoverIndex === selectedIndex ? -1 : hoverIndex;
+  writeTetherPosition(hoverTether, hoverVisibleIndex, positions, camera, widthPx, heightPx, scratch);
+  writeTetherPosition(selectedTether, selectedIndex, positions, camera, widthPx, heightPx, scratch);
+}

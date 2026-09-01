@@ -17,7 +17,7 @@ import {
   type HoverTracking,
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
-import { writeTetherPosition } from './points-tether.js';
+import { writeTethers } from './points-tether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
@@ -219,18 +219,17 @@ export function TierZeroPoints({
     // it was flying to at all.
     const positions = frameStateRef.current.positions;
     const hoverIndex = hoveredNorad === null ? -1 : objects.findIndex((o) => o.norad === hoveredNorad);
-    writeTetherPosition(tetherRef.current, hoverIndex, positions, camera, size.width, size.height, projectedRef.current);
-    writeTetherPosition(
-      selectedTetherRef?.current ?? null,
-      // Hide the selected tether while the same object is hovered — two
-      // chips stacked on one dot reads as a rendering fault.
-      selectedIndex === hoverIndex ? -1 : selectedIndex,
+    writeTethers({
+      hoverTether: tetherRef.current,
+      selectedTether: selectedTetherRef?.current ?? null,
+      hoverIndex,
+      selectedIndex,
       positions,
       camera,
-      size.width,
-      size.height,
-      projectedRef.current,
-    );
+      widthPx: size.width,
+      heightPx: size.height,
+      scratch: projectedRef.current,
+    });
   });
 
   // frustumCulled disabled: three.js would need to recompute the geometry's
