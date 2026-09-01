@@ -30,7 +30,7 @@ describe('createCameraSystem — freeOrbit', () => {
   it('keeps the horizon level in freeOrbit: camera local X ⊥ ECI +Z', () => {
     const cam = new PerspectiveCamera(35, 1, 1, 1e6);
     const sys = createCameraSystem(cam);
-    sys.applyManualInput({ dAzimuthRad: 1.2, dElevationRad: 0.6, dLnRadius: 0 });
+    sys.applyManualInput({ dScreenYawRad: 1.2, dScreenPitchRad: 0.6, dLnRadius: 0 });
     for (let i = 0; i < 120; i++) sys.update(1 / 60, fakeFrame([[7000, 0, 0]]));
     const localX = new Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
     expect(Math.abs(localX.dot(new Vector3(0, 0, 1)))).toBeLessThan(1e-3);
@@ -39,7 +39,7 @@ describe('createCameraSystem — freeOrbit', () => {
   it('clamps dt: a 3-second frame does not teleport the damped rig', () => {
     const cam = new PerspectiveCamera(35, 1, 1, 1e6);
     const sys = createCameraSystem(cam);
-    sys.applyManualInput({ dAzimuthRad: 3, dElevationRad: 0, dLnRadius: 0 });
+    sys.applyManualInput({ dScreenYawRad: 3, dScreenPitchRad: 0, dLnRadius: 0 });
     sys.update(3.0, fakeFrame([[7000, 0, 0]]));
     const after1 = cam.position.clone();
     sys.update(3.0, fakeFrame([[7000, 0, 0]]));
@@ -51,7 +51,7 @@ describe('createCameraSystem — freeOrbit', () => {
     const sys = createCameraSystem(cam);
     sys.update(1 / 60, fakeFrame([[7000, 0, 0]]));
     const rStart = cam.position.length();
-    sys.applyManualInput({ dAzimuthRad: 0, dElevationRad: 0, dLnRadius: -1 }); // zoom in one e-fold
+    sys.applyManualInput({ dScreenYawRad: 0, dScreenPitchRad: 0, dLnRadius: -1 }); // zoom in one e-fold
     for (let i = 0; i < 300; i++) sys.update(1 / 60, fakeFrame([[7000, 0, 0]]));
     const rEnd = cam.position.length();
     expect(rEnd).toBeLessThan(rStart);
@@ -148,7 +148,7 @@ describe('CameraSystem — flyTo', () => {
     const p = sys.flyTo(0);
     for (let i = 0; i < 40; i++) sys.update(1 / 60, frame);
     const before = cam.position.clone();
-    sys.applyManualInput({ dAzimuthRad: 0.05, dElevationRad: 0, dLnRadius: 0 });
+    sys.applyManualInput({ dScreenYawRad: 0.05, dScreenPitchRad: 0, dLnRadius: 0 });
     sys.update(1 / 60, frame);
     expect(sys.state.kind).toBe('freeOrbit');
     expect(cam.position.distanceTo(before)).toBeLessThan(before.length() * 0.1);

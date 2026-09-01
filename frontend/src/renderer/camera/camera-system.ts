@@ -98,10 +98,13 @@ class CameraSystemImpl implements CameraSystem {
       this.targetRig.pivotKm.set(0, 0, 0);
       this.targetRig.frame.identity();
       syncTargetAngles(this.targetRig, this.rig);
+      // The drag basis is built from refUp, so it has to become freeOrbit's
+      // before the very first post-grab event uses it — not one frame later.
+      refUpForFreeOrbit(this.refUp);
       this.dispatch({ type: 'grabInput' });
     }
     const floor = this._state.kind === 'object' ? OBJECT_MIN_RADIUS_KM : FREE_ORBIT_MIN_RADIUS_KM;
-    accumulateManualInput(this.targetRig, input, floor);
+    accumulateManualInput(this.targetRig, input, floor, this.refUp);
   }
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void> {

@@ -5,8 +5,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
-import { dragToManualInput } from './manual-input.js';
+import { dragToManualInput, wheelToManualInput } from './manual-input.js';
 import { useCameraTunables } from './camera-tunables.js';
+import { useCameraStatus } from './camera-status.js';
 
 const CROSSFADE_CLASS = 'points-debug__viewport--crossfade';
 
@@ -62,6 +63,18 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
       p.catch(() => undefined); // CancelledError when superseded — expected
     });
 
+    // "Reset view & tunables" → actually reset the view. The selection
+    // subscription above short-circuits on an unchanged id, so when nothing
+    // is selected — the common case while orbiting freely — clearing the
+    // selection is a no-op and the zoom/orbit stayed where it was. This is
+    // the explicit command the panel had no way to send.
+    const unsubReset = useCameraStatus.subscribe((state, prev) => {
+      if (state.resetRequests === prev.resetRequests) return;
+      const wasSelected = useSelectionStore.getState().selectedNorad !== null;
+      useSelectionStore.getState().setSelected(null);
+      if (!wasSelected) sys.flyToEarth().catch(() => undefined);
+    });
+
     // Esc → clear selection (which the subscription turns into flyToEarth).
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') useSelectionStore.getState().setSelected(null);
@@ -82,7 +95,7 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
       dragRef.current = null;
     };
     const onWheel = (e: WheelEvent) => {
-      sys.applyManualInput({ dAzimuthRad: 0, dElevationRad: 0, dLnRadius: e.deltaY * tunablesRef.current.wheelLnPerUnit });
+      sys.applyManualInput(wheelToManualInput(e.deltaY, tunablesRef.current.wheelLnPerUnit));
     };
 
     const el: HTMLElement | Window = container ?? window;
@@ -94,6 +107,7 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
 
     return () => {
       unsub();
+      unsubReset();
       window.removeEventListener('keydown', onKey);
       el.removeEventListener('pointerdown', onPointerDown as EventListener);
       el.removeEventListener('pointermove', onPointerMove as EventListener);
@@ -107,5 +121,13 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
 
   // CameraSystem owns the camera it was given — it applies the pose AND the
   // per-frame near/far itself, so this hook never mutates `camera` directly.
-  useFrame((_, dt) => sysRef.current?.update(dt, frameStateRef.current));
+  useFrame((_, dt) => {
+    const sys = sysRef.current;
+    if (!sys) return;
+    sys.update(dt, frameStateRef.current);
+    // Publish flight state for pick suppression. The store only writes on a
+    // CHANGE, so this is a comparison per frame, not a React update.
+    const kind = sys.state.kind;
+    useCameraStatus.getState().setFlying(kind === 'focusFlight' || kind === 'exit');
+  });
 }
