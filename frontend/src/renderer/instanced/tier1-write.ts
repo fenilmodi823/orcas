@@ -49,24 +49,45 @@ export interface Tier1WriteArgs {
  * Returns the number of instances written, which the caller assigns to
  * `mesh.count` so the GPU draws only the live members.
  *
+ * ⭐ CAMERA-RELATIVE ORIGIN (brief §C.2, scoped to this tier). Instance
+ * matrices live in a Float32Array and `modelViewMatrix * instanceMatrix`
+ * is evaluated on the GPU in float32. A world-space translation of
+ * ~7,000 km quantises to ~0.4 m there, and the view-matrix product then
+ * cancels two ~7,000 km terms down to ~0.08 km — catastrophic
+ * cancellation. At the ~82 m the fly-to arrives at, one pixel is ~0.07 m,
+ * so that error is roughly SIX PIXELS of shimmer, re-rounded every frame
+ * as the camera moves. It is what the M1.7a review saw as the octahedron
+ * "shaking rapidly" on approach.
+ *
+ * The fix is the standard one and it is cheap here: carry the big number
+ * on the mesh's own transform, which three.js keeps in float64 and folds
+ * into `modelViewMatrix` on the CPU, and write only the small camera-
+ * relative offsets into float32. Every float32 value is then ~0.1 km,
+ * where the quantum is ~6 nm.
+ *
+ * This does NOT make the tier floating-origin correct in general — Tier 0
+ * still uploads absolute positions, and the full re-origin is M1.9's job.
+ * It fixes the one place where the error is visible, because it is the
+ * only place the camera gets within metres of the geometry.
+ *
  * Allocation-free: every temporary is module-scope and reused forever.
  */
 export function writeTier1Instances(args: Tier1WriteArgs): number {
   const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, tint, band } = args;
+  mesh.position.copy(camPosKm);
   for (let slot = 0; slot < memberCount; slot++) {
     const i = members[slot];
     _pos.set(frame.positions[i * 3], frame.positions[i * 3 + 1], frame.positions[i * 3 + 2]);
+    // Nadir is a direction from Earth's centre, so the pose is derived from
+    // the ABSOLUTE position — before the camera offset is taken out.
     lvlhQuaternion(_pos, _quat);
+    _pos.sub(camPosKm);
     _scale.setScalar(TIER1_PROXY_SCALE_KM);
     _matrix.compose(_pos, _quat, _scale);
     mesh.setMatrixAt(slot, _matrix);
 
-    const brightness = instanceBrightness(
-      _pos.distanceTo(camPosKm),
-      pixelsPerRadian,
-      PLACEHOLDER_RADIUS_KM,
-      band,
-    );
+    // _pos is now the camera->object vector, so its length IS the distance.
+    const brightness = instanceBrightness(_pos.length(), pixelsPerRadian, PLACEHOLDER_RADIUS_KM, band);
     _color.copy(tint).multiplyScalar(brightness);
     mesh.setColorAt(slot, _color);
   }
