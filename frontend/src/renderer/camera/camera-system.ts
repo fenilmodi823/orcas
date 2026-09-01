@@ -32,6 +32,13 @@ export interface CameraSystemOpts {
 
 export interface CameraSystem {
   readonly state: Readonly<CameraState>;
+  /** Live distance from the pivot, km. Read by the dev panel: tuning the
+   * flight curve is impossible without seeing the number it shapes. */
+  readonly radiusKm: number;
+  /** Where the flight's radius curve sits between geometric and
+   * reciprocal — flight-path.ts's `blendRadiusKm`. Settable mid-flight so
+   * the dev panel can retune a move that is already playing. */
+  approachBlend: number;
   update(dtSec: number, frame: FrameState): void;
   applyManualInput(input: ManualInput): void;
   projectToScreen(posKm: Vector3, out: Vector2): boolean;
@@ -74,6 +81,18 @@ class CameraSystemImpl implements CameraSystem {
 
   get state(): Readonly<CameraState> {
     return this._state;
+  }
+
+  get radiusKm(): number {
+    return this.rig.radiusKm;
+  }
+
+  get approachBlend(): number {
+    return this.flights.approachBlend;
+  }
+
+  set approachBlend(p: number) {
+    this.flights.approachBlend = p;
   }
 
   get nearFarKm(): Readonly<{ nearKm: number; farKm: number }> {

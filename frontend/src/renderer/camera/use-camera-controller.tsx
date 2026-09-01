@@ -19,6 +19,9 @@ interface Args {
   readonly frameStateRef: MutableRefObject<FrameState>;
   readonly byNorad: Readonly<Record<string, number>>;
   readonly canvasContainerRef: MutableRefObject<HTMLElement | null>;
+  /** Written every frame for the dev panel's readout. A ref, not state —
+   * this is the per-frame path. */
+  readonly radiusKmRef?: MutableRefObject<number>;
 }
 
 /**
@@ -26,7 +29,7 @@ interface Args {
  * pointer, the selection store and Esc. The system itself is headless — this
  * hook is the only place it touches React / the DOM (brief §C.13, §D.5).
  */
-export function useCameraController({ frameStateRef, byNorad, canvasContainerRef }: Args): void {
+export function useCameraController({ frameStateRef, byNorad, canvasContainerRef, radiusKmRef }: Args): void {
   const { camera } = useThree();
   const sysRef = useRef<CameraSystem | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -124,10 +127,12 @@ export function useCameraController({ frameStateRef, byNorad, canvasContainerRef
   useFrame((_, dt) => {
     const sys = sysRef.current;
     if (!sys) return;
+    sys.approachBlend = tunablesRef.current.approachBlend;
     sys.update(dt, frameStateRef.current);
     // Publish flight state for pick suppression. The store only writes on a
     // CHANGE, so this is a comparison per frame, not a React update.
     const kind = sys.state.kind;
     useCameraStatus.getState().setFlying(kind === 'focusFlight' || kind === 'exit');
+    if (radiusKmRef) radiusKmRef.current = sys.radiusKm;
   });
 }

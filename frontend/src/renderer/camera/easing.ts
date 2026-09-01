@@ -18,9 +18,8 @@ export function smootherstep(s: number): number {
 
 /**
  * The focus-flight curve: smootherstep with an asymmetric bias. `gamma < 1`
- * (default 0.82) spends more of the timeline in the settle — the long tail
- * is what reads as "expensive" (brief §C.4). A symmetric ease arrives too
- * abruptly.
+ * (default 0.82) spends more of the timeline in the settle — the long tail is what reads as "expensive" (brief §C.4). A
+ * symmetric ease arrives too abruptly.
  */
 export function flightEase(s: number, gamma = 0.82): number {
   return smootherstep(Math.pow(clamp(s, 0, 1), gamma));

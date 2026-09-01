@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
+import { APPROACH_BLEND } from './flight-path.js';
 
 /**
  * The camera constants most likely to need a subjective tweak, exposed
@@ -12,6 +13,10 @@ import { LOD_BAND_PX } from '../lod/lod-band.js';
 export interface CameraTunables {
   dragRadPerPx: number;
   wheelLnPerUnit: number;
+  /** Where the fly-to radius curve sits between geometric (0) and
+   * reciprocal (1) — see flight-path.ts `blendRadiusKm`. Higher spends
+   * more of the flight close enough to watch the object grow. */
+  approachBlend: number;
   lodLoPx: number;
   lodHiPx: number;
 }
@@ -19,6 +24,7 @@ export interface CameraTunables {
 export const CAMERA_TUNABLE_DEFAULTS: CameraTunables = {
   dragRadPerPx: 0.005,
   wheelLnPerUnit: 0.001,
+  approachBlend: APPROACH_BLEND,
   // Referenced, never restated: a second copy of 3 and 6 is exactly the
   // drift brief §F.7 warns about.
   lodLoPx: LOD_BAND_PX.loPx,

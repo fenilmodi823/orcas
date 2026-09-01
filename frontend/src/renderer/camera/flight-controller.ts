@@ -1,6 +1,12 @@
 import { Vector3 } from 'three';
 import { smoothDamp } from './easing.js';
-import { angleBetweenDirs, flightDurationSec, type FlightEndpoint, type FlightSample } from './flight-path.js';
+import {
+  angleBetweenDirs,
+  APPROACH_BLEND,
+  flightDurationSec,
+  type FlightEndpoint,
+  type FlightSample,
+} from './flight-path.js';
 import { requiredExtraSwellGain } from './collision.js';
 import { solveArrivalTimeMs } from './predictive-arrival.js';
 import { Flight } from './flight.js';
@@ -32,6 +38,10 @@ export interface FlightTick {
  * stays focused and under the line limit.
  */
 export class FlightController {
+  /** Where the radius curve sits between geometric and reciprocal
+   * (flight-path.ts's `blendRadiusKm`). Public and mutable so the dev
+   * panel can retune a flight that is already in the air. */
+  approachBlend = APPROACH_BLEND;
   private _flight: Flight | null = null;
   private elapsed = 0;
   private thetaRad = 0;
@@ -100,7 +110,7 @@ export class FlightController {
       this.to.refUp.copy(this.pivotEstimate).normalize();
     }
 
-    flight.sample(this.elapsed, this.pivotEstimate, this.sample);
+    flight.sample(this.elapsed, this.pivotEstimate, this.sample, this.approachBlend);
     return { sample: this.sample, done: flight.done };
   }
 

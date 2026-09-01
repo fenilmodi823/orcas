@@ -3,10 +3,10 @@ import { clamp, smoothstep } from './easing.js';
 import { ellipsoidNormalizedDistance, R_EARTH_A_KM } from './collision.js';
 
 const DUR_BASE = 0.55;
-const DUR_PER_OCTAVE = 0.075;
+const DUR_PER_OCTAVE = 0.1; // raised 2026-09-01 with the approach blend: a longer flight is only worth it once the extra time lands where there is something to watch
 const DUR_PER_ANGLE = 0.55;
 const DUR_MIN = 1.2;
-const DUR_MAX = 2.8;
+const DUR_MAX = 3.4; // raised 2026-09-01: the extra time lands in the final approach, which is the only part with anything to look at
 const SWELL_GAIN = 0.35;
 
 /**
@@ -16,7 +16,7 @@ const SWELL_GAIN = 0.35;
  *
  *   ratio    = max(r0, r1) / min(r0, r1)
  *   octaves  = log2(ratio)
- *   duration = clamp(0.55 + 0.075·octaves + 0.55·(θ/π), 1.2, 2.8)   seconds
+ *   duration = clamp(0.55 + 0.1·octaves + 0.55·(θ/π), 1.2, 3.4)   seconds
  */
 export function flightDurationSec(r0Km: number, r1Km: number, thetaRad: number): number {
   const lo = Math.max(1e-6, Math.min(r0Km, r1Km));
@@ -24,6 +24,39 @@ export function flightDurationSec(r0Km: number, r1Km: number, thetaRad: number):
   const octaves = Math.log2(Math.max(1, ratio));
   const angleTerm = clamp(thetaRad / Math.PI, 0, 1);
   return clamp(DUR_BASE + DUR_PER_OCTAVE * octaves + DUR_PER_ANGLE * angleTerm, DUR_MIN, DUR_MAX);
+}
+
+/** Default radius blend. See `blendRadiusKm`. */
+export const APPROACH_BLEND = 0.35;
+
+/**
+ * Interpolate the flight radius between the two things "approach" can mean,
+ * on one parameter.
+ *
+ *   r(u) = [ (1-u) * r0^(-p) + u * r1^(-p) ] ^ (-1/p)
+ *
+ * **p -> 0 is geometric** — a constant RATIO of radius per second. It is
+ * what brief C.6 specifies and it is right for the traverse: a fixed number
+ * of doublings per second is how the eye reads approach through empty space.
+ *
+ * **p = 1 is reciprocal** — a constant APPARENT SIZE increase per second,
+ * because apparent size goes as 1/r. It is right for the arrival, where
+ * there is finally something on screen whose size means anything.
+ *
+ * Geometric alone is why an object "appeared out of nowhere". Measured on
+ * /points: a fly-to covers 42,164 km to 82 m, and the object only subtends
+ * 3 px inside the last 4 km — 19% of the log range, which landed as 611 ms
+ * of a 1.93 s flight. Everything worth watching happened at the very end.
+ *
+ * The trade is real and deliberate: the empty traverse gets faster so the
+ * arrival can get slower. Exposed on the dev panel because which side of
+ * that trade feels right is a judgement, not a derivation.
+ */
+export function blendRadiusKm(r0Km: number, r1Km: number, u: number, p = APPROACH_BLEND): number {
+  if (p <= 1e-6) return Math.exp((1 - u) * Math.log(r0Km) + u * Math.log(r1Km));
+  const f0 = Math.pow(r0Km, -p);
+  const f1 = Math.pow(r1Km, -p);
+  return Math.pow((1 - u) * f0 + u * f1, -1 / p);
 }
 
 export interface FlightEndpoint {
@@ -49,7 +82,7 @@ const _dir = new Vector3();
  * Sample the flight path at eased parameter `u ∈ [0, 1]` (brief §C.6).
  *
  *   dir(u)    = slerp(dir0, dir1, u)                    great-circle arc, pivot→camera
- *   radius(u) = r0^(1−u) · r1^u  ·  (1 + A·sin(π·u))    GEOMETRIC + arc swell
+ *   radius(u) = blendRadiusKm(r0, r1, u, p) · (1 + A·sin(π·u))   see blendRadiusKm
  *               A = max(SWELL_GAIN·(θ/π), extraSwellGain)
  *   pivot(u)  = lerp(pivot0, toPivotEstimate, smoothstep(0, 0.35, u))
  *                                                        STEEPLY FRONT-LOADED: the
@@ -83,6 +116,7 @@ export function sampleFlightPath(
   toPivotEstimateKm: Vector3,
   extraSwellGain: number,
   out: FlightSample,
+  approachBlend = APPROACH_BLEND,
 ): FlightSample {
   const theta = angleBetweenDirs(from.dir, to.dir);
 
@@ -97,7 +131,7 @@ export function sampleFlightPath(
   }
   _dir.normalize();
 
-  const geom = Math.exp((1 - u) * Math.log(from.radiusKm) + u * Math.log(to.radiusKm));
+  const geom = blendRadiusKm(from.radiusKm, to.radiusKm, u, approachBlend);
   const a = Math.max(SWELL_GAIN * (theta / Math.PI), extraSwellGain);
   const radius = geom * (1 + a * Math.sin(Math.PI * u));
 

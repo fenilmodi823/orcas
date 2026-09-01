@@ -35,12 +35,14 @@ function CameraController({
   frameStateRef,
   byNorad,
   canvasContainerRef,
+  radiusKmRef,
 }: {
   frameStateRef: MutableRefObject<FrameState>;
   byNorad: Readonly<Record<string, number>>;
   canvasContainerRef: MutableRefObject<HTMLElement | null>;
+  radiusKmRef: MutableRefObject<number>;
 }) {
-  useCameraController({ frameStateRef, byNorad, canvasContainerRef });
+  useCameraController({ frameStateRef, byNorad, canvasContainerRef, radiusKmRef });
   return null;
 }
 
@@ -108,6 +110,7 @@ function PointsDebugPanel({
   const viewportRef = useRef<HTMLDivElement>(null);
   const tier1CountRef = useRef(0);
   const activeCountRef = useRef(0);
+  const camRadiusKmRef = useRef(0);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const selectedNorad = useSelectionStore((state) => state.selectedNorad);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
@@ -183,6 +186,7 @@ function PointsDebugPanel({
             frameStateRef={loop.frameStateRef}
             byNorad={byNorad}
             canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
+            radiusKmRef={camRadiusKmRef}
           />
         </Canvas>
         <ObjectTether
@@ -213,7 +217,7 @@ function PointsDebugPanel({
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
-        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} />
+        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} radiusKmRef={camRadiusKmRef} />
 
         <div className="points-debug__filters">
           {ORBIT_CLASSES.map((orbitClass) => (

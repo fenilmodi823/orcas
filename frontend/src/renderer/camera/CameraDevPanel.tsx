@@ -29,6 +29,12 @@ const SLIDERS: readonly SliderSpec[] = [
   { key: 'dragRadPerPx', label: 'drag rad/px', min: 0.001, max: 0.02, step: 0.001 },
   { key: 'wheelLnPerUnit', label: 'wheel ln/unit', min: 0.0002, max: 0.004, step: 0.0002 },
 
+  // How much of a fly-to is spent close enough to the object to watch it
+  // grow. 0 is the raw geometric curve, where every visible doubling lands
+  // in the last few hundred milliseconds; 1 grows apparent size at a
+  // constant rate and makes the empty traverse very fast.
+  { key: 'approachBlend', label: 'approach blend', min: 0, max: 1, step: 0.05 },
+
   // Bottoms out at 1e-4 px, measured not guessed: at the default free-orbit
   // view (727 px tall, 35° fov, camera at 42,164 km) a 10 m object subtends
   // ~3e-4 px, so anything coarser can never promote a single object and the

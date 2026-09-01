@@ -1,6 +1,11 @@
 import { Vector3 } from 'three';
 import { clamp, flightEase } from './easing.js';
-import { sampleFlightPath, type FlightEndpoint, type FlightSample } from './flight-path.js';
+import {
+  APPROACH_BLEND,
+  sampleFlightPath,
+  type FlightEndpoint,
+  type FlightSample,
+} from './flight-path.js';
 import { CancelledError } from './errors.js';
 
 export interface FlyOpts {
@@ -58,10 +63,25 @@ export class Flight {
     return clamp(this.elapsed / this.durationSec, 0, 1);
   }
 
-  sample(elapsedSec: number, toPivotEstimateKm: Vector3, out: FlightSample): FlightSample {
+  /** `approachBlend` is passed per tick, not captured at construction, so
+   * the dev panel can reshape a flight that is already in the air. */
+  sample(
+    elapsedSec: number,
+    toPivotEstimateKm: Vector3,
+    out: FlightSample,
+    approachBlend = APPROACH_BLEND,
+  ): FlightSample {
     this.elapsed = Math.max(0, elapsedSec);
     const u = flightEase(this.elapsedFraction);
-    return sampleFlightPath(this.from, this.to, u, toPivotEstimateKm, this.extraSwellGain, out);
+    return sampleFlightPath(
+      this.from,
+      this.to,
+      u,
+      toPivotEstimateKm,
+      this.extraSwellGain,
+      out,
+      approachBlend,
+    );
   }
 
   /** Call once, from CameraSystem, when `done` first becomes true. */
