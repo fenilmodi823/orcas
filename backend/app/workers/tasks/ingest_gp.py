@@ -1,6 +1,6 @@
 """CLI entrypoint for one GP ingestion run.
 
-    docker compose run --rm worker python -m app.workers.tasks.ingest_gp --once
+    docker compose run --rm worker uv run python -m app.workers.tasks.ingest_gp --once
 
 Recurring cadence is GitHub Actions cron in production (Data-Strategy.md
 §6) or the dev-only AsyncIOScheduler (workers/scheduler.py) — this module

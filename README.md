@@ -84,8 +84,8 @@ core simulation.
 To pull the live CelesTrak catalogue instead:
 
 ```bash
-docker compose run --rm worker python -m app.workers.tasks.ingest_gp --once
-docker compose run --rm worker python -m app.workers.tasks.bake_snapshot --once
+docker compose run --rm worker uv run python -m app.workers.tasks.ingest_gp --once
+docker compose run --rm worker uv run python -m app.workers.tasks.bake_snapshot --once
 ```
 
 ---
