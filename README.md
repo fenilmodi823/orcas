@@ -406,6 +406,32 @@ Sources: **[CelesTrak](https://celestrak.org)** for general perturbations data, 
 **[Space-Track.org](https://www.space-track.org)** for the historical element sets used in the 2009
 reconstruction (an account is required for the latter).
 
+### The star background
+
+The sky is real. `frontend/public/sky/gaia-dr3-stars.bin` holds **1,247,240 sources from ESA's
+[Gaia Data Release 3](https://www.cosmos.esa.int/web/gaia/dr3)** — every `gaiadr3.gaia_source` with
+`phot_g_mean_mag < 11` — drawn at its catalogue right ascension and declination, sized by its real
+G magnitude and tinted from its real BP−RP colour index. The Milky Way's band, its dust lanes and
+its open clusters are emergent: nothing about them is drawn or invented.
+
+Regenerate or change the depth with:
+
+```bash
+python scripts/data/fetch_gaia_sky.py --max-g 11.0
+```
+
+That script's docstring is the provenance record — the exact ADQL, the binary layout, the
+quantisation error bounds, and the mission's own limits. Three of those limits matter:
+
+- **The bright end is incomplete.** Gaia saturates near G = 3, so the brightest naked-eye stars are
+  absent. The brightest source in the shipped file is G = 1.73; Sirius is not in it.
+- **Brightness on screen is a display mapping, not photometry.** Real flux across G = 1.7 to 11
+  spans a factor of ~10,000; drawn literally, almost every star would be invisible. The magnitudes
+  are unmodified — only their rendering is compressed.
+- **Frames differ slightly.** Gaia positions are ICRS; SGP4 propagates in TEME. The two differ by
+  precession and nutation, of order 0.4°, currently uncorrected — the sky is right relative to
+  itself and very slightly rotated relative to the satellites.
+
 ---
 
 ## Research paper
@@ -498,6 +524,12 @@ classification, and real-time 3D scientific visualisation on the web.
 
 The interaction model is informed by NASA's *Eyes on the Solar System*; the visual identity is
 original.
+
+This work has made use of data from the European Space Agency (ESA) mission
+**[Gaia](https://www.cosmos.esa.int/gaia)**, processed by the Gaia Data Processing and Analysis
+Consortium (**[DPAC](https://www.cosmos.esa.int/web/gaia/dpac/consortium)**). Funding for the DPAC
+has been provided by national institutions, in particular the institutions participating in the
+Gaia Multilateral Agreement.
 
 ---
 

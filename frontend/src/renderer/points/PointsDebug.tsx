@@ -18,6 +18,8 @@ import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { Tier1Readout } from './Tier1Readout.js';
+import { StarSky } from '../sky/StarSky.js';
+import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
@@ -102,6 +104,7 @@ function PointsDebugPanel({
 
   const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
   const tetherRef = useRef<ObjectTetherHandle>(null);
+  const selectedTetherRef = useRef<ObjectTetherHandle>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const tier1CountRef = useRef(0);
   const activeCountRef = useRef(0);
@@ -156,6 +159,7 @@ function PointsDebugPanel({
         onPointerUp={handlePointerUp}
       >
         <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
+          <StarSky />
           <ambientLight intensity={0.4} />
           <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
           <mesh>
@@ -166,6 +170,7 @@ function PointsDebugPanel({
             objects={objects}
             frameStateRef={loop.frameStateRef}
             tetherRef={tetherRef}
+            selectedTetherRef={selectedTetherRef}
             pickHandleRef={pointsHandleRef}
           />
           <Tier1Objects
@@ -180,6 +185,13 @@ function PointsDebugPanel({
             canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
           />
         </Canvas>
+        <ObjectTether
+          ref={selectedTetherRef}
+          name={resolvedSelected?.name ?? ''}
+          orbitClass={resolvedSelected?.orbitClass ?? 'debris'}
+          altitudeKm={resolvedSelected?.altitudeKm ?? 0}
+          selected
+        />
         <ObjectTether
           ref={tetherRef}
           name={resolvedHovered?.name ?? ''}
@@ -217,6 +229,10 @@ function PointsDebugPanel({
         </div>
 
         <CrossCheckTable rows={crossCheck} />
+
+        {/* ESA's data policy requires the acknowledgement to be visible where
+            the data is used, not only in source. */}
+        <p className="points-debug__attribution">{GAIA_ACKNOWLEDGEMENT}</p>
       </GlassSurface>
     </div>
   );

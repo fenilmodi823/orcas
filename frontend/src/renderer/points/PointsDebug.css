@@ -71,3 +71,11 @@
 .points-debug__table td:first-child {
   text-align: left;
 }
+
+.points-debug__attribution {
+  margin: var(--space-3) 0 0;
+  color: var(--text-lo);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  max-width: 46ch;
+}
