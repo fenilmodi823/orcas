@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { WebGLRenderTarget, type Points } from 'three';
 import { useThree } from '@react-three/fiber';
 import { PICK_LAYER } from './points-shader-core.js';
 import { createPickMaterial } from './points-pick-material.js';
+import { useCameraStatus } from '../camera/camera-status.js';
 import { shouldIssuePick } from './points-pick-schedule.js';
 import { findBestPixel } from './points-pick-resolve.js';
 import { unpackIdBytes } from './points-pick-id.js';
@@ -65,7 +66,12 @@ export interface PointsPickingHandle {
  */
 export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): PointsPickingHandle {
   const { gl, camera, scene, size } = useThree();
-  const pickMaterialRef = useRef(createPickMaterial());
+  // useMemo, not `useRef(createPickMaterial())`: useRef EVALUATES its
+  // argument on every render, so the eager form allocated a throwaway
+  // ShaderMaterial 20-40 times a second under StrictMode plus the
+  // cross-check poll. Never GPU-compiled, so GC churn rather than a leak —
+  // but free to avoid.
+  const pickMaterial = useMemo(() => createPickMaterial(), []);
   const renderTargetRef = useRef<WebGLRenderTarget | null>(null);
   const pboRef = useRef<WebGLBuffer | null>(null);
   const pendingRef = useRef<PendingRead | null>(null);
@@ -83,13 +89,13 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
     const renderTarget = new WebGLRenderTarget(WINDOW_SIZE, WINDOW_SIZE);
     renderTargetRef.current = renderTarget;
 
-    const material = pickMaterialRef.current;
+    const material = pickMaterial;
     return () => {
       context.deleteBuffer(pbo);
       renderTarget.dispose();
       material.dispose();
     };
-  }, [gl]);
+  }, [gl, pickMaterial]);
 
   function requestPick(px: number, py: number): void {
     if (
@@ -98,7 +104,7 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
         py,
         lastRequested: lastRequestedRef.current,
         inFlight: pendingRef.current !== null,
-        suppressed: false,
+        suppressed: useCameraStatus.getState().flying,
       })
     ) {
       return;
@@ -124,7 +130,7 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
     try {
       camera.layers.set(PICK_LAYER);
       camera.setViewOffset(size.width, size.height, px - 2, py - 2, WINDOW_SIZE, WINDOW_SIZE);
-      points.material = pickMaterialRef.current;
+      points.material = pickMaterial;
 
       gl.setRenderTarget(renderTarget);
       gl.render(scene, camera);

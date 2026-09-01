@@ -1,6 +1,7 @@
 import { GlassSurface } from '../../ui/GlassSurface.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { CAMERA_TUNABLE_DEFAULTS, useCameraTunables, type CameraTunables } from './camera-tunables.js';
+import { useCameraStatus } from './camera-status.js';
 import './CameraDevPanel.css';
 
 interface SliderSpec {
@@ -74,7 +75,9 @@ export function CameraDevPanel() {
         className="camera-dev-panel__reset"
         onClick={() => {
           tunables.reset();
-          useSelectionStore.getState().setSelected(null); // fly back to Earth
+          // An explicit command, not a side effect of clearing the
+          // selection — see the reset subscription in use-camera-controller.
+          useCameraStatus.getState().requestReset();
         }}
       >
         Reset view &amp; tunables

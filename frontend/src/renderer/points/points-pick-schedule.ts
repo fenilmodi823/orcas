@@ -14,8 +14,8 @@ interface ShouldIssuePickInput {
  * frame (the caller enforces "per frame" by only calling this once per
  * rAF tick), only if the cursor moved past the threshold, never while a
  * previous pick's async readback hasn't resolved yet, never while
- * suppressed (camera flight — M1.6, always false until that milestone
- * exists).
+ * suppressed — a camera flight is playing, and use-camera-controller
+ * publishes that through camera-status.ts.
  */
 export function shouldIssuePick(input: ShouldIssuePickInput): boolean {
   if (input.suppressed || input.inFlight) return false;
