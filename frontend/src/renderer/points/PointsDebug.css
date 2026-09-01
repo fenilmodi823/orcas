@@ -79,3 +79,7 @@
   line-height: 1.45;
   max-width: 46ch;
 }
+
+.points-debug__count--multiline {
+  white-space: pre-line;
+}

@@ -36,13 +36,15 @@ function CameraController({
   byNorad,
   canvasContainerRef,
   radiusKmRef,
+  targetDistanceKmRef,
 }: {
   frameStateRef: MutableRefObject<FrameState>;
   byNorad: Readonly<Record<string, number>>;
   canvasContainerRef: MutableRefObject<HTMLElement | null>;
   radiusKmRef: MutableRefObject<number>;
+  targetDistanceKmRef: MutableRefObject<number>;
 }) {
-  useCameraController({ frameStateRef, byNorad, canvasContainerRef, radiusKmRef });
+  useCameraController({ frameStateRef, byNorad, canvasContainerRef, radiusKmRef, targetDistanceKmRef });
   return null;
 }
 
@@ -111,6 +113,7 @@ function PointsDebugPanel({
   const tier1CountRef = useRef(0);
   const activeCountRef = useRef(0);
   const camRadiusKmRef = useRef(0);
+  const camTargetDistanceKmRef = useRef(0);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const selectedNorad = useSelectionStore((state) => state.selectedNorad);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
@@ -162,6 +165,24 @@ function PointsDebugPanel({
         onPointerUp={handlePointerUp}
       >
         <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
+          {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
+              order, so CameraController must come FIRST: everything below
+              projects world positions with `camera`, and one frame of stale
+              camera is not a rounding error up close. In object mode the
+              camera sits ~82 m from a target moving 7.66 km/s, so it
+              translates ~127 m per frame — further than the whole viewing
+              distance. Mounted last (as it was), the selected object's
+              tether was computed against the previous frame's camera and
+              flung hundreds of pixels off-screen every frame, which read as
+              the name flickering. Invisible when zoomed out, because 127 m
+              against thousands of km is nothing. */}
+          <CameraController
+            frameStateRef={loop.frameStateRef}
+            byNorad={byNorad}
+            canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
+            radiusKmRef={camRadiusKmRef}
+            targetDistanceKmRef={camTargetDistanceKmRef}
+          />
           <StarSky />
           <ambientLight intensity={0.4} />
           <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
@@ -181,12 +202,6 @@ function PointsDebugPanel({
             byNorad={byNorad}
             memberCountRef={tier1CountRef}
             activeCountRef={activeCountRef}
-          />
-          <CameraController
-            frameStateRef={loop.frameStateRef}
-            byNorad={byNorad}
-            canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
-            radiusKmRef={camRadiusKmRef}
           />
         </Canvas>
         <ObjectTether
@@ -217,7 +232,12 @@ function PointsDebugPanel({
       <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
-        <Tier1Readout tier1CountRef={tier1CountRef} activeCountRef={activeCountRef} radiusKmRef={camRadiusKmRef} />
+        <Tier1Readout
+          tier1CountRef={tier1CountRef}
+          activeCountRef={activeCountRef}
+          radiusKmRef={camRadiusKmRef}
+          targetDistanceKmRef={camTargetDistanceKmRef}
+        />
 
         <div className="points-debug__filters">
           {ORBIT_CLASSES.map((orbitClass) => (
