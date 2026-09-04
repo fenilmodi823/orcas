@@ -21,12 +21,17 @@ import type { ObjectMeta } from '../../data/catalog-types.js';
  * nothing now.
  */
 export const FEATURED_OBJECT_NAMES: ReadonlySet<string> = new Set<string>([
+  // Crewed stations
   'ISS (ZARYA)', // International Space Station
   'CSS (TIANHE)', // Tiangong core module
+  // Great observatory
   'HST', // Hubble Space Telescope
-  // Verify-and-extend against the live snapshot (see the plan's Task 2
-  // Step 5): one GNSS representative each, and any historic craft Fenil
-  // wants. Add only names confirmed present in the loaded catalogue.
+  // One GNSS representative per constellation — a path at MEO / GEO, not
+  // just LEO. Exact names verified against the live snapshot 2026-09-04.
+  'NAVSTAR 43 (USA 132)', // GPS
+  'GSAT0101 (GALILEO-PFM)', // Galileo proto-flight model
+  'COSMOS 2432 [GLONASS-M]', // GLONASS
+  'BEIDOU-2 G1', // BeiDou (GEO)
 ]);
 
 /**
