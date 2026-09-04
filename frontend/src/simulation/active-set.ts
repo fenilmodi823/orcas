@@ -6,6 +6,10 @@ export interface ActiveSetArgs {
   readonly tier1Count: number;
   readonly selectedIndex: number; // -1 when nothing is selected
   readonly hoveredIndex: number; // -1 when nothing is hovered
+  /** M1.7b: the curated featured set (renderer/paths/featured-norads.ts).
+   * Optional so every pre-M1.7b caller and test keeps working unchanged. */
+  readonly featured?: Uint32Array;
+  readonly featuredCount?: number;
 }
 
 /** Allocate once at mount; `buildActiveSet` refills it forever after. */
@@ -27,8 +31,10 @@ export function createActiveSetBuffer(cap: number = ACTIVE_SET_CAP): Uint32Array
  * ponytail: swap for a generation-stamped Int32Array if profiling ever
  * shows this in the frame budget.
  *
- * `pinned`, `featured` and `trailed` join the union in M1.7b, when sources
- * for them exist.
+ * `featured` joined the union in M1.7b (orbit paths need every featured
+ * object propagated, and trails read this same union at a much smaller
+ * cap — see `renderer/trails/trail-set.ts`). `pinned` and `trailed` join
+ * when sources for them exist.
  */
 export function buildActiveSet(args: ActiveSetArgs, out: Uint32Array): number {
   const cap = out.length;
@@ -42,6 +48,8 @@ export function buildActiveSet(args: ActiveSetArgs, out: Uint32Array): number {
 
   push(args.selectedIndex);
   push(args.hoveredIndex);
+  const featuredCount = args.featuredCount ?? 0;
+  for (let i = 0; i < featuredCount && n < cap; i++) push(args.featured![i]);
   for (let i = 0; i < args.tier1Count && n < cap; i++) push(args.tier1[i]);
 
   return n;

@@ -16,6 +16,13 @@ const POOL_SIZE = 2;
 export interface SimulationLoopHandle {
   readonly frameStateRef: MutableRefObject<FrameState>;
   readonly ringRef: MutableRefObject<KeyframeRing>;
+  /** Bumped by exactly one on every `scrubTo` call. A structural "was this
+   * a jump" signal for consumers that must clear accumulated history on a
+   * discontinuity (M1.7b's trails, brief §F.6) — not inferred from an
+   * epoch-delta heuristic, which would have no principled threshold
+   * against a fast time-lapse rate. Ordinary reverse playback (a rate
+   * sign flip) is not a discontinuity and does not bump this. */
+  readonly scrubGenerationRef: MutableRefObject<number>;
   scrubTo(epochMs: number): void;
 }
 
@@ -50,6 +57,7 @@ export function useSimulationLoop(
 ): SimulationLoopHandle {
   const frameStateRef = useRef<FrameState>(createFrameState(objects.length));
   const ringRef = useRef<KeyframeRing>(createEmptyRing());
+  const scrubGenerationRef = useRef(0);
   const clockTicksRef = useRef<number>(epochMsToTicks(startEpochMs));
   const lastWallMsRef = useRef<number | null>(null);
   // Always points at the current effect instance's own requestRebuild,
@@ -101,7 +109,9 @@ export function useSimulationLoop(
   return {
     frameStateRef,
     ringRef,
+    scrubGenerationRef,
     scrubTo(epochMs: number) {
+      scrubGenerationRef.current++;
       clockTicksRef.current = epochMsToTicks(epochMs);
       requestRebuildRef.current(epochMs);
     },
