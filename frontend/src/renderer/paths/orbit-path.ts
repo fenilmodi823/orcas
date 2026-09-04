@@ -1,4 +1,10 @@
-import { propagate, PropagationFailedError, type OmmRecord } from '@orcas/physics';
+import {
+  propagate,
+  PropagationFailedError,
+  temeToJ2000Matrix,
+  applyMat3,
+  type OmmRecord,
+} from '@orcas/physics';
 import type { SatRec } from 'satellite.js';
 
 /**
@@ -16,6 +22,18 @@ import type { SatRec } from 'satellite.js';
  * module therefore never joins the last sample to the first. The gap is
  * real, it is usually sub-pixel, and closing it would be inventing a
  * position — the same class of error as inventing a size.
+ *
+ * Samples are returned in **approximate-J2000** km — each SGP4 (TEME)
+ * result is rotated with the same per-instant matrix `segment-builder.ts`
+ * uses, so a path and the points it sits among share a frame. Skipping
+ * that rotation leaves the path ~35 km off its own satellite at LEO in
+ * 2026 (full IAU-1976 precession since J2000).
+ *
+ * ponytail: samples are spaced uniformly in TIME, not in eccentric
+ * anomaly. Brief §F.6 wants eccentric-anomaly spacing so points land
+ * where the curve bends; for `e < 0.01` — every object M1.7b draws — the
+ * two are visually identical. Switch to eccentric-anomaly stepping when a
+ * high-eccentricity path (Molniya, GTO) is first drawn.
  */
 
 /** Enough to keep a LEO orbit's curvature under a pixel at typical framing,
@@ -96,11 +114,13 @@ export function sampleOrbitPath(args: SampleOrbitPathArgs): Float32Array {
 
   for (let i = 0; i < samples; i++) {
     const at = new Date(startMs + i * stepMs);
+    const toJ2000 = temeToJ2000Matrix(at);
     try {
       const state = propagate(satrec, at, noradId);
-      out[i * 3] = state.positionEciKm.x;
-      out[i * 3 + 1] = state.positionEciKm.y;
-      out[i * 3 + 2] = state.positionEciKm.z;
+      const p = applyMat3(toJ2000, state.positionEciKm);
+      out[i * 3] = p.x;
+      out[i * 3 + 1] = p.y;
+      out[i * 3 + 2] = p.z;
     } catch (error) {
       if (error instanceof PropagationFailedError) throw new OrbitPathError(noradId, error);
       throw error;

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { satrecFromOmm, propagate, type OmmRecord } from '@orcas/physics';
+import {
+  satrecFromOmm,
+  propagate,
+  temeToJ2000Matrix,
+  applyMat3,
+  type OmmRecord,
+} from '@orcas/physics';
 import {
   DEFAULT_PATH_SAMPLES,
   OrbitPathError,
@@ -83,7 +89,10 @@ describe('sampleOrbitPath', () => {
   // that catches an off-by-half-a-period, which otherwise draws a perfectly
   // convincing orbit that the satellite is simply not on.
   it('passes through the object own position at the sampled instant', () => {
-    const now = propagate(satrec, new Date(EPOCH_MS), '25544').positionEciKm;
+    // The path is J2000, so the expected "now" position is the raw TEME
+    // SGP4 output rotated into J2000 the same way sampleOrbitPath does it.
+    const at = new Date(EPOCH_MS);
+    const now = applyMat3(temeToJ2000Matrix(at), propagate(satrec, at, '25544').positionEciKm);
     let best = Infinity;
     let bestIndex = -1;
     for (let i = 0; i < DEFAULT_PATH_SAMPLES; i++) {
@@ -98,6 +107,21 @@ describe('sampleOrbitPath', () => {
     expect(best).toBeLessThan(130);
     expect(bestIndex).toBeGreaterThan(DEFAULT_PATH_SAMPLES / 2 - 2);
     expect(bestIndex).toBeLessThan(DEFAULT_PATH_SAMPLES / 2 + 2);
+  });
+
+  // The points render in J2000 (segment-builder.ts rotates them); a path
+  // left in raw TEME sits ~35 km off its own satellite at LEO in 2026.
+  it('rotates each sample from TEME into J2000', () => {
+    const periodMs = orbitalPeriodSec(record) * 1000;
+    const stepMs = periodMs / (DEFAULT_PATH_SAMPLES - 1);
+    const mid = Math.floor(DEFAULT_PATH_SAMPLES / 2);
+    const tMid = new Date(EPOCH_MS - periodMs / 2 + mid * stepMs);
+    const teme = propagate(satrec, tMid, '25544').positionEciKm;
+    const j2000 = applyMat3(temeToJ2000Matrix(tMid), teme);
+    const sample = { x: path[mid * 3], y: path[mid * 3 + 1], z: path[mid * 3 + 2] };
+    // The sample equals the J2000-rotated position, not the raw TEME one.
+    expect(Math.hypot(sample.x - j2000.x, sample.y - j2000.y, sample.z - j2000.z)).toBeLessThan(0.001);
+    expect(Math.hypot(sample.x - teme.x, sample.y - teme.y, sample.z - teme.z)).toBeGreaterThan(1);
   });
 
   // Not a defect — the point of the "orbits do not close" note in the module
