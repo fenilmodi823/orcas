@@ -17,6 +17,7 @@ import { isClickNotDrag } from './points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
+import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { StarSky } from '../sky/StarSky.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
@@ -183,6 +184,10 @@ function PointsDebugPanel({
             radiusKmRef={camRadiusKmRef}
             targetDistanceKmRef={camTargetDistanceKmRef}
           />
+          {/* After CameraController: OrbitPaths reads nothing from the
+              camera, but keeping every projection consumer downstream of
+              the controller is the load-bearing order M1.7a established. */}
+          <OrbitPaths frameStateRef={loop.frameStateRef} objects={objects} byNorad={byNorad} />
           <StarSky />
           <ambientLight intensity={0.4} />
           <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
