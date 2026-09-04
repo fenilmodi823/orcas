@@ -146,9 +146,20 @@ export function Trails({
   }
 
   function updateSlotGeometry(slot: Slot, k: number, frame: FrameState, epochMs: number): void {
-    if (slot.occupantNorad === null) return;
     const line = lineRefs.current[k];
     if (!line) return;
+    if (slot.occupantNorad === null) {
+      // Enforced every frame, not just on the reconcile transition: an
+      // inline ref callback (drei's <Line> pattern OrbitPaths.tsx also
+      // uses) gets detached and reattached whenever this component's
+      // parent re-renders — which PointsDebugPanel does on every hover
+      // change — and React re-fires it with the SAME Line2 instance.
+      // Setting `visible` there would fight this loop every time hover
+      // moves; keeping the visibility decision here, every frame, makes
+      // it immune to that churn regardless of when it happens.
+      line.visible = false;
+      return;
+    }
     const idx = slot.occupantIndex;
     if ((frame.flags[idx] & Flag.Stale) !== 0) return; // D-C: not a real position right now
 
@@ -222,6 +233,12 @@ export function Trails({
         <Line
           key={k}
           ref={(l) => {
+            // Array bookkeeping ONLY — never mutate the instance here.
+            // This inline callback is a new function every render, so
+            // React detaches and reattaches it (with the SAME Line2
+            // instance) on every parent re-render; any mutation placed
+            // here would fight updateSlotGeometry's every-frame writes
+            // on a timing race. See updateSlotGeometry's own note.
             lineRefs.current[k] = l as Line2 | null;
           }}
           points={BOOTSTRAP_POINTS}
