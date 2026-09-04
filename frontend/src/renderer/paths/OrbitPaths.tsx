@@ -27,8 +27,18 @@ interface Props {
 const RESAMPLE_INTERVAL_MS = 5_000;
 const RESAMPLE_EPOCH_DRIFT_MS = 60_000;
 
-/** Bootstraps the LineGeometry with itemSize-4 colours; the real geometry
- * is pushed in imperatively on the first resample. */
+/**
+ * Bootstraps the LineGeometry with itemSize-4 (RGBA) colours; the real
+ * geometry is pushed in imperatively on the first resample.
+ *
+ * ⚠️ Alpha 0 is what hides this, not a `visible` prop: drei's `<Line>`
+ * spreads every prop it doesn't recognise onto *both* the mesh and its
+ * material (see its source), so a `visible={false}` passed here would
+ * set `material.visible = false` once at mount — a value `pushGeometry`
+ * below has no reason to ever touch — and the line would stay invisible
+ * forever, resampled or not. Found live-verifying M1.7b: zero draw calls
+ * ever fired despite correct geometry and `line.visible === true`.
+ */
 const BOOTSTRAP_POINTS: [number, number, number][] = [
   [0, 0, 0],
   [0, 0, 0.001],
@@ -192,7 +202,6 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
           points={BOOTSTRAP_POINTS}
           vertexColors={BOOTSTRAP_COLORS}
           lineWidth={1.5}
-          visible={false}
         />
       ))}
       <Line
@@ -202,7 +211,6 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
         points={BOOTSTRAP_POINTS}
         vertexColors={BOOTSTRAP_COLORS}
         lineWidth={2}
-        visible={false}
       />
     </group>
   );
