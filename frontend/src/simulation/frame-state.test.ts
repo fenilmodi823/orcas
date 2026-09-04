@@ -65,4 +65,29 @@ describe('evaluateFrame', () => {
       expect(Number.isNaN(frameState.positions[i * 3])).toBe(false);
     }
   });
+
+  // D-C: the ring can hold a segment for an object while the clock has
+  // moved past that segment's own window — the gap between "needsRebuild
+  // became true" and the async rebuild resolving. Brief: "no segment
+  // covers this epoch" must flag Stale, not silently freeze as Flag.None.
+  it('flags Stale when the ring has a segment but the epoch has moved past its window', async () => {
+    const ring = await buildTestRing();
+    const frameState = createFrameState(objects.length);
+    evaluateFrame(frameState, ring, objects, T0_MS + 100); // inside the window
+    const lastGoodX = frameState.positions[0];
+    expect(frameState.flags[0] & Flag.Stale).toBe(0);
+
+    evaluateFrame(frameState, ring, objects, T1_MS + 5_000); // 5s past t1Ms
+    expect(frameState.flags[0]).toBe(Flag.Stale);
+    // Position is left untouched at its last-written value, never NaN.
+    expect(frameState.positions[0]).toBe(lastGoodX);
+    expect(Number.isNaN(frameState.positions[0])).toBe(false);
+  });
+
+  it('is not Stale exactly at the segment boundary (inclusive)', async () => {
+    const ring = await buildTestRing();
+    const frameState = createFrameState(objects.length);
+    evaluateFrame(frameState, ring, objects, T1_MS); // exactly t1Ms
+    expect(frameState.flags[0] & Flag.Stale).toBe(0);
+  });
 });

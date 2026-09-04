@@ -67,9 +67,17 @@ export function evaluateFrame(
 
   for (let i = 0; i < objects.length; i++) {
     const segment = ring.segments.get(objects[i].norad);
-    if (!segment) {
+    // M1.7b D-C: the brief's definition is "no segment covers this
+    // epoch", not just "no segment in the ring" — an object whose
+    // segment window has passed (the ring rebuild is in flight) is
+    // extrapolated by sampleSegment's clamp and would otherwise report
+    // Flag.None, which is wrong for a consumer that needs to know the
+    // position is not currently trustworthy (M1.7b's trails: appending
+    // a clamp-frozen point during a rebuild gap would poison the trail
+    // with a point the object never actually occupied at that instant).
+    if (!segment || epochMs < segment.t0Ms || epochMs > segment.t1Ms) {
       mutable.flags[i] = Flag.Stale;
-      continue;
+      continue; // leave the position at its last-written value, never NaN
     }
     const state = sampleSegment(segment, epochMs);
     mutable.positions[i * 3] = state.position.x;
