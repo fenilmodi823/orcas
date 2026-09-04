@@ -21,6 +21,11 @@ interface Props {
   readonly memberCountRef?: MutableRefObject<number>;
   /** Written each frame: the size of the active set (brief §G.6). */
   readonly activeCountRef?: MutableRefObject<number>;
+  /** Written each frame with the SAME buffer `selectTier1` fills — the
+   * first `memberCountRef.current` entries are the live Tier 1 catalogue
+   * indices. M1.7b's trail focus set (`renderer/trails/Trails.tsx`)
+   * reads this rather than recomputing Tier 1 membership a second time. */
+  readonly membersRef?: MutableRefObject<Uint32Array | null>;
 }
 
 /**
@@ -45,6 +50,7 @@ export function Tier1Objects({
   byNorad,
   memberCountRef,
   activeCountRef,
+  membersRef,
 }: Props): React.ReactElement {
   const { camera, size } = useThree();
   const meshRef = useRef<InstancedMesh>(null);
@@ -118,10 +124,12 @@ export function Tier1Objects({
       band,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
+    if (membersRef) membersRef.current = members;
 
-    // ACTIVE SET = selected ∪ hovered ∪ tier 1 (brief §G.6). Its consumers
-    // (trails, orbit paths) arrive in M1.7b; building it here now means it
-    // runs every frame under real membership rather than shipping untested.
+    // ACTIVE SET = selected ∪ hovered ∪ tier 1 (brief §G.6). M1.7b's
+    // trails read Tier 1 membership directly (membersRef above) and
+    // build their own smaller-capped union; this one keeps running for
+    // whatever else reads the full 2048-cap set.
     const activeCount = buildActiveSet(
       {
         tier1: members,
