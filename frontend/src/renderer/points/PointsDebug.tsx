@@ -18,6 +18,7 @@ import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
+import { Trails } from '../trails/Trails.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { StarSky } from '../sky/StarSky.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
@@ -112,6 +113,7 @@ function PointsDebugPanel({
   const selectedTetherRef = useRef<ObjectTetherHandle>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const tier1CountRef = useRef(0);
+  const tier1MembersRef = useRef<Uint32Array | null>(null);
   const activeCountRef = useRef(0);
   const camRadiusKmRef = useRef(0);
   const camTargetDistanceKmRef = useRef(0);
@@ -207,6 +209,17 @@ function PointsDebugPanel({
             byNorad={byNorad}
             memberCountRef={tier1CountRef}
             activeCountRef={activeCountRef}
+            membersRef={tier1MembersRef}
+          />
+          {/* After Tier1Objects: reads the Tier 1 membership it just
+              wrote into tier1MembersRef this same frame. */}
+          <Trails
+            frameStateRef={loop.frameStateRef}
+            objects={objects}
+            byNorad={byNorad}
+            tier1MembersRef={tier1MembersRef}
+            tier1CountRef={tier1CountRef}
+            scrubGenerationRef={loop.scrubGenerationRef}
           />
         </Canvas>
         <ObjectTether
