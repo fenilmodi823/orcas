@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -22,7 +22,7 @@ import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
 import { readRegimeColor } from '../paths/path-regime-tint.js';
-import { computeRanks, densityVisibleCount } from './significance-rank.js';
+import { densityVisibleCount } from './significance-rank.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -54,6 +54,10 @@ export interface TierZeroPointsHandle {
 
 interface TierZeroPointsProps {
   readonly objects: readonly ObjectMeta[];
+  /** Computed once by the shared parent (`computeRanks`) — `ObjectLabels`
+   * needs the identical rank order for label declutter, so this is lifted
+   * out rather than computed a second time here. */
+  readonly ranks: Uint16Array;
   readonly frameStateRef: MutableRefObject<FrameState>;
   readonly tetherRef: MutableRefObject<ObjectTetherHandle | null>;
   /** The persistent chip on the selected object — optional so other hosts of
@@ -90,6 +94,7 @@ interface TierZeroPointsProps {
  */
 export function TierZeroPoints({
   objects,
+  ranks,
   frameStateRef,
   tetherRef,
   selectedTetherRef,
@@ -100,10 +105,6 @@ export function TierZeroPoints({
   const pick = usePointsPicking(pointsRef);
   const hoverTrackingRef = useRef<HoverTracking>(INITIAL_HOVER_TRACKING);
   const projectedRef = useRef(new Vector3());
-  // Pure function of the catalogue, not the density slider — the slider
-  // only ever changes the THRESHOLD compared against these ranks, never
-  // the ranks themselves. Recomputed only if the catalogue itself changes.
-  const ranks = useMemo(() => computeRanks(objects), [objects]);
 
   useEffect(() => {
     pickHandleRef.current = { requestPick: pick.requestPick };

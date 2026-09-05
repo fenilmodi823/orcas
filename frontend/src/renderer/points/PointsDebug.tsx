@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { MutableRefObject, PointerEvent as ReactPointerEvent } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { GlassSurface } from '../../ui/GlassSurface.js';
@@ -6,9 +6,11 @@ import { useCatalog } from '../../data/use-catalog.js';
 import { useSimulationLoop } from '../../simulation/use-simulation-loop.js';
 import { TierZeroPoints, type TierZeroPointsHandle } from './TierZeroPoints.js';
 import { countByOrbitClass } from './points-filters.js';
+import { computeRanks } from './significance-rank.js';
 import { FilterChip } from '../../ui/FilterChip.js';
 import { TimeDock } from '../../ui/TimeDock.js';
 import { ObjectTether, type ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
@@ -22,9 +24,11 @@ import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
 import { Trails } from '../trails/Trails.js';
+import { ObjectLabels, LABEL_SLOT_COUNT } from './ObjectLabels.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { StarSky } from '../sky/StarSky.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
+import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
@@ -113,9 +117,25 @@ function PointsDebugPanel({
   const togglePanel = useViewStore((state) => state.togglePanel);
   const counts = countByOrbitClass(objects);
 
+  // Pure function of the catalogue — computed once here and shared by
+  // TierZeroPoints (density slider) and ObjectLabels (label declutter),
+  // rather than sorting the whole catalogue twice per mount.
+  const ranks = useMemo(() => computeRanks(objects), [objects]);
+  // Same resolved featured list ObjectLabels.tsx computes internally for
+  // its own slot indices — deterministic given the same objects array, so
+  // the two independent computations always agree on order.
+  const featuredNames = useMemo(() => {
+    const buf = new Uint32Array(FEATURED_OBJECT_NAMES.size);
+    const n = featuredIndices(objects, buf);
+    const names: string[] = [];
+    for (let i = 0; i < n; i++) names.push(objects[buf[i]].name);
+    return names;
+  }, [objects]);
+
   const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
   const tetherRef = useRef<ObjectTetherHandle>(null);
   const selectedTetherRef = useRef<ObjectTetherHandle>(null);
+  const labelRefs = useRef<(ObjectLabelHandle | null)[]>([]);
   const viewportRef = useRef<HTMLDivElement>(null);
   const tier1CountRef = useRef(0);
   const tier1MembersRef = useRef<Uint32Array | null>(null);
@@ -205,6 +225,7 @@ function PointsDebugPanel({
           </mesh>
           <TierZeroPoints
             objects={objects}
+            ranks={ranks}
             frameStateRef={loop.frameStateRef}
             tetherRef={tetherRef}
             selectedTetherRef={selectedTetherRef}
@@ -238,6 +259,14 @@ function PointsDebugPanel({
             tier1CountRef={tier1CountRef}
             scrubGenerationRef={loop.scrubGenerationRef}
           />
+          <ObjectLabels
+            frameStateRef={loop.frameStateRef}
+            objects={objects}
+            byNorad={byNorad}
+            ranks={ranks}
+            camRadiusKmRef={camRadiusKmRef}
+            labelRefs={labelRefs}
+          />
         </Canvas>
         <ObjectTether
           ref={selectedTetherRef}
@@ -252,6 +281,18 @@ function PointsDebugPanel({
           orbitClass={resolvedHovered?.orbitClass ?? 'debris'}
           altitudeKm={resolvedHovered?.altitudeKm ?? 0}
         />
+        {Array.from({ length: LABEL_SLOT_COUNT }, (_, k) => (
+          <ObjectLabel
+            key={k}
+            ref={(l) => {
+              labelRefs.current[k] = l;
+            }}
+            // Featured slots (0..featuredNames.length-1) get their real
+            // name; the last slot is the dynamic "current selection, if
+            // not already featured" one — see ObjectLabels.tsx.
+            name={k === LABEL_SLOT_COUNT - 1 ? (resolvedSelected?.name ?? '') : (featuredNames[k] ?? '')}
+          />
+        ))}
       </div>
       {resolvedSelected && selectedObjectMeta && (
         <div className="points-debug__dock">

@@ -1,0 +1,31 @@
+.object-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  will-change: transform, opacity;
+  transition: opacity var(--motion-instant) var(--ease-out);
+}
+
+.object-label__marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--text-mid);
+  background: transparent;
+  flex: none;
+  /* Centres the marker on the projected point the root's transform
+     places at (0, 0) — the root itself can't be centred without fighting
+     the per-frame translate() ObjectLabel.tsx writes there. */
+  transform: translate(-3px, -3px);
+}
+
+.object-label__name {
+  margin-left: 6px;
+  font: 13px/1 var(--font-ui);
+  color: var(--text-mid);
+  white-space: nowrap;
+}
