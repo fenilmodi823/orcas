@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import { BufferAttribute, BufferGeometry, Points, PointsMaterial } from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { Flag } from '../../simulation/flags.js';
@@ -54,6 +55,10 @@ interface Slot {
   readBuffer: Float32Array; // TRAIL_CAPACITY * 3, reused for readOrdered's output
   positions: Float32Array; // TRAIL_CAPACITY * 3, reused for LineGeometry.setPositions
   colors: Float32Array; // TRAIL_CAPACITY * 4, reused for LineGeometry.setColors(_, 4)
+  /** How many of `readBuffer`'s entries this frame's `readOrdered` filled —
+   * kept so the head-marker pass below can find the newest one
+   * (`readBuffer[(lastCount - 1) * 3 ..]`) without a second ring read. */
+  lastCount: number;
 }
 
 function makeSlot(): Slot {
@@ -65,6 +70,7 @@ function makeSlot(): Slot {
     readBuffer: new Float32Array(TRAIL_CAPACITY * 3),
     positions: new Float32Array(TRAIL_CAPACITY * 3),
     colors: new Float32Array(TRAIL_CAPACITY * 4),
+    lastCount: 0,
   };
 }
 
@@ -110,6 +116,48 @@ export function Trails({
   const slots = useMemo<Slot[]>(() => Array.from({ length: TRAIL_FOCUS_CAP }, makeSlot), []);
   const lineRefs = useRef<(Line2 | null)[]>([]);
   const focusSetBuf = useMemo(() => createActiveSetBuffer(TRAIL_FOCUS_CAP), []);
+
+  // Trail-head marker: a small fixed-pixel dot at each visible trail's
+  // newest end, colour-matched to its line — the object's current
+  // position was otherwise unmarked, the line just faded out (Known
+  // issues, deferred from Stage 2). One merged `Points` object, packed
+  // front-to-back each frame and clipped with `setDrawRange` — the exact
+  // idiom `GroundTracks.tsx`'s `instanceCount` and `Tier1Objects.tsx`'s
+  // `mesh.count` already use to draw only the live entries of a
+  // fixed-capacity buffer. `sizeAttenuation: false` keeps it a constant
+  // screen size regardless of zoom, like a cursor rather than a modelled
+  // object — the same reasoning `uMinPointPx` uses for Tier 0.
+  const headGeometry = useMemo(() => {
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(new Float32Array(TRAIL_FOCUS_CAP * 3), 3));
+    geometry.setAttribute('color', new BufferAttribute(new Float32Array(TRAIL_FOCUS_CAP * 3), 3));
+    geometry.setDrawRange(0, 0);
+    return geometry;
+  }, []);
+  const headMaterial = useMemo(() => new PointsMaterial({ size: 5, sizeAttenuation: false, vertexColors: true }), []);
+  // Memoised, not constructed inline in JSX: an object created at render
+  // time would be a NEW Points instance on every re-render (this
+  // component's parent re-renders on every hover change — see the ref
+  // callbacks' own notes below), which R3F would unmount and remount
+  // every time instead of reusing the one instance useFrame writes into.
+  const headPoints = useMemo(() => {
+    const points = new Points(headGeometry, headMaterial);
+    // frustumCulled disabled: recomputing the bounding sphere from
+    // `position` every time it changes (every frame, here) is exactly the
+    // per-frame CPU cost this component exists to avoid — same reasoning
+    // TierZeroPoints.tsx already documents for its own points object. Set
+    // inside the memo factory, not after — mutating a hook's return value
+    // at render time is a React Hooks immutability violation.
+    points.frustumCulled = false;
+    return points;
+  }, [headGeometry, headMaterial]);
+  useEffect(
+    () => () => {
+      headGeometry.dispose();
+      headMaterial.dispose();
+    },
+    [headGeometry, headMaterial],
+  );
   // Seeded to a value the real generation (which starts at 0) can never
   // equal on mount, so the first frame's compare is always "changed" —
   // a harmless no-op clear, every ring already starts empty. Reading
@@ -128,6 +176,7 @@ export function Trails({
 
   function reassignSlot(slot: Slot, k: number, next: string | null, selectedNorad: string | null): void {
     clearTrail(slot.ring);
+    slot.lastCount = 0;
     if (next === null) {
       slot.occupantNorad = null;
       slot.occupantIndex = -1;
@@ -173,6 +222,7 @@ export function Trails({
     if (!appended) return;
 
     const count = readOrdered(slot.ring, slot.readBuffer);
+    slot.lastCount = count;
     if (count < 2) {
       line.visible = false; // a single point is not a line yet
       return;
@@ -225,10 +275,32 @@ export function Trails({
     for (let k = 0; k < slots.length; k++) {
       updateSlotGeometry(slots[k], k, frame, epochMs);
     }
+
+    const headPositions = headGeometry.getAttribute('position') as BufferAttribute;
+    const headColors = headGeometry.getAttribute('color') as BufferAttribute;
+    const headPosArray = headPositions.array as Float32Array;
+    const headColorArray = headColors.array as Float32Array;
+    let headCount = 0;
+    for (let k = 0; k < slots.length; k++) {
+      const slot = slots[k];
+      if (slot.occupantNorad === null || slot.lastCount < 2) continue;
+      const src = (slot.lastCount - 1) * 3; // newest entry — see readOrdered's oldest-to-newest contract
+      headPosArray[headCount * 3] = slot.readBuffer[src];
+      headPosArray[headCount * 3 + 1] = slot.readBuffer[src + 1];
+      headPosArray[headCount * 3 + 2] = slot.readBuffer[src + 2];
+      headColorArray[headCount * 3] = slot.rgb.r;
+      headColorArray[headCount * 3 + 1] = slot.rgb.g;
+      headColorArray[headCount * 3 + 2] = slot.rgb.b;
+      headCount++;
+    }
+    headPositions.needsUpdate = true;
+    headColors.needsUpdate = true;
+    headGeometry.setDrawRange(0, headCount);
   });
 
   return (
     <group>
+      <primitive object={headPoints} />
       {slots.map((_, k) => (
         <Line
           key={k}
