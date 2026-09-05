@@ -18,6 +18,7 @@ import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
+import { GroundTracks } from '../paths/GroundTracks.js';
 import { Trails } from '../trails/Trails.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { StarSky } from '../sky/StarSky.js';
@@ -115,6 +116,7 @@ function PointsDebugPanel({
   const tier1CountRef = useRef(0);
   const tier1MembersRef = useRef<Uint32Array | null>(null);
   const activeCountRef = useRef(0);
+  const activeMembersRef = useRef<Uint32Array | null>(null);
   const camRadiusKmRef = useRef(0);
   const camTargetDistanceKmRef = useRef(0);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
@@ -209,7 +211,17 @@ function PointsDebugPanel({
             byNorad={byNorad}
             memberCountRef={tier1CountRef}
             activeCountRef={activeCountRef}
+            activeMembersRef={activeMembersRef}
             membersRef={tier1MembersRef}
+          />
+          {/* After Tier1Objects: reads the active set it just wrote into
+              activeMembersRef this same frame. */}
+          <GroundTracks
+            frameStateRef={loop.frameStateRef}
+            objects={objects}
+            byNorad={byNorad}
+            activeMembersRef={activeMembersRef}
+            activeCountRef={activeCountRef}
           />
           {/* After Tier1Objects: reads the Tier 1 membership it just
               wrote into tier1MembersRef this same frame. */}

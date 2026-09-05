@@ -21,6 +21,11 @@ interface Props {
   readonly memberCountRef?: MutableRefObject<number>;
   /** Written each frame: the size of the active set (brief §G.6). */
   readonly activeCountRef?: MutableRefObject<number>;
+  /** Written each frame with the SAME buffer `buildActiveSet` fills — the
+   * first `activeCountRef.current` entries are the live active-set
+   * catalogue indices. M1.7b's ground tracks (`renderer/paths/GroundTracks.tsx`)
+   * read this rather than recomputing the active set a second time. */
+  readonly activeMembersRef?: MutableRefObject<Uint32Array | null>;
   /** Written each frame with the SAME buffer `selectTier1` fills — the
    * first `memberCountRef.current` entries are the live Tier 1 catalogue
    * indices. M1.7b's trail focus set (`renderer/trails/Trails.tsx`)
@@ -50,6 +55,7 @@ export function Tier1Objects({
   byNorad,
   memberCountRef,
   activeCountRef,
+  activeMembersRef,
   membersRef,
 }: Props): React.ReactElement {
   const { camera, size } = useThree();
@@ -140,6 +146,7 @@ export function Tier1Objects({
       activeSet,
     );
     if (activeCountRef) activeCountRef.current = activeCount;
+    if (activeMembersRef) activeMembersRef.current = activeSet;
   });
 
   return (
