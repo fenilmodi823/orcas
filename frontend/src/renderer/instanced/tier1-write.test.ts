@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Color, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { instanceBrightness, TIER1_PROXY_SCALE_KM, writeTier1Instances } from './tier1-write.js';
+import { instanceBrightness, TIER1_DIM_FACTOR, TIER1_PROXY_SCALE_KM, writeTier1Instances } from './tier1-write.js';
 import { createSatelliteProxyGeometry } from './satellite-proxy.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { LOD_BAND_PX, tier0Alpha } from '../lod/lod-band.js';
@@ -96,6 +96,65 @@ describe('writeTier1Instances — camera-relative origin', () => {
     a.decompose(new Vector3(), qa, new Vector3()); // decompose, not
     b.decompose(new Vector3(), qb, new Vector3()); // setFromRotationMatrix: the matrix carries scale
     expect(Math.abs(qa.dot(qb))).toBeCloseTo(1, 6);
+  });
+});
+
+describe('writeTier1Instances — P4.D27 focus dim', () => {
+  function frameOf(positions: number[]): Parameters<typeof writeTier1Instances>[0]['frame'] {
+    return {
+      positions: new Float32Array(positions),
+      velocities: new Float32Array(positions.length).fill(0),
+      epochMs: 0,
+      count: positions.length / 3,
+      generation: 0,
+      flags: new Uint8Array(positions.length / 3),
+    } as unknown as Parameters<typeof writeTier1Instances>[0]['frame'];
+  }
+
+  // Close enough that instanceBrightness saturates to 1 for both members —
+  // isolates the dim factor from the distance-based brightness curve.
+  const CLOSE_CAM: [number, number, number] = [7000.01, 0, 0];
+
+  it('dims every non-selected instance to TIER1_DIM_FACTOR while a selection is active', () => {
+    const mesh = new InstancedMesh(createSatelliteProxyGeometry(), new MeshStandardMaterial(), 4);
+    writeTier1Instances({
+      mesh,
+      frame: frameOf([7000, 0, 0, 7000, 0, 0.01]),
+      members: new Uint32Array([0, 1]),
+      memberCount: 2,
+      camPosKm: new Vector3(...CLOSE_CAM),
+      pixelsPerRadian: PX_PER_RAD,
+      tint: new Color(1, 1, 1),
+      band: LOD_BAND_PX,
+      selectedIndex: 0,
+    });
+    const selected = new Color();
+    const other = new Color();
+    mesh.getColorAt(0, selected);
+    mesh.getColorAt(1, other);
+    expect(selected.r).toBeCloseTo(1, 3);
+    expect(other.r).toBeCloseTo(TIER1_DIM_FACTOR, 3);
+  });
+
+  it('dims nothing when no selection is active', () => {
+    const mesh = new InstancedMesh(createSatelliteProxyGeometry(), new MeshStandardMaterial(), 4);
+    writeTier1Instances({
+      mesh,
+      frame: frameOf([7000, 0, 0, 7000, 0, 0.01]),
+      members: new Uint32Array([0, 1]),
+      memberCount: 2,
+      camPosKm: new Vector3(...CLOSE_CAM),
+      pixelsPerRadian: PX_PER_RAD,
+      tint: new Color(1, 1, 1),
+      band: LOD_BAND_PX,
+      // selectedIndex omitted — pre-M1.7b callers keep their old behaviour.
+    });
+    const a = new Color();
+    const b = new Color();
+    mesh.getColorAt(0, a);
+    mesh.getColorAt(1, b);
+    expect(a.r).toBeCloseTo(1, 3);
+    expect(b.r).toBeCloseTo(1, 3);
   });
 });
 

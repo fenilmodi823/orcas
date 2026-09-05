@@ -33,6 +33,11 @@ const _scale = new Vector3();
 const _matrix = new Matrix4();
 const _color = new Color();
 
+/** P4.D27, matching TierZeroPoints.tsx's `uDimFactor` — a readable floor,
+ * not a blackout, for every non-selected instance while a selection is
+ * active. */
+export const TIER1_DIM_FACTOR = 0.45;
+
 export interface Tier1WriteArgs {
   readonly mesh: InstancedMesh;
   readonly frame: FrameState;
@@ -42,6 +47,11 @@ export interface Tier1WriteArgs {
   readonly pixelsPerRadian: number;
   readonly tint: Color;
   readonly band: LodBand;
+  /** Catalogue index of the current selection, or omitted/-1 for none.
+   * Tier 1 has no shader uniform the way Tier 0 does (`uDimFactor` /
+   * `uFocusActive`), so the same P4.D27 dim floor is applied here in
+   * plain per-instance colour arithmetic instead. */
+  readonly selectedIndex?: number;
 }
 
 /**
@@ -74,6 +84,7 @@ export interface Tier1WriteArgs {
  */
 export function writeTier1Instances(args: Tier1WriteArgs): number {
   const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, tint, band } = args;
+  const selectedIndex = args.selectedIndex ?? -1;
   mesh.position.copy(camPosKm);
   for (let slot = 0; slot < memberCount; slot++) {
     const i = members[slot];
@@ -88,7 +99,8 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
 
     // _pos is now the camera->object vector, so its length IS the distance.
     const brightness = instanceBrightness(_pos.length(), pixelsPerRadian, PLACEHOLDER_RADIUS_KM, band);
-    _color.copy(tint).multiplyScalar(brightness);
+    const dim = selectedIndex === -1 || i === selectedIndex ? 1 : TIER1_DIM_FACTOR;
+    _color.copy(tint).multiplyScalar(brightness * dim);
     mesh.setColorAt(slot, _color);
   }
   mesh.instanceMatrix.needsUpdate = true;

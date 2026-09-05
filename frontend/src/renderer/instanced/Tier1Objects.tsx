@@ -128,6 +128,7 @@ export function Tier1Objects({
       pixelsPerRadian,
       tint,
       band,
+      selectedIndex: selectedIndexRef.current,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
     if (membersRef) membersRef.current = members;
