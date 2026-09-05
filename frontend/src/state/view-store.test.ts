@@ -2,7 +2,12 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { useViewStore } from './view-store.js';
 
 beforeEach(() => {
-  useViewStore.setState({ activeFilters: new Set(), density: 100, panelCollapsed: false });
+  useViewStore.setState({
+    activeFilters: new Set(),
+    density: 100,
+    panelCollapsed: false,
+    regimeLegendDismissed: false,
+  });
 });
 
 describe('useViewStore — density and panel collapse (M1.7b stage 4)', () => {
@@ -28,6 +33,26 @@ describe('useViewStore — density and panel collapse (M1.7b stage 4)', () => {
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
     useViewStore.getState().setDensity(10);
     useViewStore.getState().togglePanel();
+    expect(setItemSpy).not.toHaveBeenCalled();
+    setItemSpy.mockRestore();
+  });
+});
+
+describe('useViewStore — regime legend dismiss (M1.7c)', () => {
+  it('starts shown', () => {
+    expect(useViewStore.getState().regimeLegendDismissed).toBe(false);
+  });
+
+  it('toggleRegimeLegend flips the dismissed state and survives a fresh read', () => {
+    useViewStore.getState().toggleRegimeLegend();
+    expect(useViewStore.getState().regimeLegendDismissed).toBe(true);
+    useViewStore.getState().toggleRegimeLegend();
+    expect(useViewStore.getState().regimeLegendDismissed).toBe(false);
+  });
+
+  it('never touches localStorage', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+    useViewStore.getState().toggleRegimeLegend();
     expect(setItemSpy).not.toHaveBeenCalled();
     setItemSpy.mockRestore();
   });

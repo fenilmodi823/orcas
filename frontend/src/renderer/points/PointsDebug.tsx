@@ -17,6 +17,7 @@ import { resolveObjectDetail, resolveSelectableObject } from './points-selection
 import { isClickNotDrag } from './points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
+import { RegimeLegend } from '../../ui/RegimeLegend.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
@@ -263,6 +264,7 @@ function PointsDebugPanel({
         </div>
       )}
       <CameraDevPanel />
+      <RegimeLegend />
       {panelCollapsed && (
         <button
           type="button"
