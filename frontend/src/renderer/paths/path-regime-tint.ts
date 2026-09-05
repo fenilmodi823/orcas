@@ -2,18 +2,19 @@ import { Color } from 'three';
 import { Regime } from '../../data/catalog-types.js';
 
 /**
- * The orbit-class palette (P4.D24), read from styles/tokens.css so the
+ * The orbit-regime palette (P4.D24), read from styles/tokens.css so the
  * scene and the CSS never drift — the same contract as
  * renderer/scene-colors.ts. The hex fallbacks are each token's own
  * current value, for a headless/JSDOM context with no stylesheet
  * attached; they are not a second source of truth.
  *
- * ⚠️ Today `--leo` === `--orca-cyan` (#00e5ff), so a LEO path and the
- * selected-object accent are the same colour. M1.7c updates the token to
- * a distinct azure; this module then follows with no change here.
+ * By REGIME, not object type (brief §13.4.1) — a debris object still
+ * renders in its own orbit's regime colour here. The separate `--debris`
+ * grey is for the debris *visibility toggle* (P4.D25, still blocked on
+ * the SATCAT ingest), not a recolour of every debris object at rest.
  *
- * Unknown has no token — it gets a neutral grey until M1.7c's legend
- * work defines the debris/unknown colour properly.
+ * Unknown has no token — it falls back to the same neutral grey as
+ * `--debris`, the "no clear classification" colour.
  */
 const REGIME_VAR: Record<Regime, string> = {
   [Regime.LEO]: '--leo',
@@ -24,11 +25,11 @@ const REGIME_VAR: Record<Regime, string> = {
 };
 
 const REGIME_FALLBACK: Record<Regime, string> = {
-  [Regime.LEO]: '#00e5ff',
-  [Regime.MEO]: '#a78bfa',
+  [Regime.LEO]: '#4d9fff',
+  [Regime.MEO]: '#3dd68c',
   [Regime.GEO]: '#ffb020',
-  [Regime.HEO]: '#ff7ab6',
-  [Regime.Unknown]: '#8a94a6',
+  [Regime.HEO]: '#b57bff',
+  [Regime.Unknown]: '#8a93a6',
 };
 
 export function readRegimeColor(regime: Regime): Color {

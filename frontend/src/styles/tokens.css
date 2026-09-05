@@ -19,12 +19,16 @@
   --caution: #ffb020;
   --nominal: #30d158;
 
-  /* Orbit classes — must be distinguishable to colour-blind users */
-  --leo: #00e5ff;
-  --meo: #a78bfa;
-  --geo: #ffb020;
-  --heo: #ff7ab6;
-  --debris: #8a93a6;
+  /* Orbit-regime colours — objects render in these AT REST (P4.D23/24).
+     Deuteranopia-checked and 3:1-contrast-checked in Design.md §9: closest
+     simulated pair (--meo/--debris) separated by Euclidean distance 61, all
+     ten pairs >50. None may equal --orca-cyan (selection) or --critical
+     (conjunction). */
+  --leo: #4d9fff; /* azure blue — distinct from the selection cyan */
+  --meo: #3dd68c; /* emerald green */
+  --geo: #ffb020; /* gold — unchanged */
+  --heo: #b57bff; /* violet — HEO / highly elliptical / other */
+  --debris: #8a93a6; /* neutral grey — unchanged, never red */
 
   /* Text */
   --text-hi: #eaf0fa;
