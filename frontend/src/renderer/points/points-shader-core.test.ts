@@ -19,6 +19,18 @@ describe('PICK_LAYER', () => {
   });
 });
 
+describe('Tier 0 regime colour at rest (P4.D23/24)', () => {
+  it('declares the regime colour lookup and the selection accent', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('uniform vec3 uRegimeColors[5];');
+    expect(POINTS_VERTEX_SHADER).toContain('uniform vec3 uSelectedColor;');
+  });
+
+  it('declares and writes vTint, so the display fragment shader can read it', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('varying vec3 vTint;');
+    expect(POINTS_VERTEX_SHADER).toContain('vTint = mix(uRegimeColors[int(aRegime)], uSelectedColor, isSelected);');
+  });
+});
+
 describe('Tier 0 cross-fade', () => {
   it('declares the band uniforms', () => {
     expect(POINTS_VERTEX_SHADER).toContain('uniform float uLodLoPx;');

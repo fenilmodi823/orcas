@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { InstancedMesh, PerspectiveCamera } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { readCyanToken } from '../scene-colors.js';
+import { readRegimeColor } from '../paths/path-regime-tint.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
 import { createTier1Buffer, selectTier1, TIER1_CAP } from '../lod/tier1-select.js';
@@ -13,8 +15,13 @@ import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writeTier1Instances } from './tier1-write.js';
 import { createSatelliteProxyGeometry } from './satellite-proxy.js';
 
+/** Indexed by the Regime enum (LEO=0..Unknown=4) — the same order
+ * TierZeroPoints.tsx's uRegimeColors uniform assumes (P4.D23/24). */
+const REGIME_ORDER: readonly Regime[] = [Regime.LEO, Regime.MEO, Regime.GEO, Regime.HEO, Regime.Unknown];
+
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
+  readonly objects: readonly ObjectMeta[];
   /** norad → catalogue index, for resolving selection and hover. */
   readonly byNorad: Readonly<Record<string, number>>;
   /** Written each frame so the debug panel can read membership. */
@@ -52,6 +59,7 @@ interface Props {
  */
 export function Tier1Objects({
   frameStateRef,
+  objects,
   byNorad,
   memberCountRef,
   activeCountRef,
@@ -71,8 +79,9 @@ export function Tier1Objects({
   // re-renders on a selection change.
   const selectedIndexRef = useRef(-1);
   const hoveredIndexRef = useRef(-1);
-  // Read once — the cyan token, like every other colour in the renderer.
-  const tint = useMemo(() => readCyanToken(), []);
+  // Read once — colour tokens, like every other colour in the renderer.
+  const selectedColor = useMemo(() => readCyanToken(), []);
+  const regimeColors = useMemo(() => REGIME_ORDER.map((regime) => readRegimeColor(regime)), []);
   const geometry = useMemo(() => createSatelliteProxyGeometry(), []);
   useEffect(() => () => geometry.dispose(), [geometry]);
 
@@ -126,7 +135,9 @@ export function Tier1Objects({
       memberCount,
       camPosKm: camera.position,
       pixelsPerRadian,
-      tint,
+      objects,
+      regimeColors,
+      selectedColor,
       band,
       selectedIndex: selectedIndexRef.current,
     });

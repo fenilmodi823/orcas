@@ -3,7 +3,7 @@ import type { MutableRefObject } from 'react';
 import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
-import type { ObjectMeta } from '../../data/catalog-types.js';
+import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
@@ -21,13 +21,14 @@ import { writeTethers } from './points-tether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
+import { readRegimeColor } from '../paths/path-regime-tint.js';
 import { computeRanks, densityVisibleCount } from './significance-rank.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
 
 varying float vBrightness;
-uniform vec3 uColor;
+varying vec3 vTint;
 
 void main() {
   // Soft radial falloff on gl_PointCoord: a Gaussian-ish core plus a
@@ -39,9 +40,13 @@ void main() {
   float halo = smoothstep(1.0, 0.0, d) * 0.12;
   float alpha = clamp(core + halo, 0.0, 1.0) * vBrightness;
   if (alpha < 0.003) discard;
-  gl_FragColor = vec4(uColor, alpha);
+  gl_FragColor = vec4(vTint, alpha);
 }
 `;
+
+/** Indexed by the Regime enum (LEO=0..Unknown=4) — the same order the
+ * vertex shader's `uRegimeColors[int(aRegime)]` lookup assumes. */
+const REGIME_ORDER: readonly Regime[] = [Regime.LEO, Regime.MEO, Regime.GEO, Regime.HEO, Regime.Unknown];
 
 export interface TierZeroPointsHandle {
   requestPick(px: number, py: number): void;
@@ -146,7 +151,11 @@ export function TierZeroPoints({
         uLodHiPx: { value: LOD_BAND_PX.hiPx },
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
-        uColor: { value: readCyanToken() },
+        // P4.D23/24: read once — regime colour is a per-vertex GPU lookup,
+        // not a per-frame CPU one. Order matches the Regime enum, which is
+        // what the vertex shader's uRegimeColors[int(aRegime)] assumes.
+        uRegimeColors: { value: REGIME_ORDER.map((regime) => readRegimeColor(regime)) },
+        uSelectedColor: { value: readCyanToken() },
         uCamPos: { value: new Vector3() },
         uEarthRadii: { value: new Vector3(WGS84_A_KM, WGS84_A_KM, WGS84_B_KM) },
       },

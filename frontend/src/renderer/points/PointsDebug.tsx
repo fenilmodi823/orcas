@@ -211,6 +211,7 @@ function PointsDebugPanel({
           />
           <Tier1Objects
             frameStateRef={loop.frameStateRef}
+            objects={objects}
             byNorad={byNorad}
             memberCountRef={tier1CountRef}
             activeCountRef={activeCountRef}

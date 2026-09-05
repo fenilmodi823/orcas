@@ -1,5 +1,6 @@
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { InstancedMesh } from 'three';
+import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { apparentPx } from '../points/points-shading.js';
@@ -45,7 +46,13 @@ export interface Tier1WriteArgs {
   readonly memberCount: number;
   readonly camPosKm: Vector3;
   readonly pixelsPerRadian: number;
-  readonly tint: Color;
+  /** For `objects[i].regime` — Tier 1 has no `aRegime`-style attribute the
+   * way Tier 0's geometry does, so the base colour is looked up here. */
+  readonly objects: readonly ObjectMeta[];
+  /** Indexed by the Regime enum (LEO=0..Unknown=4) — the same order
+   * `TierZeroPoints.tsx`'s `uRegimeColors` uniform assumes (P4.D23/24). */
+  readonly regimeColors: readonly Color[];
+  readonly selectedColor: Color;
   readonly band: LodBand;
   /** Catalogue index of the current selection, or omitted/-1 for none.
    * Tier 1 has no shader uniform the way Tier 0 does (`uDimFactor` /
@@ -83,7 +90,8 @@ export interface Tier1WriteArgs {
  * Allocation-free: every temporary is module-scope and reused forever.
  */
 export function writeTier1Instances(args: Tier1WriteArgs): number {
-  const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, tint, band } = args;
+  const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, objects, regimeColors, selectedColor, band } =
+    args;
   const selectedIndex = args.selectedIndex ?? -1;
   mesh.position.copy(camPosKm);
   for (let slot = 0; slot < memberCount; slot++) {
@@ -99,8 +107,10 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
 
     // _pos is now the camera->object vector, so its length IS the distance.
     const brightness = instanceBrightness(_pos.length(), pixelsPerRadian, PLACEHOLDER_RADIUS_KM, band);
-    const dim = selectedIndex === -1 || i === selectedIndex ? 1 : TIER1_DIM_FACTOR;
-    _color.copy(tint).multiplyScalar(brightness * dim);
+    const isSelected = i === selectedIndex;
+    const dim = selectedIndex === -1 || isSelected ? 1 : TIER1_DIM_FACTOR;
+    const baseColor = isSelected ? selectedColor : regimeColors[objects[i].regime];
+    _color.copy(baseColor).multiplyScalar(brightness * dim);
     mesh.setColorAt(slot, _color);
   }
   mesh.instanceMatrix.needsUpdate = true;
