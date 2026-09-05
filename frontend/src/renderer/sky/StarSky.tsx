@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial } from 'three';
-import { parseStarSky, type StarSky as StarSkyData } from './star-sky.js';
+import { parseStarSky, normalisedBrightness, type StarSky as StarSkyData } from './star-sky.js';
 
 const SKY_URL = '/sky/gaia-dr3-stars.bin';
 /** Behind everything. The sky writes no depth, so drawing it first lets the
@@ -100,6 +100,16 @@ const FRAGMENT_SHADER = /* glsl */ `
   }
 `;
 
+/**
+ * P4.D31, "star-field first pass": a brighter magnitude cut so the sky
+ * reads as a night sky, not a star chart, at rest — chosen by eye against
+ * the real Gaia DR3 range this route loads (G ~1.7-9). The underlying
+ * `.bin` still carries every real source down to the survey's own cut;
+ * this only decides how many of them draw. Full device tiering (a
+ * per-tier count, not a fixed one) is M1.8.
+ */
+const MAX_MAGNITUDE = 6.5;
+
 interface Props {
   /** Called once with the loaded set, or with null if the sky is
    * unavailable — the host decides what to say about it. */
@@ -136,18 +146,33 @@ export function StarSky({ onLoaded }: Props): React.ReactElement | null {
   const points = useMemo(() => {
     if (!sky) return null;
 
-    const brightness = new Float32Array(sky.count);
-    const colours = new Float32Array(sky.count);
-    const span = sky.magMax - sky.magMin || 1;
+    // P4.D31: drop sources fainter than MAX_MAGNITUDE at load, rather than
+    // regenerating the .bin with a brighter --max-g cut — no network fetch
+    // against the Gaia archive, no new committed asset, and brightness
+    // below still normalises against the FULL real magMin/magMax span
+    // (not recomputed from this subset), so the kept stars' relative
+    // brightness is unchanged from what the full sky would have shown.
+    let visibleCount = 0;
+    for (let i = 0; i < sky.count; i++) if (sky.magnitudes[i] <= MAX_MAGNITUDE) visibleCount++;
+
+    const directions = new Float32Array(visibleCount * 3);
+    const brightness = new Float32Array(visibleCount);
+    const colours = new Float32Array(visibleCount);
+    let w = 0;
     for (let i = 0; i < sky.count; i++) {
-      brightness[i] = Math.min(1, Math.max(0, (sky.magMax - sky.magnitudes[i]) / span));
+      if (sky.magnitudes[i] > MAX_MAGNITUDE) continue;
+      directions[w * 3] = sky.directions[i * 3];
+      directions[w * 3 + 1] = sky.directions[i * 3 + 1];
+      directions[w * 3 + 2] = sky.directions[i * 3 + 2];
+      brightness[w] = normalisedBrightness(sky.magnitudes[i], sky.magMin, sky.magMax);
       // -999 is the shader's "no measurement" sentinel; NaN would poison
       // every comparison it touches in GLSL.
-      colours[i] = Number.isNaN(sky.colourIndices[i]) ? -999 : sky.colourIndices[i];
+      colours[w] = Number.isNaN(sky.colourIndices[i]) ? -999 : sky.colourIndices[i];
+      w++;
     }
 
     const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new BufferAttribute(sky.directions, 3));
+    geometry.setAttribute('position', new BufferAttribute(directions, 3));
     geometry.setAttribute('aBrightness', new BufferAttribute(brightness, 1));
     geometry.setAttribute('aColourIndex', new BufferAttribute(colours, 1));
 
@@ -156,7 +181,9 @@ export function StarSky({ onLoaded }: Props): React.ReactElement | null {
       fragmentShader: FRAGMENT_SHADER,
       uniforms: {
         uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-        uSizeScale: { value: 1 },
+        // P4.D31: lower than M1.7a's 1 — a smaller point size is the other
+        // half of "night sky, not star chart" alongside the magnitude cut.
+        uSizeScale: { value: 0.6 },
       },
       transparent: true,
       // Additive against a black sky is what starlight actually does when
