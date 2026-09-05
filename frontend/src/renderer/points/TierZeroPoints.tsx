@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -21,6 +21,7 @@ import { writeTethers } from './points-tether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
+import { computeRanks, densityVisibleCount } from './significance-rank.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
@@ -94,6 +95,10 @@ export function TierZeroPoints({
   const pick = usePointsPicking(pointsRef);
   const hoverTrackingRef = useRef<HoverTracking>(INITIAL_HOVER_TRACKING);
   const projectedRef = useRef(new Vector3());
+  // Pure function of the catalogue, not the density slider — the slider
+  // only ever changes the THRESHOLD compared against these ranks, never
+  // the ranks themselves. Recomputed only if the catalogue itself changes.
+  const ranks = useMemo(() => computeRanks(objects), [objects]);
 
   useEffect(() => {
     pickHandleRef.current = { requestPick: pick.requestPick };
@@ -107,11 +112,14 @@ export function TierZeroPoints({
     const points = pointsRef.current;
     if (!points) return;
 
+    const initialDensity = useViewStore.getState().density;
     const geometry = createPointsGeometry(
       objects,
       frameStateRef.current.positions,
       frameStateRef.current.flags,
       useViewStore.getState().activeFilters,
+      ranks,
+      densityVisibleCount(objects, initialDensity) - 1,
     );
     const material = new ShaderMaterial({
       vertexShader: POINTS_VERTEX_SHADER,
@@ -133,7 +141,7 @@ export function TierZeroPoints({
         // Once real per-object sizes exist, most objects will draw well
         // above the floor and this value matters far less.
         uFloorBrightness: { value: 0.6 },
-        uDimFactor: { value: 0.3 }, // D6, Design.md §3 — not invented here
+        uDimFactor: { value: 0.45 }, // P4.D27 supersedes D6's 0.3 — a readable floor, not a blackout
         uLodLoPx: { value: LOD_BAND_PX.loPx },
         uLodHiPx: { value: LOD_BAND_PX.hiPx },
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
@@ -162,10 +170,18 @@ export function TierZeroPoints({
     // (brief: "filter re-evaluation on filter change only, never per
     // frame"), never inside useFrame.
     const unsubscribe = useViewStore.subscribe((state, previousState) => {
-      if (state.activeFilters === previousState.activeFilters) return;
+      if (state.activeFilters === previousState.activeFilters && state.density === previousState.density) {
+        return;
+      }
       const points = pointsRef.current;
       if (!points) return;
-      updateFlagsAttribute(points.geometry, objects, state.activeFilters);
+      updateFlagsAttribute(
+        points.geometry,
+        objects,
+        state.activeFilters,
+        ranks,
+        densityVisibleCount(objects, state.density) - 1,
+      );
     });
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- objects is stable for the route's lifetime, same precedent as the mount effect above

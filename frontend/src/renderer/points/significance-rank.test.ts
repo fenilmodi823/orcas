@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
-import { computeRanks } from './significance-rank.js';
+import { computeRanks, densityVisibleCount } from './significance-rank.js';
 
 function fakeObject(name: string, regime: Regime, type: ObjType, meanMotion: number): ObjectMeta {
   return {
@@ -67,5 +67,32 @@ describe('computeRanks', () => {
     ];
     const ranks = computeRanks(objects);
     expect(ranks[0]).toBeLessThan(ranks[1]); // index 0 breaks the tie ahead of index 1
+  });
+});
+
+describe('densityVisibleCount', () => {
+  const objects = [
+    fakeObject('ISS (ZARYA)', Regime.LEO, ObjType.Payload, 15.5), // featured
+    fakeObject('HST', Regime.LEO, ObjType.Payload, 15.1), // featured
+    fakeObject('a', Regime.LEO, ObjType.Payload, 15),
+    fakeObject('b', Regime.MEO, ObjType.Payload, 2),
+    fakeObject('c', Regime.GEO, ObjType.Debris, 1),
+  ];
+
+  it('floors at the featured count at 0%, never showing nothing', () => {
+    expect(densityVisibleCount(objects, 0)).toBe(2); // ISS + HST
+  });
+
+  it('shows the full catalogue at 100%', () => {
+    expect(densityVisibleCount(objects, 100)).toBe(objects.length);
+  });
+
+  it('is non-decreasing as density rises — sweeping it only ever adds', () => {
+    let previous = -1;
+    for (let d = 0; d <= 100; d += 5) {
+      const count = densityVisibleCount(objects, d);
+      expect(count).toBeGreaterThanOrEqual(previous);
+      previous = count;
+    }
   });
 });

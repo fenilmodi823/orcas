@@ -9,6 +9,7 @@ import { countByOrbitClass } from './points-filters.js';
 import { FilterChip } from '../../ui/FilterChip.js';
 import { TimeDock } from '../../ui/TimeDock.js';
 import { ObjectTether, type ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { OrbitClass } from '../../state/selection-store.js';
@@ -107,6 +108,8 @@ function PointsDebugPanel({
   const crossCheck = useCrossCheck(objects, loop);
   const activeFilters = useViewStore((state) => state.activeFilters);
   const toggleFilter = useViewStore((state) => state.toggleFilter);
+  const panelCollapsed = useViewStore((state) => state.panelCollapsed);
+  const togglePanel = useViewStore((state) => state.togglePanel);
   const counts = countByOrbitClass(objects);
 
   const pointsHandleRef = useRef<TierZeroPointsHandle>(null);
@@ -259,7 +262,29 @@ function PointsDebugPanel({
         </div>
       )}
       <CameraDevPanel />
-      <GlassSurface variant="floating" elevation={2} className="points-debug__panel">
+      {panelCollapsed && (
+        <button
+          type="button"
+          className="points-debug__panel-reopen"
+          onClick={togglePanel}
+          aria-label="Show debug panel"
+        >
+          ▸
+        </button>
+      )}
+      <GlassSurface
+        variant="floating"
+        elevation={2}
+        className={`points-debug__panel${panelCollapsed ? ' points-debug__panel--collapsed' : ''}`}
+      >
+        <button
+          type="button"
+          className="points-debug__panel-collapse"
+          onClick={togglePanel}
+          aria-label="Hide debug panel"
+        >
+          ◂
+        </button>
         <h1>Tier 0 points debug</h1>
         <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
         <Tier1Readout
@@ -268,6 +293,7 @@ function PointsDebugPanel({
           radiusKmRef={camRadiusKmRef}
           targetDistanceKmRef={camTargetDistanceKmRef}
         />
+        <DensitySlider />
 
         <div className="points-debug__filters">
           {ORBIT_CLASSES.map((orbitClass) => (

@@ -1,0 +1,71 @@
+.density-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin: var(--space-3, 0.75rem) 0;
+}
+
+.density-slider__label {
+  color: var(--text-lo);
+  white-space: nowrap;
+}
+
+.density-slider__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5ch;
+  text-align: right;
+}
+
+.density-slider__track {
+  flex: 1;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.density-slider__track::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-edge);
+}
+
+.density-slider__track::-moz-range-track {
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-edge);
+}
+
+.density-slider__track::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orca-cyan);
+  box-shadow: var(--elev-1);
+}
+
+.density-slider__track::-moz-range-thumb {
+  border: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orca-cyan);
+  box-shadow: var(--elev-1);
+}
+
+.density-slider__track:focus-visible {
+  outline: none;
+}
+
+/* Two vendor-prefixed pseudo-elements, not one rule — Firefox ignores
+   ::-webkit-slider-thumb entirely; see TimeScrubber.css for the same note. */
+.density-slider__track:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--focus-ring), var(--elev-1);
+}
+
+.density-slider__track:focus-visible::-moz-range-thumb {
+  box-shadow: var(--focus-ring), var(--elev-1);
+}

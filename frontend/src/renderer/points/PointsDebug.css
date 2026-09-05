@@ -21,6 +21,37 @@
   top: var(--space-4, 1rem);
   left: var(--space-4, 1rem);
   padding: var(--space-4, 1rem);
+  /* P4.D29: transform-only — the canvas is already full-bleed underneath
+     this absolutely-positioned panel, so sliding it off reclaims the width
+     for free with no layout change anywhere else. */
+  transition: transform 200ms ease;
+}
+
+.points-debug__panel--collapsed {
+  transform: translateX(calc(-100% - 2 * var(--space-4, 1rem)));
+}
+
+.points-debug__panel-collapse,
+.points-debug__panel-reopen {
+  position: absolute;
+  top: var(--space-3, 0.75rem);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--glass-fill);
+  color: var(--text-hi);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.points-debug__panel-collapse {
+  right: var(--space-3, 0.75rem);
+}
+
+.points-debug__panel-reopen {
+  left: var(--space-4, 1rem);
+  z-index: 1;
 }
 
 /* The object dock is anchored to the bottom of the viewport; TimeDock

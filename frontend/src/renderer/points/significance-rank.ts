@@ -65,3 +65,19 @@ export function computeRanks(objects: readonly ObjectMeta[]): Uint16Array {
   for (let rank = 0; rank < n; rank++) ranks[indices[rank]] = rank;
   return ranks;
 }
+
+/**
+ * The visible-object count for the density slider (P4.D26) at a given
+ * percentage: the top `ceil(density/100 * N)` objects by rank, floored at
+ * the featured count so 0% shows the featured set rather than nothing —
+ * "the top of the list" and "the list's own first entries" are the same
+ * objects by construction (`computeRanks` always places them first). Both
+ * terms are non-decreasing in `density`, so raising the slider only ever
+ * adds objects, matching the DoD's "sweeping it only adds."
+ */
+export function densityVisibleCount(objects: readonly ObjectMeta[], densityPercent: number): number {
+  let featuredCount = 0;
+  for (const object of objects) if (FEATURED_OBJECT_NAMES.has(object.name)) featuredCount++;
+  const scaled = Math.ceil((densityPercent / 100) * objects.length);
+  return Math.max(featuredCount, scaled);
+}
