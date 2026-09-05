@@ -65,6 +65,31 @@ describe('packFilterFlags', () => {
     const flags = packFilterFlags(objects, new Set(['leo']));
     expect(Array.from(flags)).toEqual([0]);
   });
+
+  it('hides an object whose rank exceeds the density threshold', () => {
+    const objects = [
+      fakeObject(Regime.LEO, ObjType.Payload),
+      fakeObject(Regime.LEO, ObjType.Payload),
+      fakeObject(Regime.LEO, ObjType.Payload),
+    ];
+    const ranks = new Uint16Array([0, 1, 2]);
+    const flags = packFilterFlags(objects, new Set(), ranks, 1);
+    expect(Array.from(flags)).toEqual([FLAG_VISIBLE, FLAG_VISIBLE, 0]);
+  });
+
+  it('hides an object failing either the class filter or the density threshold', () => {
+    const objects = [fakeObject(Regime.LEO, ObjType.Payload), fakeObject(Regime.GEO, ObjType.Payload)];
+    const ranks = new Uint16Array([0, 0]); // both pass density
+    // 'leo' filter alone would show both; density alone would show both;
+    // together, only the object matching BOTH survives.
+    const flags = packFilterFlags(objects, new Set(['leo']), ranks, 0);
+    expect(Array.from(flags)).toEqual([FLAG_VISIBLE, 0]);
+  });
+
+  it('ignores rank entirely when ranks/threshold are omitted — pre-M1.7b callers unaffected', () => {
+    const objects = [fakeObject(Regime.LEO, ObjType.Payload)];
+    expect(Array.from(packFilterFlags(objects, new Set()))).toEqual([FLAG_VISIBLE]);
+  });
 });
 
 describe('countByOrbitClass', () => {

@@ -31,16 +31,29 @@ export function classifyOrbitClass(object: ObjectMeta): OrbitClass | null {
  * visible, since no chip exists that could be used to intentionally
  * hide it — the same "never hide data the UI has no control for"
  * principle M1.0 already applied to stale-but-valid objects.
+ *
+ * `ranks`/`rankThreshold` (P4.D26, the density slider) fold the same way:
+ * an object with `ranks[i] > rankThreshold` is hidden regardless of its
+ * filter class. Baking density into this existing CPU-side attribute,
+ * rather than a new shader uniform, is deliberate — `aFlags` lives on the
+ * geometry both the display and pick materials share, so density and
+ * picking can never drift apart the way two materials' own uniforms
+ * could (see `points-shader-core.ts`'s own warning about display/pick
+ * drift: "the worst possible bug because it is intermittent"). Both
+ * params are optional so every pre-M1.7b caller keeps working unchanged.
  */
 export function packFilterFlags(
   objects: readonly ObjectMeta[],
   activeFilters: ReadonlySet<OrbitClass>,
+  ranks?: Uint16Array,
+  rankThreshold?: number,
 ): Float32Array {
   const flags = new Float32Array(objects.length);
   for (let i = 0; i < objects.length; i++) {
     const orbitClass = classifyOrbitClass(objects[i]);
-    const visible = orbitClass === null || activeFilters.size === 0 || activeFilters.has(orbitClass);
-    flags[i] = visible ? FLAG_VISIBLE : 0;
+    const filterVisible = orbitClass === null || activeFilters.size === 0 || activeFilters.has(orbitClass);
+    const densityVisible = ranks === undefined || rankThreshold === undefined || ranks[i] <= rankThreshold;
+    flags[i] = filterVisible && densityVisible ? FLAG_VISIBLE : 0;
   }
   return flags;
 }

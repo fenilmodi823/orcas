@@ -20,13 +20,18 @@ export function createPointsGeometry(
   positions: Float32Array,
   staleFlags: Uint8Array,
   activeFilters: ReadonlySet<OrbitClass>,
+  ranks?: Uint16Array,
+  rankThreshold?: number,
 ): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('aEntityId', new BufferAttribute(packEntityIds(objects.length), 1));
   geometry.setAttribute('aRegime', new BufferAttribute(packRegimes(objects), 1));
   geometry.setAttribute('aRadius', new BufferAttribute(packRadii(objects.length), 1));
-  geometry.setAttribute('aFlags', new BufferAttribute(packFilterFlags(objects, activeFilters), 1));
+  geometry.setAttribute(
+    'aFlags',
+    new BufferAttribute(packFilterFlags(objects, activeFilters, ranks, rankThreshold), 1),
+  );
   // Plain BufferAttribute, not Uint8BufferAttribute — that subclass's
   // constructor does `new Uint8Array(array)`, which copies even when
   // `array` is already a Uint8Array (per the TypedArray constructor
@@ -47,9 +52,11 @@ export function updateFlagsAttribute(
   geometry: BufferGeometry,
   objects: readonly ObjectMeta[],
   activeFilters: ReadonlySet<OrbitClass>,
+  ranks?: Uint16Array,
+  rankThreshold?: number,
 ): void {
   const attribute = geometry.getAttribute('aFlags') as BufferAttribute;
-  const flags = packFilterFlags(objects, activeFilters);
+  const flags = packFilterFlags(objects, activeFilters, ranks, rankThreshold);
   (attribute.array as Float32Array).set(flags);
   attribute.needsUpdate = true;
 }
