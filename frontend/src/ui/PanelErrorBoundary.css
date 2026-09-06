@@ -1,0 +1,8 @@
+.panel-error-boundary {
+  padding: var(--space-3) var(--space-4);
+}
+
+.panel-error-boundary p[data-error] {
+  color: var(--critical);
+  font-size: 0.85rem;
+}

@@ -33,6 +33,7 @@ import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
 import { CrossCheckTable } from './CrossCheckTable.js';
+import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import './PointsDebug.css';
 
 const EARTH_RADIUS_KM = 6371;
@@ -193,81 +194,83 @@ function PointsDebugPanel({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
-          {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
-              order, so CameraController must come FIRST: everything below
-              projects world positions with `camera`, and one frame of stale
-              camera is not a rounding error up close. In object mode the
-              camera sits ~82 m from a target moving 7.66 km/s, so it
-              translates ~127 m per frame — further than the whole viewing
-              distance. Mounted last (as it was), the selected object's
-              tether was computed against the previous frame's camera and
-              flung hundreds of pixels off-screen every frame, which read as
-              the name flickering. Invisible when zoomed out, because 127 m
-              against thousands of km is nothing. */}
-          <CameraController
-            frameStateRef={loop.frameStateRef}
-            byNorad={byNorad}
-            canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
-            radiusKmRef={camRadiusKmRef}
-            targetDistanceKmRef={camTargetDistanceKmRef}
-          />
-          {/* After CameraController: OrbitPaths reads nothing from the
-              camera, but keeping every projection consumer downstream of
-              the controller is the load-bearing order M1.7a established. */}
-          <OrbitPaths frameStateRef={loop.frameStateRef} objects={objects} byNorad={byNorad} />
-          <StarSky />
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
-          <mesh>
-            <sphereGeometry args={[EARTH_RADIUS_KM, 64, 64]} />
-            <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
-          </mesh>
-          <TierZeroPoints
-            objects={objects}
-            ranks={ranks}
-            frameStateRef={loop.frameStateRef}
-            tetherRef={tetherRef}
-            selectedTetherRef={selectedTetherRef}
-            pickHandleRef={pointsHandleRef}
-          />
-          <Tier1Objects
-            frameStateRef={loop.frameStateRef}
-            objects={objects}
-            byNorad={byNorad}
-            memberCountRef={tier1CountRef}
-            activeCountRef={activeCountRef}
-            activeMembersRef={activeMembersRef}
-            membersRef={tier1MembersRef}
-          />
-          {/* After Tier1Objects: reads the active set it just wrote into
-              activeMembersRef this same frame. */}
-          <GroundTracks
-            frameStateRef={loop.frameStateRef}
-            objects={objects}
-            byNorad={byNorad}
-            activeMembersRef={activeMembersRef}
-            activeCountRef={activeCountRef}
-          />
-          {/* After Tier1Objects: reads the Tier 1 membership it just
-              wrote into tier1MembersRef this same frame. */}
-          <Trails
-            frameStateRef={loop.frameStateRef}
-            objects={objects}
-            byNorad={byNorad}
-            tier1MembersRef={tier1MembersRef}
-            tier1CountRef={tier1CountRef}
-            scrubGenerationRef={loop.scrubGenerationRef}
-          />
-          <ObjectLabels
-            frameStateRef={loop.frameStateRef}
-            objects={objects}
-            byNorad={byNorad}
-            ranks={ranks}
-            camRadiusKmRef={camRadiusKmRef}
-            labelRefs={labelRefs}
-          />
-        </Canvas>
+        <PanelErrorBoundary label="3D scene">
+          <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
+            {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
+                order, so CameraController must come FIRST: everything below
+                projects world positions with `camera`, and one frame of stale
+                camera is not a rounding error up close. In object mode the
+                camera sits ~82 m from a target moving 7.66 km/s, so it
+                translates ~127 m per frame — further than the whole viewing
+                distance. Mounted last (as it was), the selected object's
+                tether was computed against the previous frame's camera and
+                flung hundreds of pixels off-screen every frame, which read as
+                the name flickering. Invisible when zoomed out, because 127 m
+                against thousands of km is nothing. */}
+            <CameraController
+              frameStateRef={loop.frameStateRef}
+              byNorad={byNorad}
+              canvasContainerRef={viewportRef as unknown as MutableRefObject<HTMLElement | null>}
+              radiusKmRef={camRadiusKmRef}
+              targetDistanceKmRef={camTargetDistanceKmRef}
+            />
+            {/* After CameraController: OrbitPaths reads nothing from the
+                camera, but keeping every projection consumer downstream of
+                the controller is the load-bearing order M1.7a established. */}
+            <OrbitPaths frameStateRef={loop.frameStateRef} objects={objects} byNorad={byNorad} />
+            <StarSky />
+            <ambientLight intensity={0.4} />
+            <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
+            <mesh>
+              <sphereGeometry args={[EARTH_RADIUS_KM, 64, 64]} />
+              <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
+            </mesh>
+            <TierZeroPoints
+              objects={objects}
+              ranks={ranks}
+              frameStateRef={loop.frameStateRef}
+              tetherRef={tetherRef}
+              selectedTetherRef={selectedTetherRef}
+              pickHandleRef={pointsHandleRef}
+            />
+            <Tier1Objects
+              frameStateRef={loop.frameStateRef}
+              objects={objects}
+              byNorad={byNorad}
+              memberCountRef={tier1CountRef}
+              activeCountRef={activeCountRef}
+              activeMembersRef={activeMembersRef}
+              membersRef={tier1MembersRef}
+            />
+            {/* After Tier1Objects: reads the active set it just wrote into
+                activeMembersRef this same frame. */}
+            <GroundTracks
+              frameStateRef={loop.frameStateRef}
+              objects={objects}
+              byNorad={byNorad}
+              activeMembersRef={activeMembersRef}
+              activeCountRef={activeCountRef}
+            />
+            {/* After Tier1Objects: reads the Tier 1 membership it just
+                wrote into tier1MembersRef this same frame. */}
+            <Trails
+              frameStateRef={loop.frameStateRef}
+              objects={objects}
+              byNorad={byNorad}
+              tier1MembersRef={tier1MembersRef}
+              tier1CountRef={tier1CountRef}
+              scrubGenerationRef={loop.scrubGenerationRef}
+            />
+            <ObjectLabels
+              frameStateRef={loop.frameStateRef}
+              objects={objects}
+              byNorad={byNorad}
+              ranks={ranks}
+              camRadiusKmRef={camRadiusKmRef}
+              labelRefs={labelRefs}
+            />
+          </Canvas>
+        </PanelErrorBoundary>
         <ObjectTether
           ref={selectedTetherRef}
           name={resolvedSelected?.name ?? ''}
@@ -296,16 +299,22 @@ function PointsDebugPanel({
       </div>
       {resolvedSelected && selectedObjectMeta && (
         <div className="points-debug__dock">
-          <TimeDock
-            mode="object"
-            object={resolvedSelected}
-            detail={resolveObjectDetail(selectedObjectMeta)}
-            onBack={() => setSelected(null)}
-          />
+          <PanelErrorBoundary label="Time dock">
+            <TimeDock
+              mode="object"
+              object={resolvedSelected}
+              detail={resolveObjectDetail(selectedObjectMeta)}
+              onBack={() => setSelected(null)}
+            />
+          </PanelErrorBoundary>
         </div>
       )}
-      <CameraDevPanel />
-      <RegimeLegend />
+      <PanelErrorBoundary label="Camera panel">
+        <CameraDevPanel />
+      </PanelErrorBoundary>
+      <PanelErrorBoundary label="Regime legend">
+        <RegimeLegend />
+      </PanelErrorBoundary>
       {panelCollapsed && (
         <button
           type="button"
@@ -329,34 +338,36 @@ function PointsDebugPanel({
         >
           ◂
         </button>
-        <h1>Tier 0 points debug</h1>
-        <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
-        <Tier1Readout
-          tier1CountRef={tier1CountRef}
-          activeCountRef={activeCountRef}
-          radiusKmRef={camRadiusKmRef}
-          targetDistanceKmRef={camTargetDistanceKmRef}
-        />
-        <DensitySlider />
+        <PanelErrorBoundary label="Debug panel">
+          <h1>Tier 0 points debug</h1>
+          <p className="points-debug__count">{objects.length.toLocaleString()} objects</p>
+          <Tier1Readout
+            tier1CountRef={tier1CountRef}
+            activeCountRef={activeCountRef}
+            radiusKmRef={camRadiusKmRef}
+            targetDistanceKmRef={camTargetDistanceKmRef}
+          />
+          <DensitySlider />
 
-        <div className="points-debug__filters">
-          {ORBIT_CLASSES.map((orbitClass) => (
-            <FilterChip
-              key={orbitClass}
-              orbitClass={orbitClass}
-              label={ORBIT_CLASS_LABELS[orbitClass]}
-              count={counts[orbitClass]}
-              active={activeFilters.has(orbitClass)}
-              onToggle={() => toggleFilter(orbitClass)}
-            />
-          ))}
-        </div>
+          <div className="points-debug__filters">
+            {ORBIT_CLASSES.map((orbitClass) => (
+              <FilterChip
+                key={orbitClass}
+                orbitClass={orbitClass}
+                label={ORBIT_CLASS_LABELS[orbitClass]}
+                count={counts[orbitClass]}
+                active={activeFilters.has(orbitClass)}
+                onToggle={() => toggleFilter(orbitClass)}
+              />
+            ))}
+          </div>
 
-        <CrossCheckTable rows={crossCheck} />
+          <CrossCheckTable rows={crossCheck} />
 
-        {/* ESA's data policy requires the acknowledgement to be visible where
-            the data is used, not only in source. */}
-        <p className="points-debug__attribution">{GAIA_ACKNOWLEDGEMENT}</p>
+          {/* ESA's data policy requires the acknowledgement to be visible where
+              the data is used, not only in source. */}
+          <p className="points-debug__attribution">{GAIA_ACKNOWLEDGEMENT}</p>
+        </PanelErrorBoundary>
       </GlassSurface>
     </div>
   );
