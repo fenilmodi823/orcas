@@ -114,3 +114,20 @@
 .points-debug__count--multiline {
   white-space: pre-line;
 }
+
+/* Always visible while it applies, never dismissible — an honesty
+   requirement (Rules.md §4 "never blank"/"never present stale as live"),
+   same philosophy as StatusPill. Bottom-left is the one corner the debug
+   panel, camera panel, and regime legend don't already occupy. */
+.points-debug__data-notice {
+  position: absolute;
+  left: var(--space-4, 1rem);
+  bottom: var(--space-4, 1rem);
+  max-width: 32ch;
+  margin: 0;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background: var(--glass-fill);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  font-size: 0.8rem;
+}

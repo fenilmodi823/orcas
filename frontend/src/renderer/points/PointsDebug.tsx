@@ -3,6 +3,7 @@ import type { MutableRefObject, PointerEvent as ReactPointerEvent } from 'react'
 import { Canvas } from '@react-three/fiber';
 import { GlassSurface } from '../../ui/GlassSurface.js';
 import { useCatalog } from '../../data/use-catalog.js';
+import type { CatalogOrigin } from '../../data/use-catalog.js';
 import { useSimulationLoop } from '../../simulation/use-simulation-loop.js';
 import { TierZeroPoints, type TierZeroPointsHandle } from './TierZeroPoints.js';
 import { countByOrbitClass } from './points-filters.js';
@@ -72,7 +73,7 @@ const ORBIT_CLASSES: readonly OrbitClass[] = ['leo', 'meo', 'geo', 'heo', 'debri
  * this route, per this plan's Global Constraints. Real integration into
  * the shared scene is M1.9's job. */
 export function PointsDebug() {
-  const { snapshot, loading, error } = useCatalog();
+  const { snapshot, origin, loading, error } = useCatalog();
 
   if (loading) {
     return (
@@ -97,15 +98,22 @@ export function PointsDebug() {
     );
   }
 
-  return <PointsDebugPanel objects={snapshot.objects} byNorad={snapshot.byNorad} />;
+  return <PointsDebugPanel objects={snapshot.objects} byNorad={snapshot.byNorad} origin={origin} />;
 }
+
+const DATA_NOTICES: Partial<Record<CatalogOrigin, string>> = {
+  cached: 'Data may be stale — showing the last cached snapshot.',
+  bundled: 'No live connection — showing bundled sample data, not real satellites.',
+};
 
 function PointsDebugPanel({
   objects,
   byNorad,
+  origin,
 }: {
   objects: readonly ObjectMeta[];
   byNorad: Readonly<Record<string, number>>;
+  origin: CatalogOrigin;
 }) {
   const playingRef = useRef(true);
   const rateRef = useRef(1);
@@ -315,6 +323,7 @@ function PointsDebugPanel({
       <PanelErrorBoundary label="Regime legend">
         <RegimeLegend />
       </PanelErrorBoundary>
+      {DATA_NOTICES[origin] && <p className="points-debug__data-notice">{DATA_NOTICES[origin]}</p>}
       {panelCollapsed && (
         <button
           type="button"

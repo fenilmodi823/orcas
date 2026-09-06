@@ -11,6 +11,31 @@ const { loadPersistedSnapshot, persistSnapshot } = vi.hoisted(() => ({
 }));
 vi.mock('./catalog-db.js', () => ({ loadPersistedSnapshot, persistSnapshot }));
 
+const { fallbackRecords } = vi.hoisted(() => ({
+  fallbackRecords: [
+    {
+      OBJECT_NAME: 'ORCAS-FALLBACK-01',
+      OBJECT_ID: '2026-999A',
+      EPOCH: new Date().toISOString(),
+      MEAN_MOTION: 14.5,
+      ECCENTRICITY: 0.0001,
+      INCLINATION: 51.6,
+      RA_OF_ASC_NODE: 0,
+      ARG_OF_PERICENTER: 0,
+      MEAN_ANOMALY: 0,
+      EPHEMERIS_TYPE: 0,
+      CLASSIFICATION_TYPE: 'U',
+      NORAD_CAT_ID: '90999',
+      ELEMENT_SET_NO: 999,
+      REV_AT_EPOCH: 1,
+      BSTAR: 0,
+      MEAN_MOTION_DOT: 0,
+      MEAN_MOTION_DDOT: 0,
+    },
+  ],
+}));
+vi.mock('./fallback-snapshot.js', () => ({ fallbackRecords }));
+
 function CatalogProbe() {
   const state = useCatalog();
   return (
@@ -83,14 +108,18 @@ describe('useCatalog', () => {
     expect(readProbe().dataset.count).toBe('0');
   });
 
-  it('reports unavailable when both the live fetch and the cache fail', async () => {
+  it('falls back to the bundled sample snapshot when both the live fetch and the cache fail', async () => {
     fetchCatalogSnapshot.mockRejectedValue(new Error('network down'));
     loadPersistedSnapshot.mockResolvedValue(null);
 
     render(<CatalogProbe />);
 
     await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
-    expect(readProbe().dataset.origin).toBe('unavailable');
-    expect(readProbe().dataset.error).toBe('network down');
+    expect(readProbe().dataset.origin).toBe('bundled');
+    expect(readProbe().dataset.count).toBe('1');
+    // Never blank (Rules.md §4): the bundled snapshot is not persisted —
+    // it's a last resort, not something that should overwrite a real
+    // cached snapshot on a later visit.
+    expect(persistSnapshot).not.toHaveBeenCalled();
   });
 });
