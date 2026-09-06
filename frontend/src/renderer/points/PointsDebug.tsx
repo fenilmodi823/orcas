@@ -26,6 +26,7 @@ import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
 import { Trails } from '../trails/Trails.js';
 import { ObjectLabels, LABEL_SLOT_COUNT } from './ObjectLabels.js';
+import { PerfProbe, PerfHud } from './PerfHud.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { StarSky } from '../sky/StarSky.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
@@ -118,6 +119,12 @@ function PointsDebugPanel({
   const playingRef = useRef(true);
   const rateRef = useRef(1);
   const [startEpochMs] = useState(() => Date.now());
+  // M1.8 §G.8: a hidden perf HUD, read once at boot — no reason for it to
+  // react to a URL change after mount.
+  const [perfEnabled] = useState(() => new URLSearchParams(window.location.search).has('perf'));
+  const frameMsRef = useRef(0);
+  const drawCallsRef = useRef(0);
+  const trianglesRef = useRef(0);
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
   const crossCheck = useCrossCheck(objects, loop);
   const activeFilters = useViewStore((state) => state.activeFilters);
@@ -277,6 +284,9 @@ function PointsDebugPanel({
               camRadiusKmRef={camRadiusKmRef}
               labelRefs={labelRefs}
             />
+            {perfEnabled && (
+              <PerfProbe frameMsRef={frameMsRef} drawCallsRef={drawCallsRef} trianglesRef={trianglesRef} />
+            )}
           </Canvas>
         </PanelErrorBoundary>
         <ObjectTether
@@ -357,6 +367,9 @@ function PointsDebugPanel({
             targetDistanceKmRef={camTargetDistanceKmRef}
           />
           <DensitySlider />
+          {perfEnabled && (
+            <PerfHud frameMsRef={frameMsRef} drawCallsRef={drawCallsRef} trianglesRef={trianglesRef} />
+          )}
 
           <div className="points-debug__filters">
             {ORBIT_CLASSES.map((orbitClass) => (
