@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { detectDeviceTier } from '../device/device-tier.js';
 
 const FRAME_BUDGET_MS = 1000 / 60;
 
@@ -52,6 +53,7 @@ export function PerfProbe({ frameMsRef, drawCallsRef, trianglesRef }: PerfRefs) 
  */
 export function PerfHud({ frameMsRef, drawCallsRef, trianglesRef }: PerfRefs) {
   const nodeRef = useRef<HTMLParagraphElement>(null);
+  const tier = detectDeviceTier();
 
   useEffect(() => {
     let raf = 0;
@@ -59,13 +61,13 @@ export function PerfHud({ frameMsRef, drawCallsRef, trianglesRef }: PerfRefs) {
       const node = nodeRef.current;
       if (node) {
         const frameMs = frameMsRef.current;
-        node.textContent = `frame ${frameMs.toFixed(1)} ms (budget ${FRAME_BUDGET_MS.toFixed(1)}) · draws ${drawCallsRef.current} · tris ${trianglesRef.current.toLocaleString()}`;
+        node.textContent = `frame ${frameMs.toFixed(1)} ms (budget ${FRAME_BUDGET_MS.toFixed(1)}) · draws ${drawCallsRef.current} · tris ${trianglesRef.current.toLocaleString()} · tier ${tier}`;
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [frameMsRef, drawCallsRef, trianglesRef]);
+  }, [frameMsRef, drawCallsRef, trianglesRef, tier]);
 
   return <p ref={nodeRef} className="points-debug__count" />;
 }

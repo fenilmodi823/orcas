@@ -210,7 +210,8 @@ function PointsDebugPanel({
         onPointerUp={handlePointerUp}
       >
         <PanelErrorBoundary label="3D scene">
-          <Canvas camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
+          {/* dpr={[1, 2]} matches the Math.min(window.devicePixelRatio, 2) point-size math in TierZeroPoints.tsx / StarSky.tsx; per-tier DPR (brief §6.2) is a deliberate follow-up — it would desync those uniforms and needs live point-size verification. */}
+          <Canvas dpr={[1, 2]} camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
             {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
                 order, so CameraController must come FIRST: everything below
                 projects world positions with `camera`, and one frame of stale
