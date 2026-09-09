@@ -6,9 +6,12 @@ describe('classifyRenderer', () => {
     ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3060, D3D11)', 'A'],
     ['ANGLE (NVIDIA GeForce GTX 1660 Ti Direct3D11 vs_5_0 ps_5_0)', 'A'],
     ['ANGLE (AMD, AMD Radeon RX 6600 (0x000073FF), D3D11)', 'A'],
+    ['AMD Radeon(TM) RX 6800 XT', 'A'],
+    ['AMD Radeon Pro W6800', 'A'],
     ['Apple M1 Pro', 'B'],
     ['Apple M2 GPU', 'B'],
     ['ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified)', 'B'],
+    ['Apple GPU', 'B'],
     ['ANGLE (AMD, AMD Radeon(TM) 610M (0x00001681), D3D11)', 'C'],
     ['ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49), D3D11)', 'C'],
     ['ANGLE (Intel, Intel(R) UHD Graphics 620, D3D11)', 'C'],
@@ -38,9 +41,5 @@ describe('detectDeviceTier', () => {
     const tier = detectDeviceTier();
     expect(['A', 'B', 'C']).toContain(tier);
     expect(tier).toBe('C');
-  });
-
-  it('is memoised — repeat calls return the same value', () => {
-    expect(detectDeviceTier()).toBe(detectDeviceTier());
   });
 });

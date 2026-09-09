@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { detectDeviceTier } from '../device/device-tier.js';
@@ -53,7 +53,7 @@ export function PerfProbe({ frameMsRef, drawCallsRef, trianglesRef }: PerfRefs) 
  */
 export function PerfHud({ frameMsRef, drawCallsRef, trianglesRef }: PerfRefs) {
   const nodeRef = useRef<HTMLParagraphElement>(null);
-  const tier = detectDeviceTier();
+  const [tier] = useState(detectDeviceTier);
 
   useEffect(() => {
     let raf = 0;
