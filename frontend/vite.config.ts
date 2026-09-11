@@ -7,6 +7,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    watch: {
+      usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+    },
   },
   worker: {
     // satellite.js 7.x ships a WASM pthreads worker (dist/wasm/) that Vite's

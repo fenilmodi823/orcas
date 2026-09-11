@@ -74,6 +74,8 @@ services:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
       target: dev
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "5173:5173"
     volumes:
