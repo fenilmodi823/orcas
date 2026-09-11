@@ -52,5 +52,13 @@ jobs:
       - run: npm run lint -w frontend
       - run: npx tsc -b --noEmit
         working-directory: frontend
+      - name: Check file length (250-line convention)
+        run: |
+          over=$(find frontend/src packages/*/src -name '*.ts' -o -name '*.tsx' 2>/dev/null | grep -v '\.test\.' | xargs wc -l 2>/dev/null | \
+            awk '$1 > 250 && $2 != "total" {print}')
+          if [ -n "$over" ]; then
+            echo "::warning::Files over the 250-line convention (see CLAUDE.md):"
+            echo "$over"
+          fi
       - run: npm run test -w packages/orcas-physics
       - run: npm run test -w frontend
