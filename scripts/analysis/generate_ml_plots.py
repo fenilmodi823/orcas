@@ -1,3 +1,10 @@
+"""ILLUSTRATIVE ONLY — every number in this file is hard-coded, not measured.
+
+The confusion matrix, its "93% accuracy" and the feature importances below
+are literals, not the output of any model (ORCAS Vault, RA-11 §4.2). Nothing
+here is an ORCAS result; never quote these values as one.
+"""
+
 from pathlib import Path
 
 import matplotlib.pyplot as plt

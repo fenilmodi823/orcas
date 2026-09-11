@@ -1,5 +1,8 @@
 """Orchestrates object-type classification: OMM -> features (domain) ->
 prediction (infra). No physics or SQL of its own — see Rules.md layering.
+
+Retired from the product (RA13.D1) — wired to no route; see
+infra/ml/classifier.py.
 """
 
 from app.domain.classification import features_from_omm

@@ -25,8 +25,9 @@ from app.domain.types import Vec3
 Mat2 = NDArray[np.float64]
 Vec2 = NDArray[np.float64]
 
-#: P_c above this is a critical conjunction. Verified 2009 Iridium 33 /
-#: Cosmos 2251 case: P_c = 4.2e-3, two orders of magnitude above threshold.
+#: P_c above this is a critical conjunction — NASA CARA's mitigation
+#: threshold. The paper's 2009 value (4.2e-3, 42x this) came from simulated
+#: covariance and is not reproducible; see ORCAS Vault RA-11 and RA-12.
 P_C_ALERT_THRESHOLD = 1.0e-4
 
 

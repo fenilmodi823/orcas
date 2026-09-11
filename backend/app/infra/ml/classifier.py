@@ -1,6 +1,11 @@
 """Loads the trained Random Forest object-type classifier. The only place in
 the backend that touches scikit-learn or the .joblib file directly — see
 Rules.md "Layering is absolute": domain/ never imports this module.
+
+Retired from the product (RA13.D1, 2026-09-11): no API route or screen uses
+it, and none may without Fenil's approval. Scored by launch rather than at
+random it reaches 0.7604 +/- 0.1609 accuracy (ORCAS Vault, RA-13). Kept as
+the provenance record; do not retrain.
 """
 
 from dataclasses import dataclass
