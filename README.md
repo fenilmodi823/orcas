@@ -26,7 +26,7 @@ This repository is **under active reconstruction** and is honest about what is a
 
 | Component | Status |
 | --- | --- |
-| **Backend** (`backend/`) | ✅ **Complete and tested.** Propagation, covariance, conjunction, ML classification, OMM ingestion, REST API, 100% coverage on `domain/` + `services/`. |
+| **Backend** (`backend/`) | ✅ **Complete and tested.** Propagation, covariance, conjunction, OMM ingestion, REST API, 100% coverage on `domain/` + `services/`. An object classifier exists as code but is retired from the product — no route calls it. |
 | **Data layer** | 🟡 **Half done.** Ingestion, retention, snapshot generation and the `/catalog` endpoints work. The 3D asset pipeline is not started. |
 | **Design system** (`frontend/src/ui/`) | ✅ **Complete.** Tokens, glass material, 12 components, live at the `/design` route. |
 | **Simulation frontend** | 🟡 **In progress.** The renderer is being built milestone by milestone on **debug routes**. The root route `/` is still a placeholder scene. |
@@ -147,10 +147,12 @@ def eci_to_ecef(position_km_eci: np.ndarray, gmst_rad: float) -> np.ndarray:
 
 The committed `ml_models/object_classifier.joblib` is a Random Forest whose **actual** features are
 `inc_deg`, `ecc`, `mm_rev_day` and `bstar`, over **three** classes (Debris, Payload, Rocket Body).
-This **does not match the feature set or class count described in the paper's Table I**, and the
-original training script has not been recovered. The classification service was deliberately built
-around what the file actually contains rather than what the paper describes. The discrepancy is
-documented rather than hidden, and remains unresolved.
+This **does not match the feature set or class count described in the paper's Table I**. The
+original training script, `legacy/backend-old/train_model.py`, has since been found: it scores
+**0.9835 accuracy on a random split**, but only **0.7604 ± 0.1609 accuracy on a launch-grouped
+split** — its Debris class is drawn entirely from two 1990s breakup clouds, and a random split lets
+sister fragments from the same cloud leak across train and test. The classifier is **retired from
+the product**: no API route or UI screen calls it. It is kept only as a provenance record.
 
 ---
 
@@ -441,23 +443,44 @@ There is a peer-reviewed paper behind this work.
 > **Modi, F. M., Khara, S. V., Tivari, G. D., Patel, J., Patel, P., and Kumawat, G.**
 > Department of Computer Engineering, Silver Oak University, Ahmedabad.
 > **ICSSIT 2026**, Paper ID 1849, technically sponsored by the **IEEE SMC Society**.
-> Accepted 24 June 2026 · presented 28 July 2026 · pp. 1769–1774 · ISBN 979-8-3315-8087-2.
+> Accepted 24 June 2026 · presented 28 July 2026 · pp. 1957–1962 · ISBN 979-8-3315-8087-2.
 
-The paper is **accepted, presented, and in the conference proceedings.** It is **not yet indexed on
-IEEE Xplore** — indexing typically follows some weeks or months after a conference closes. A DOI
-will be added here when the listing appears.
+The paper is **published and indexed on IEEE Xplore** — DOI
+[10.1109/ICSSIT69151.2026.11656410](https://doi.org/10.1109/ICSSIT69151.2026.11656410). The
+camera-ready manuscript and DVD proceedings print a different page range, pp. 1769–1774 — both page
+ranges are real; pp. 1957–1962 above is the Xplore-indexed one.
 
-Reported results, quoted exactly and neither rounded nor reinterpreted: for the 2009 event at
-T₀ = 2009-02-10 16:56:00 UTC, both objects at 788.6 km altitude and 72.51° N / 97.90° E, with a
-Mahalanobis distance **D_M = 1.84** and **P_c = 4.2 × 10⁻³** — a **critical alert**, against a
-deterministic prediction of a miss by over 500 m. Relative velocity 11.7 km/s. For classification,
-ROC AUC **0.94** (Random Forest) against **0.70** for the deterministic baseline.
+**As published — what each number rests on.** For the 2009 event at T₀ = 2009-02-10 16:56:00 UTC,
+quoted exactly, neither rounded nor reinterpreted, and labelled by what actually stands behind it:
 
-⚠️ **An honest caveat.** The covariance values behind those specific P_c figures were constructed for
-the paper's demonstration rather than derived from real tracking data — outside the 2009 event there
-were no real incidents to draw on. Every *formula* in `covariance.py` and `conjunction.py` matches
-the paper's derivation exactly, verified line by line. The golden test reconstructs the event
-independently and states its own assumptions in the open.
+| | Iridium 33 | Cosmos 2251 | Rests on |
+| --- | --- | --- | --- |
+| Altitude | 788.6 km | 788.6 km | ✅ reproduced from real Space-Track elements (the golden test) |
+| Lat / Lon | 72.51° N / 97.90° E | 72.51° N / 97.90° E | ✅ reproduced (the golden test) |
+| Velocity | 7.46 km/s | 7.42 km/s | as published — ORCAS gets 7.47 / 7.47 km/s |
+| det(C) | 2.4 × 10⁴ km² | 4.1 × 10⁴ km² | as published, not reproducible — the paper's own §V.C calls these "simulated covariance matrices" |
+| **D_M** | — | **1.84** | as published, not reproducible — same basis as det(C) above |
+| **P_c** | — | **4.2 × 10⁻³** | as published, not reproducible — the paper states neither its covariances nor a hard-body radius |
+| Classification | — | **CRITICAL ALERT** | the paper's own verdict |
+
+Relative velocity **11.7 km/s** as published. Deterministic prediction: a miss of **over 500 m** —
+SOCRATES's own last report before the collision said **584 m**, and ORCAS's own golden test,
+propagating only the element sets published *before* the collision, independently predicts closest
+approach at **16:55:59.796 UTC** with a **698.0 m** miss, inside SOCRATES's own predicted window
+(see `backend/tests/golden/test_2009_reconstruction.py`'s module docstring for the full citation).
+
+**ML — never quote as an ORCAS result.** The paper's Fig. 3 reports ROC AUC **0.94** (Random Forest)
+against **0.70** for the deterministic baseline, but those are typed legend labels in a plotting
+script (`scripts/analysis/generate_ml_plots.py`), not a measured curve — the area actually drawn on
+that figure is **0.80**. The classifier ORCAS ships (see
+[On the classifier](#on-the-classifier) above) scores 0.7604 ± 0.1609 accuracy on a launch-grouped
+split and is retired from the product.
+
+⚠️ **An honest caveat.** The covariance values behind the D_M and P_c figures above were constructed
+for the paper's demonstration rather than derived from real tracking data — outside the 2009 event
+there were no real incidents to draw on. Every *formula* in `covariance.py` and `conjunction.py`
+matches the paper's derivation exactly, verified line by line. The golden test reconstructs the
+event independently and states its own assumptions in the open.
 
 ---
 
