@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { writePathBuffers, MIN_PATH_ALPHA } from './path-geometry.js';
+import { writePathBuffers } from './path-geometry.js';
 
 function ring(n: number): Float32Array {
   // n points on a circle of radius 7000 in the XY plane
@@ -39,16 +39,23 @@ describe('writePathBuffers', () => {
     }
   });
 
-  it('is brightest (alpha ~1) at the centre sample, dimmest at both ends', () => {
+  it('is fully transparent at the trailing half-orbit point, brightest from "now" onward', () => {
     const n = 181;
     const { colors } = run(n);
     const mid = (n - 1) / 2;
-    expect(colors[mid * 4 + 3]).toBeCloseTo(1, 2);
-    expect(colors[0 * 4 + 3]).toBeCloseTo(MIN_PATH_ALPHA, 2);
-    expect(colors[(n - 1) * 4 + 3]).toBeCloseTo(MIN_PATH_ALPHA, 2);
-    // rising toward the middle
+    expect(colors[0 * 4 + 3]).toBeCloseTo(0, 3); // the trailing half-orbit point
+    expect(colors[mid * 4 + 3]).toBeCloseTo(1, 3); // "now"
+    expect(colors[(n - 1) * 4 + 3]).toBeCloseTo(1, 3); // the leading half-orbit point
+    // rising from the trailing point toward "now"
     expect(colors[10 * 4 + 3]).toBeGreaterThan(colors[0 * 4 + 3]);
     expect(colors[(mid - 10) * 4 + 3]).toBeGreaterThan(colors[10 * 4 + 3]);
+  });
+
+  it('is flat at full brightness for the entire predicted-future half', () => {
+    const n = 181;
+    const { colors } = run(n);
+    const mid = (n - 1) / 2;
+    for (let i = mid; i < n; i++) expect(colors[i * 4 + 3]).toBeCloseTo(1, 6);
   });
 
   it('throws if a target buffer is too small', () => {

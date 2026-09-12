@@ -76,6 +76,14 @@ function makeSlot(): Slot {
 }
 
 /**
+ * ⚠️ UNUSED as of 2026-09-13 — no longer rendered from `PointsDebug.tsx`.
+ * Fenil's live testing found this recent-history trail redundant and
+ * visually confusing alongside `OrbitPaths`' full-orbit line once that
+ * line got its own direction-of-travel fade (see `path-geometry.ts`);
+ * replaced by that single line rather than layering two trail concepts.
+ * Left in place rather than deleted per this repo's ask-first-on-deletion
+ * rule — a real candidate for removal, not a live code path.
+ *
  * Recent-history trails for the focus set (brief §F.6): the current
  * selection, hover, the featured set, and every live Tier 1 member —
  * capped at 64, a fixed pool of fat lines reused across whichever

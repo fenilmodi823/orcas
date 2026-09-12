@@ -24,7 +24,6 @@ import { RegimeLegend } from '../../ui/RegimeLegend.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
-import { Trails } from '../trails/Trails.js';
 import { ObjectLabels, LABEL_SLOT_COUNT } from './ObjectLabels.js';
 import { PerfProbe, PerfHud } from './PerfHud.js';
 import { Tier1Readout } from './Tier1Readout.js';
@@ -266,16 +265,6 @@ function PointsDebugPanel({
               byNorad={byNorad}
               activeMembersRef={activeMembersRef}
               activeCountRef={activeCountRef}
-            />
-            {/* After Tier1Objects: reads the Tier 1 membership it just
-                wrote into tier1MembersRef this same frame. */}
-            <Trails
-              frameStateRef={loop.frameStateRef}
-              objects={objects}
-              byNorad={byNorad}
-              tier1MembersRef={tier1MembersRef}
-              tier1CountRef={tier1CountRef}
-              scrubGenerationRef={loop.scrubGenerationRef}
             />
             <ObjectLabels
               frameStateRef={loop.frameStateRef}
