@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { Line } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Points, PointsMaterial } from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
@@ -22,6 +22,7 @@ import {
 } from './trail-ring.js';
 import { writeTrailBuffers } from './trail-geometry.js';
 import { reconcilePool } from './trail-pool.js';
+import { subtractCameraOffset } from './trail-camera-relative.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -102,6 +103,8 @@ export function Trails({
   tier1CountRef,
   scrubGenerationRef,
 }: Props): React.ReactElement {
+  const { camera } = useThree();
+
   const cyan = useMemo(() => {
     const c = readCyanToken();
     return { r: c.r, g: c.g, b: c.b };
@@ -228,6 +231,13 @@ export function Trails({
       return;
     }
     writeTrailBuffers(slot.readBuffer, count, slot.rgb, slot.positions, slot.colors);
+    // Camera-relative, same fix tier1-write.ts already has: line.position
+    // carries the large absolute offset (three.js keeps Object3D.position in
+    // float64), so only the small delta below ever touches a float32
+    // buffer — without this, a trail shimmers up close in object-mode the
+    // same way Tier 1's instances did before that fix.
+    subtractCameraOffset(slot.positions, count, camera.position.x, camera.position.y, camera.position.z);
+    line.position.copy(camera.position);
     line.geometry.setPositions(slot.positions.subarray(0, count * 3));
     line.geometry.setColors(slot.colors.subarray(0, count * 4), 4);
     line.computeLineDistances();
@@ -280,14 +290,19 @@ export function Trails({
     const headColors = headGeometry.getAttribute('color') as BufferAttribute;
     const headPosArray = headPositions.array as Float32Array;
     const headColorArray = headColors.array as Float32Array;
+    // Camera-relative for the same reason the trail line is above: this is
+    // the dot sitting right where the object is right now, so it's the
+    // closest thing in the scene to the camera in object-mode and the most
+    // visible place a raw absolute float32 position would shimmer.
+    headPoints.position.copy(camera.position);
     let headCount = 0;
     for (let k = 0; k < slots.length; k++) {
       const slot = slots[k];
       if (slot.occupantNorad === null || slot.lastCount < 2) continue;
       const src = (slot.lastCount - 1) * 3; // newest entry — see readOrdered's oldest-to-newest contract
-      headPosArray[headCount * 3] = slot.readBuffer[src];
-      headPosArray[headCount * 3 + 1] = slot.readBuffer[src + 1];
-      headPosArray[headCount * 3 + 2] = slot.readBuffer[src + 2];
+      headPosArray[headCount * 3] = slot.readBuffer[src] - camera.position.x;
+      headPosArray[headCount * 3 + 1] = slot.readBuffer[src + 1] - camera.position.y;
+      headPosArray[headCount * 3 + 2] = slot.readBuffer[src + 2] - camera.position.z;
       headColorArray[headCount * 3] = slot.rgb.r;
       headColorArray[headCount * 3 + 1] = slot.rgb.g;
       headColorArray[headCount * 3 + 2] = slot.rgb.b;
