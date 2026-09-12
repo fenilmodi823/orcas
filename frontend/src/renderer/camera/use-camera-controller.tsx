@@ -107,6 +107,10 @@ export function useCameraController({
       dragRef.current = null;
     };
     const onWheel = (e: WheelEvent) => {
+      // Must be non-passive (below) so this actually stops the browser from
+      // scrolling/zooming the page instead of the camera — a passive
+      // listener can never call preventDefault, it's silently ignored.
+      e.preventDefault();
       sys.applyManualInput(wheelToManualInput(e.deltaY, tunablesRef.current.wheelLnPerUnit));
     };
 
@@ -115,7 +119,7 @@ export function useCameraController({
     el.addEventListener('pointerdown', onPointerDown as EventListener);
     el.addEventListener('pointermove', onPointerMove as EventListener);
     window.addEventListener('pointerup', onPointerUp);
-    el.addEventListener('wheel', onWheel as EventListener, { passive: true });
+    el.addEventListener('wheel', onWheel as EventListener, { passive: false });
 
     return () => {
       unsub();
