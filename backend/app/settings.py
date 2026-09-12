@@ -17,6 +17,13 @@ class Settings(BaseSettings):
 
     nasa_api_key: str = ""
 
+    # Space-Track account (RA14.D2) — the full-catalogue source CelesTrak
+    # doesn't have (debris via gp's decay_date/null-val predicate). Unused
+    # until the Space-Track ingestion path is built; credentials live only
+    # in .env, never in code.
+    space_track_username: str = ""
+    space_track_password: str = ""
+
     # CelesTrak GP feed — the canonical ingestion source (Data-Strategy.md
     # §6). "active" is CelesTrak's own group name, not a project invention.
     celestrak_base_url: str = "https://celestrak.org/NORAD/elements/gp.php"
