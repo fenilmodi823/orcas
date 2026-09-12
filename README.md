@@ -6,12 +6,12 @@
 [![Ruff](https://img.shields.io/badge/lint-ruff-D7FF64.svg)](https://github.com/astral-sh/ruff)
 
 An interactive, browser-based space simulation platform for exploring satellites and orbital
-objects, built on a conjunction-assessment engine that propagates **positional uncertainty**
-rather than position alone.
+objects, built on a conjunction-assessment engine that works in terms of each object's
+**positional uncertainty** rather than position alone.
 
 Most collision screening measures the distance between two objects and alerts below a threshold.
-ORCAS carries each object's covariance matrix through the entire pipeline and computes an actual
-**probability of collision**.
+ORCAS combines and rotates the objects' uncertainty into the encounter plane and computes an
+actual **probability of collision**.
 
 > On 10 February 2009, deterministic screening predicted Iridium 33 and Cosmos 2251 would miss by
 > **over 500 metres**. They collided at 11.7 km/s. ORCAS reconstructs that event from real
@@ -131,9 +131,11 @@ D_M     = √( rᵀ C_B⁻¹ r )              Mahalanobis — separation in σ, 
 P_c     = 1/(2π√|C_B|) ∬_A exp(−½ rᵀ C_B⁻¹ r) dx dy
 ```
 
-The alert threshold is `P_c > 1.0 × 10⁻⁴`. The integral is approximated asymptotically — it cannot
-be solved analytically at interactive frame rates. Broad-phase spatial hashing
-(`scipy.spatial.cKDTree`) reduces pair screening from O(N²) to roughly O(N log N).
+The alert threshold is `P_c > 1.0 × 10⁻⁴`. The P_c integral is evaluated by direct 2D numerical
+quadrature (`scipy.integrate.dblquad`), not an approximation — this is batch analysis, not a
+real-time computation, so there's no reason to trade accuracy for speed. It's validated against
+NASA CARA's own `Pc2D_Foster` reference tool on 12 of 12 published test cases. Broad-phase
+screening (to avoid evaluating every object pair) is designed but not yet built.
 
 **Every physics function states its units and reference frame.** This is a convention the codebase
 enforces, not an aspiration:
@@ -180,7 +182,7 @@ backend lacked this and was unstable as a result. Its other faults, and how they
 | No layering | `api → services → domain`, with `infra` at the edge |
 | Configuration scattered | One `Settings` object (pydantic-settings) |
 | `allow_origins=["*"]` | An explicit allowlist |
-| No tests | 90 tests, 100% coverage on `domain/` and `services/` |
+| No tests | 97 tests, 100% coverage on `domain/` and `services/` |
 
 ### Frontend
 
@@ -198,8 +200,8 @@ The renderer and the UI never import each other; they communicate through `state
 ### Two decisions that must not be retrofitted
 
 1. **Scale strategy.** Earth's radius is 6,371 km; the Earth–Sun distance is 1.5 × 10⁸ km. That
-   range destroys float32 depth precision. Logarithmic depth, a camera-relative origin and nested
-   scale contexts are designed in now, so that a future Solar System view is not a rewrite.
+   range destroys float32 depth precision. Reversed-Z float depth, a camera-relative origin and
+   nested scale contexts are designed in now, so that a future Solar System view is not a rewrite.
 2. **Static-snapshot-first.** The client boots from a compressed snapshot and propagates locally.
    **The scene never waits on the backend.** If the API is down the simulation still runs — with a
    visible notice that data may be stale, never a blank screen.
@@ -251,7 +253,8 @@ orcas/
 │  └─ orcas-scene/             R3F components — Earth, Satellites, OrbitPath, Starfield
 ├─ infra/docker/               backend.Dockerfile · frontend.Dockerfile (multi-stage)
 ├─ ml_models/                  object_classifier.joblib
-├─ scripts/analysis/           generate_ml_plots.py — regenerates the paper's figures
+├─ scripts/analysis/           generate_ml_plots.py — redraws two of the paper's figures from
+│                              hard-coded values (illustrative, never measured)
 ├─ data/sample/                21 synthetic OMM fixtures + real 2009 element sets
 ├─ docs/                       figures/ · superpowers/plans/ (written implementation plans)
 ├─ .github/workflows/ci.yml    ruff · mypy · pytest ‖ eslint · tsc · vitest
@@ -270,10 +273,10 @@ annoyance.
 
 | Technology | Role |
 | --- | --- |
-| **Python 3.12** | Non-negotiable — the `.joblib` classifier, `cKDTree` screening and the NumPy/SciPy covariance maths *are* the research |
+| **Python 3.12** | Non-negotiable — the `.joblib` classifier and the NumPy/SciPy covariance maths *are* the research |
 | **FastAPI** + Uvicorn | Async HTTP layer |
 | **sgp4** (2.27) | SGP4/SDP4 propagation, initialised from OMM directly |
-| **NumPy · SciPy** | Covariance algebra, B-plane projection, spatial hashing |
+| **NumPy · SciPy** | Covariance algebra, B-plane projection, 2D numerical quadrature for P_c |
 | **scikit-learn** (pinned 1.6.1) | Object classification — pinned because the committed model was trained with this exact version |
 | **SQLAlchemy 2** (async) + **asyncpg** | Persistence |
 | **Alembic** | Migrations — `create_all()` is banned |
@@ -369,7 +372,7 @@ component is a bug.
 ## Testing
 
 ```bash
-docker compose run --rm backend uv run pytest      # 90 passed, 4 xfailed
+docker compose run --rm backend uv run pytest      # 93 passed, 4 xfailed
 docker compose run --rm frontend npm run test      # 317 tests
 ```
 
@@ -377,10 +380,12 @@ CI runs both suites on every push. Coverage on `domain/` and `services/` is enfo
 and currently sits at 100%.
 
 The suite includes a **golden-file test** reconstructing the 2009 Iridium 33 / Cosmos 2251 event from
-real Space-Track element sets. It is deliberately split in two: real kinematics with no tuning,
-asserted against the paper's own table; and classification under an explicit, labelled covariance
-assumption reaching the same CRITICAL verdict. It reproduces the *conclusion*, and does not pretend
-to reproduce the paper's exact demonstration figures.
+real Space-Track element sets. It is deliberately split in three: real kinematics with no tuning,
+asserted against the paper's own table; a prediction from pre-event element sets only — the ones a
+screener could actually have had — locking the 698.0 m miss inside SOCRATES's own published window;
+and classification under an explicit, labelled covariance assumption reaching the same CRITICAL
+verdict. It reproduces the *conclusion*, and does not pretend to reproduce the paper's exact
+demonstration figures.
 
 **Known flake:** `catalog-snapshot.test.ts`'s "46,000 records under 800 ms" assertion is a wall-clock
 budget, so it fails under CPU contention (measured at roughly 1,100 to 1,750 ms inside a container).
@@ -470,9 +475,10 @@ approach at **16:55:59.796 UTC** with a **698.0 m** miss, inside SOCRATES's own 
 (see `backend/tests/golden/test_2009_reconstruction.py`'s module docstring for the full citation).
 
 **ML — never quote as an ORCAS result.** The paper's Fig. 3 reports ROC AUC **0.94** (Random Forest)
-against **0.70** for the deterministic baseline, but those are typed legend labels in a plotting
-script (`scripts/analysis/generate_ml_plots.py`), not a measured curve — the area actually drawn on
-that figure is **0.80**. The classifier ORCAS ships (see
+against **0.70** for the deterministic baseline, but those are typed legend labels in the paper's own
+figure script (`legacy/assets/generations/generate_figures.py`, kept as a provenance record and not
+tracked in this repository), not a measured curve — the area actually drawn on that figure is
+**0.80**. The classifier ORCAS ships (see
 [On the classifier](#on-the-classifier) above) scores 0.7604 ± 0.1609 accuracy on a launch-grouped
 split and is retired from the product.
 
@@ -489,7 +495,7 @@ event independently and states its own assumptions in the open.
 Built and merged:
 
 - [x] Layered FastAPI backend with a pure, fully-tested physics domain
-- [x] Covariance propagation, B-plane projection, Mahalanobis distance and P_c
+- [x] Covariance combination and frame rotation, B-plane projection, Mahalanobis distance and P_c
 - [x] 2009 Iridium/Cosmos reconstruction as a golden-file test
 - [x] OMM-first ingestion with a TLE legacy adapter
 - [x] REST API, snapshot generation, retention policy, in-process caching
