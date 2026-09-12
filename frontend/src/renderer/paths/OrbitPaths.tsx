@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { Line } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { satrecFromOmm } from '@orcas/physics';
 import type { SatRec } from 'satellite.js';
 import type { Line2 } from 'three-stdlib';
@@ -13,6 +13,7 @@ import { readCyanToken } from '../scene-colors.js';
 import { featuredIndices, FEATURED_OBJECT_NAMES } from './featured-norads.js';
 import { sampleOrbitPath, DEFAULT_PATH_SAMPLES } from './orbit-path.js';
 import { writePathBuffers } from './path-geometry.js';
+import { subtractCameraOffset } from '../camera-relative.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -54,7 +55,8 @@ interface PathSlot {
   satrec: SatRec;
   rgb: { r: number; g: number; b: number }; // read once from the tokens
   sample: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — sampleOrbitPath's out
-  positions: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — LineGeometry.setPositions
+  positions: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — absolute km, written at resample
+  cameraRelative: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — `positions` minus the camera, refreshed every frame
   colors: Float32Array; // DEFAULT_PATH_SAMPLES * 4 — LineGeometry.setColors(_, 4)
   lastWallMs: number;
   lastEpochMs: number;
@@ -74,6 +76,7 @@ function makeSlot(
     rgb,
     sample: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
     positions: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
+    cameraRelative: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
     colors: new Float32Array(DEFAULT_PATH_SAMPLES * 4),
     lastWallMs: 0,
     lastEpochMs: 0,
@@ -96,11 +99,22 @@ function makeSlot(
  * ponytail: one draw call per line (~15-20), well inside the §G budget
  * (Q9.3 raises it to 60). Batch into one LineSegments2 only if draw
  * calls bite at M1.8.
- * ponytail: line geometry is world-space, not camera-relative — a path
- * can show ~0.5 m of float32 shimmer within a few hundred metres of a
- * featured object. Invisible at normal viewing distance.
+ *
+ * Camera-relative (found live 2026-09-12: flickering points behind a
+ * followed satellite, same class of bug Tier1Objects/Trails were fixed
+ * for). `positions` holds the absolute km from the last resample (0.2 Hz
+ * — real SGP4 work, deliberately throttled); every frame, cheaply copies
+ * that into `cameraRelative`, subtracts the camera, and re-uploads —
+ * 180 floats, not the expensive part. `line.position` tracks the camera
+ * every frame this way, not just at resample time, so the anchor never
+ * goes more than one frame stale even while a resample is 5 s away.
+ * `computeLineDistances()` only needs to run once per resample: it reads
+ * relative distances between consecutive points, which a uniform
+ * per-frame translation never changes.
  */
 export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.ReactElement {
+  const { camera } = useThree();
+
   const cyan = useMemo(() => {
     const c = readCyanToken();
     return { r: c.r, g: c.g, b: c.b };
@@ -142,6 +156,13 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     slot.drawn = true;
   }
 
+  function applyCameraRelative(line: Line2, slot: PathSlot, camX: number, camY: number, camZ: number): void {
+    slot.cameraRelative.set(slot.positions);
+    subtractCameraOffset(slot.cameraRelative, DEFAULT_PATH_SAMPLES, camX, camY, camZ);
+    line.geometry.setPositions(slot.cameraRelative);
+    line.position.set(camX, camY, camZ);
+  }
+
   function resampleIfDue(slot: PathSlot, line: Line2 | null, wallMs: number, epochMs: number): void {
     if (!line) return;
     const due =
@@ -172,9 +193,15 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     const wallMs = performance.now();
     const epochMs = frameStateRef.current.epochMs;
     if (epochMs <= 0) return; // the sim clock has not ticked yet
+    const camX = camera.position.x;
+    const camY = camera.position.y;
+    const camZ = camera.position.z;
 
     for (let k = 0; k < featuredSlots.length; k++) {
-      resampleIfDue(featuredSlots[k], featuredLineRefs.current[k] ?? null, wallMs, epochMs);
+      const slot = featuredSlots[k];
+      const line = featuredLineRefs.current[k] ?? null;
+      resampleIfDue(slot, line, wallMs, epochMs);
+      if (line && slot.drawn) applyCameraRelative(line, slot, camX, camY, camZ);
     }
 
     const norad = selectedNoradRef.current;
@@ -188,7 +215,10 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
         i === undefined ? null : makeSlot(i, norad, satrecFromOmm(objects[i].record), cyan);
       if (line) line.visible = false;
     }
-    if (selectedSlotRef.current) resampleIfDue(selectedSlotRef.current, line, wallMs, epochMs);
+    if (selectedSlotRef.current) {
+      resampleIfDue(selectedSlotRef.current, line, wallMs, epochMs);
+      if (line && selectedSlotRef.current.drawn) applyCameraRelative(line, selectedSlotRef.current, camX, camY, camZ);
+    }
   });
 
   return (

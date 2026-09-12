@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { subtractCameraOffset } from './trail-camera-relative.js';
+import { subtractCameraOffset } from './camera-relative.js';
 
 describe('subtractCameraOffset', () => {
   it('subtracts the camera position from every xyz triple', () => {

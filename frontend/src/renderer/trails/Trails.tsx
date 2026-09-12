@@ -22,7 +22,7 @@ import {
 } from './trail-ring.js';
 import { writeTrailBuffers } from './trail-geometry.js';
 import { reconcilePool } from './trail-pool.js';
-import { subtractCameraOffset } from './trail-camera-relative.js';
+import { subtractCameraOffset } from '../camera-relative.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
