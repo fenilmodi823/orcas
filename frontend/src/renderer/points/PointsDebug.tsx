@@ -124,6 +124,8 @@ function PointsDebugPanel({
   const frameMsRef = useRef(0);
   const drawCallsRef = useRef(0);
   const trianglesRef = useRef(0);
+  const jsMsRef = useRef(0);
+  const gpuMsRef = useRef(-1);
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
   const crossCheck = useCrossCheck(objects, loop);
   const activeFilters = useViewStore((state) => state.activeFilters);
@@ -275,7 +277,13 @@ function PointsDebugPanel({
               labelRefs={labelRefs}
             />
             {perfEnabled && (
-              <PerfProbe frameMsRef={frameMsRef} drawCallsRef={drawCallsRef} trianglesRef={trianglesRef} />
+              <PerfProbe
+                frameMsRef={frameMsRef}
+                drawCallsRef={drawCallsRef}
+                trianglesRef={trianglesRef}
+                jsMsRef={jsMsRef}
+                gpuMsRef={gpuMsRef}
+              />
             )}
           </Canvas>
         </PanelErrorBoundary>
@@ -358,7 +366,13 @@ function PointsDebugPanel({
           />
           <DensitySlider />
           {perfEnabled && (
-            <PerfHud frameMsRef={frameMsRef} drawCallsRef={drawCallsRef} trianglesRef={trianglesRef} />
+            <PerfHud
+              frameMsRef={frameMsRef}
+              drawCallsRef={drawCallsRef}
+              trianglesRef={trianglesRef}
+              jsMsRef={jsMsRef}
+              gpuMsRef={gpuMsRef}
+            />
           )}
 
           <div className="points-debug__filters">
