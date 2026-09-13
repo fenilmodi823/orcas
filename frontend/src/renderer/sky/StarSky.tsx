@@ -185,17 +185,23 @@ export function StarSky({ onLoaded }: Props): React.ReactElement | null {
         // half of "night sky, not star chart" alongside the magnitude cut.
         uSizeScale: { value: 0.6 },
       },
-      transparent: true,
       // Additive against a black sky is what starlight actually does when
-      // two stars overlap on one pixel.
+      // two stars overlap on one pixel. `transparent: false` keeps that —
+      // three.js only forces NoBlending when blending is NormalBlending AND
+      // transparent is false (WebGLState.setMaterial); AdditiveBlending is
+      // applied regardless. What transparent:false actually buys: three's
+      // OPAQUE render list always draws before its transparent list, so
+      // combined with `SKY_RENDER_ORDER` this is now genuinely the first
+      // thing drawn each frame — Earth and the satellites then draw over it
+      // normally, at their own depth, same result as before.
+      //
+      // Q9.1 (RA-9): with nothing drawn yet to test against, depthTest is
+      // pure overhead here — measured ~6 ms/frame on the full 1.25M-star
+      // sky. depthWrite stays off; nothing downstream needs to depth-test
+      // against "the sky is infinitely far".
+      transparent: false,
       blending: AdditiveBlending,
-      // depthTest ON, depthWrite OFF. `transparent: true` puts this in
-      // three's transparent list, which draws AFTER every opaque object, so
-      // renderOrder alone does not put the sky behind the Earth — without
-      // the depth test the stars painted straight over the planet. With it,
-      // the far-plane z the vertex shader forces loses to everything, which
-      // is exactly right for a sky.
-      depthTest: true,
+      depthTest: false,
       depthWrite: false,
     });
 
