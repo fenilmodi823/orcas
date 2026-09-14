@@ -1,8 +1,8 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
-import type { OrbitClass } from '../state/selection-store.js';
+import type { FilterClass } from '../state/selection-store.js';
 import './ObjectTether.css';
 
-const ORBIT_CLASS_VAR: Record<OrbitClass, string> = {
+const FILTER_CLASS_VAR: Record<FilterClass, string> = {
   leo: 'var(--leo)',
   meo: 'var(--meo)',
   geo: 'var(--geo)',
@@ -17,7 +17,7 @@ export interface ObjectTetherHandle {
 
 export interface ObjectTetherProps {
   name: string;
-  orbitClass: OrbitClass;
+  orbitClass: FilterClass;
   altitudeKm: number;
   /** The persistent chip on the SELECTED object, as opposed to the
    * transient hover one. Styled quieter so it labels the target during a
@@ -54,7 +54,7 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
     <div ref={rootRef} className="object-tether" data-selected={selected ? '' : undefined} style={{ opacity: 0 }}>
       <span className="object-tether__lead" aria-hidden />
       <div className="object-tether__chip">
-        <span className="object-tether__dot" style={{ background: ORBIT_CLASS_VAR[orbitClass] }} aria-hidden />
+        <span className="object-tether__dot" style={{ background: FILTER_CLASS_VAR[orbitClass] }} aria-hidden />
         <span className="object-tether__name">{name}</span>
         <span className="object-tether__meta">
           {orbitClass.toUpperCase()} · {altitudeKm.toFixed(1)} km

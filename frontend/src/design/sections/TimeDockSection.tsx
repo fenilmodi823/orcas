@@ -2,13 +2,13 @@ import { GlassSurface } from '../../ui/GlassSurface.js';
 import { TimeDock } from '../../ui/TimeDock.js';
 import { useSimulationStore } from '../../state/simulation-store.js';
 import { useViewStore } from '../../state/view-store.js';
-import type { OrbitClass, SelectableObject } from '../../state/selection-store.js';
+import type { FilterClass, SelectableObject } from '../../state/selection-store.js';
 
 const RANGE_START = new Date('2009-02-10T00:00:00Z');
 const RANGE_END = new Date('2009-02-11T00:00:00Z');
 const CONJUNCTION_MARKERS = [new Date('2009-02-10T16:56:00Z')];
 
-const FILTER_OPTIONS: readonly { orbitClass: OrbitClass; label: string; count: number }[] = [
+const FILTER_OPTIONS: readonly { orbitClass: FilterClass; label: string; count: number }[] = [
   { orbitClass: 'leo', label: 'LEO', count: 612 },
   { orbitClass: 'meo', label: 'MEO', count: 54 },
   { orbitClass: 'geo', label: 'GEO', count: 38 },

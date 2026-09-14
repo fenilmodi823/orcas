@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { packIdBytes, TIER_POINT } from './points-pick-id.js';
 import {
   INITIAL_HOVER_DEBOUNCE_STATE,
@@ -16,7 +16,7 @@ function fakeObjects(count: number): ObjectMeta[] {
     name: `obj-${i}`,
     objectId: `obj-${i}`,
     type: 0,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
     epochMs: 0,

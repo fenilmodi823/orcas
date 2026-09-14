@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { computeRanks, densityVisibleCount } from './significance-rank.js';
 
-function fakeObject(name: string, regime: Regime, type: ObjType, meanMotion: number): ObjectMeta {
+function fakeObject(name: string, orbitClass: OrbitClass, type: ObjType, meanMotion: number): ObjectMeta {
   return {
     norad: name as ObjectMeta['norad'],
     name,
     objectId: name,
     type,
-    regime,
+    orbitClass,
     isActive: true,
     sourceType: 'live',
     epochMs: 0,
@@ -19,19 +19,19 @@ function fakeObject(name: string, regime: Regime, type: ObjType, meanMotion: num
 describe('computeRanks', () => {
   it('returns the same array twice for the same input — no random ties', () => {
     const objects = [
-      fakeObject('a', Regime.LEO, ObjType.Payload, 15),
-      fakeObject('b', Regime.GEO, ObjType.Payload, 1),
-      fakeObject('c', Regime.LEO, ObjType.Debris, 14),
+      fakeObject('a', OrbitClass.LEO, ObjType.Payload, 15),
+      fakeObject('b', OrbitClass.GEO, ObjType.Payload, 1),
+      fakeObject('c', OrbitClass.LEO, ObjType.Debris, 14),
     ];
     expect(Array.from(computeRanks(objects))).toEqual(Array.from(computeRanks(objects)));
   });
 
   it('ranks every featured object below every non-featured object', () => {
     const objects = [
-      fakeObject('some random debris', Regime.LEO, ObjType.Debris, 15),
-      fakeObject('ISS (ZARYA)', Regime.LEO, ObjType.Payload, 15.5),
-      fakeObject('another satellite', Regime.GEO, ObjType.Payload, 1),
-      fakeObject('HST', Regime.LEO, ObjType.Payload, 15.1),
+      fakeObject('some random debris', OrbitClass.LEO, ObjType.Debris, 15),
+      fakeObject('ISS (ZARYA)', OrbitClass.LEO, ObjType.Payload, 15.5),
+      fakeObject('another satellite', OrbitClass.GEO, ObjType.Payload, 1),
+      fakeObject('HST', OrbitClass.LEO, ObjType.Payload, 15.1),
     ];
     const ranks = computeRanks(objects);
     const featuredRanks = [ranks[1], ranks[3]]; // ISS, HST
@@ -41,20 +41,20 @@ describe('computeRanks', () => {
 
   it('produces a total order: every rank 0..n-1 appears exactly once', () => {
     const objects = [
-      fakeObject('a', Regime.LEO, ObjType.Payload, 15),
-      fakeObject('b', Regime.LEO, ObjType.Payload, 15), // same class and mean motion as 'a'
-      fakeObject('c', Regime.GEO, ObjType.Debris, 1),
-      fakeObject('d', Regime.MEO, ObjType.Payload, 2),
+      fakeObject('a', OrbitClass.LEO, ObjType.Payload, 15),
+      fakeObject('b', OrbitClass.LEO, ObjType.Payload, 15), // same class and mean motion as 'a'
+      fakeObject('c', OrbitClass.GEO, ObjType.Debris, 1),
+      fakeObject('d', OrbitClass.MEO, ObjType.Payload, 2),
     ];
     const ranks = Array.from(computeRanks(objects));
     expect(new Set(ranks).size).toBe(objects.length);
     expect(ranks.slice().sort((x, y) => x - y)).toEqual([0, 1, 2, 3]);
   });
 
-  it('sorts debris last regardless of regime', () => {
+  it('sorts debris last regardless of orbit class', () => {
     const objects = [
-      fakeObject('geo debris', Regime.GEO, ObjType.Debris, 1),
-      fakeObject('leo payload', Regime.LEO, ObjType.Payload, 15),
+      fakeObject('geo debris', OrbitClass.GEO, ObjType.Debris, 1),
+      fakeObject('leo payload', OrbitClass.LEO, ObjType.Payload, 15),
     ];
     const ranks = computeRanks(objects);
     expect(ranks[1]).toBeLessThan(ranks[0]); // the payload outranks the debris
@@ -62,8 +62,8 @@ describe('computeRanks', () => {
 
   it('falls back to the catalogue index when class and mean motion tie', () => {
     const objects = [
-      fakeObject('a', Regime.LEO, ObjType.Payload, 15),
-      fakeObject('b', Regime.LEO, ObjType.Payload, 15),
+      fakeObject('a', OrbitClass.LEO, ObjType.Payload, 15),
+      fakeObject('b', OrbitClass.LEO, ObjType.Payload, 15),
     ];
     const ranks = computeRanks(objects);
     expect(ranks[0]).toBeLessThan(ranks[1]); // index 0 breaks the tie ahead of index 1
@@ -72,11 +72,11 @@ describe('computeRanks', () => {
 
 describe('densityVisibleCount', () => {
   const objects = [
-    fakeObject('ISS (ZARYA)', Regime.LEO, ObjType.Payload, 15.5), // featured
-    fakeObject('HST', Regime.LEO, ObjType.Payload, 15.1), // featured
-    fakeObject('a', Regime.LEO, ObjType.Payload, 15),
-    fakeObject('b', Regime.MEO, ObjType.Payload, 2),
-    fakeObject('c', Regime.GEO, ObjType.Debris, 1),
+    fakeObject('ISS (ZARYA)', OrbitClass.LEO, ObjType.Payload, 15.5), // featured
+    fakeObject('HST', OrbitClass.LEO, ObjType.Payload, 15.1), // featured
+    fakeObject('a', OrbitClass.LEO, ObjType.Payload, 15),
+    fakeObject('b', OrbitClass.MEO, ObjType.Payload, 2),
+    fakeObject('c', OrbitClass.GEO, ObjType.Debris, 1),
   ];
 
   it('floors at the featured count at 0%, never showing nothing', () => {

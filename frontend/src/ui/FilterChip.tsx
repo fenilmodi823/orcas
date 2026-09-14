@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
-import type { OrbitClass } from '../state/selection-store.js';
+import type { FilterClass } from '../state/selection-store.js';
 import './FilterChip.css';
 
-const ORBIT_CLASS_VAR: Record<OrbitClass, string> = {
+const FILTER_CLASS_VAR: Record<FilterClass, string> = {
   leo: 'var(--leo)',
   meo: 'var(--meo)',
   geo: 'var(--geo)',
@@ -11,7 +11,7 @@ const ORBIT_CLASS_VAR: Record<OrbitClass, string> = {
 };
 
 export interface FilterChipProps {
-  orbitClass: OrbitClass;
+  orbitClass: FilterClass;
   label: string;
   count: number;
   active?: boolean;
@@ -21,7 +21,7 @@ export interface FilterChipProps {
 
 /** Orbit-class swatch, label, live result count (Design.md §6). */
 export function FilterChip({ orbitClass, label, count, active = false, disabled = false, onToggle }: FilterChipProps) {
-  const style = { '--filter-chip-colour': ORBIT_CLASS_VAR[orbitClass] } as CSSProperties;
+  const style = { '--filter-chip-colour': FILTER_CLASS_VAR[orbitClass] } as CSSProperties;
 
   return (
     <button

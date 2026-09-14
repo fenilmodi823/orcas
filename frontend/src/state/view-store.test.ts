@@ -6,7 +6,7 @@ beforeEach(() => {
     activeFilters: new Set(),
     density: 100,
     panelCollapsed: false,
-    regimeLegendDismissed: false,
+    orbitClassLegendDismissed: false,
   });
 });
 
@@ -38,21 +38,21 @@ describe('useViewStore — density and panel collapse (M1.7b stage 4)', () => {
   });
 });
 
-describe('useViewStore — regime legend dismiss (M1.7c)', () => {
+describe('useViewStore — orbit class legend dismiss (M1.7c)', () => {
   it('starts shown', () => {
-    expect(useViewStore.getState().regimeLegendDismissed).toBe(false);
+    expect(useViewStore.getState().orbitClassLegendDismissed).toBe(false);
   });
 
-  it('toggleRegimeLegend flips the dismissed state and survives a fresh read', () => {
-    useViewStore.getState().toggleRegimeLegend();
-    expect(useViewStore.getState().regimeLegendDismissed).toBe(true);
-    useViewStore.getState().toggleRegimeLegend();
-    expect(useViewStore.getState().regimeLegendDismissed).toBe(false);
+  it('toggleOrbitClassLegend flips the dismissed state and survives a fresh read', () => {
+    useViewStore.getState().toggleOrbitClassLegend();
+    expect(useViewStore.getState().orbitClassLegendDismissed).toBe(true);
+    useViewStore.getState().toggleOrbitClassLegend();
+    expect(useViewStore.getState().orbitClassLegendDismissed).toBe(false);
   });
 
   it('never touches localStorage', () => {
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
-    useViewStore.getState().toggleRegimeLegend();
+    useViewStore.getState().toggleOrbitClassLegend();
     expect(setItemSpy).not.toHaveBeenCalled();
     setItemSpy.mockRestore();
   });

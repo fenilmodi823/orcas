@@ -10,7 +10,7 @@ import type { ObjectMeta } from '../../data/catalog-types.js';
 import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
-import { readRegimeColor } from '../paths/path-regime-tint.js';
+import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
 import {
   appendIfDue,
@@ -96,7 +96,7 @@ function makeSlot(): Slot {
  * drawn) at the ring's 10 Hz gate, skipping the append entirely when
  * `Flag.Stale` is set (D-C: a stale position is not real and must not
  * poison the trail). The selected object's trail is `--orca-cyan`;
- * every other occupant is tinted by orbital regime (P4.D24).
+ * every other occupant is tinted by orbit class (P4.D24).
  *
  * A scrub (`scrubGenerationRef` changing) clears every ring — brief
  * §F.6: "A trail that spans a scrub is a lie." An ordinary reverse (a
@@ -200,7 +200,7 @@ export function Trails({
     if (next === selectedNorad) {
       slot.rgb = cyan;
     } else {
-      const c = readRegimeColor(objects[slot.occupantIndex].regime);
+      const c = readOrbitClassColor(objects[slot.occupantIndex].orbitClass);
       slot.rgb = { r: c.r, g: c.g, b: c.b };
     }
   }

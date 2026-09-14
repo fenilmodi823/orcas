@@ -21,12 +21,12 @@ export function packEntityIds(count: number): Float32Array {
   return ids;
 }
 
-/** `aRegime`: the object's already-classified Regime enum value, copied
- * verbatim — LEO=0, MEO=1, GEO=2, HEO=3, Unknown=4. */
-export function packRegimes(objects: readonly ObjectMeta[]): Float32Array {
-  const regimes = new Float32Array(objects.length);
-  for (let i = 0; i < objects.length; i++) regimes[i] = objects[i].regime;
-  return regimes;
+/** `aOrbitClass`: the object's already-classified OrbitClass enum value,
+ * copied verbatim — LEO=0, MEO=1, GEO=2, HEO=3, Unknown=4. */
+export function packOrbitClasses(objects: readonly ObjectMeta[]): Float32Array {
+  const orbitClasses = new Float32Array(objects.length);
+  for (let i = 0; i < objects.length; i++) orbitClasses[i] = objects[i].orbitClass;
+  return orbitClasses;
 }
 
 /** `aRadius`, km. See `PLACEHOLDER_RADIUS_KM`'s docstring for why every

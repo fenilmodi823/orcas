@@ -1,7 +1,7 @@
-import { Regime } from './catalog-types.js';
+import { OrbitClass } from './catalog-types.js';
 import type { CatalogSnapshot, RejectionReason } from './catalog-types.js';
 
-export interface RegimeCounts {
+export interface OrbitClassCounts {
   leo: number;
   meo: number;
   geo: number;
@@ -21,29 +21,29 @@ export type RejectionCounts = Partial<Record<RejectionReason, number>>;
 export interface CatalogStats {
   readonly objectCount: number;
   readonly rejectedCount: number;
-  readonly regimeCounts: RegimeCounts;
+  readonly orbitClassCounts: OrbitClassCounts;
   readonly epochAgeBuckets: EpochAgeBuckets;
   readonly rejectionCounts: RejectionCounts;
 }
 
-const REGIME_KEYS: Record<Regime, keyof RegimeCounts> = {
-  [Regime.LEO]: 'leo',
-  [Regime.MEO]: 'meo',
-  [Regime.GEO]: 'geo',
-  [Regime.HEO]: 'heo',
-  [Regime.Unknown]: 'unknown',
+const ORBIT_CLASS_KEYS: Record<OrbitClass, keyof OrbitClassCounts> = {
+  [OrbitClass.LEO]: 'leo',
+  [OrbitClass.MEO]: 'meo',
+  [OrbitClass.GEO]: 'geo',
+  [OrbitClass.HEO]: 'heo',
+  [OrbitClass.Unknown]: 'unknown',
 };
 
 const DAY_MS = 86_400_000;
 
-/** Aggregates a CatalogSnapshot into the debug-route stats: regime
+/** Aggregates a CatalogSnapshot into the debug-route stats: orbit-class
  * histogram, epoch-age histogram, rejection breakdown. Pure — no
  * component here reads Tier 1 data directly. */
 export function computeCatalogStats(
   snapshot: CatalogSnapshot,
   nowMs: number = Date.now(),
 ): CatalogStats {
-  const regimeCounts: RegimeCounts = { leo: 0, meo: 0, geo: 0, heo: 0, unknown: 0 };
+  const orbitClassCounts: OrbitClassCounts = { leo: 0, meo: 0, geo: 0, heo: 0, unknown: 0 };
   const epochAgeBuckets: EpochAgeBuckets = {
     underOneDay: 0,
     oneToSevenDays: 0,
@@ -52,7 +52,7 @@ export function computeCatalogStats(
   };
 
   for (const obj of snapshot.objects) {
-    regimeCounts[REGIME_KEYS[obj.regime]]++;
+    orbitClassCounts[ORBIT_CLASS_KEYS[obj.orbitClass]]++;
 
     const ageDays = (nowMs - obj.epochMs) / DAY_MS;
     if (ageDays < 1) epochAgeBuckets.underOneDay++;
@@ -69,7 +69,7 @@ export function computeCatalogStats(
   return {
     objectCount: snapshot.objects.length,
     rejectedCount: snapshot.rejected.length,
-    regimeCounts,
+    orbitClassCounts,
     epochAgeBuckets,
     rejectionCounts,
   };

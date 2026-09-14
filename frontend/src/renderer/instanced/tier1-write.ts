@@ -46,12 +46,13 @@ export interface Tier1WriteArgs {
   readonly memberCount: number;
   readonly camPosKm: Vector3;
   readonly pixelsPerRadian: number;
-  /** For `objects[i].regime` — Tier 1 has no `aRegime`-style attribute the
-   * way Tier 0's geometry does, so the base colour is looked up here. */
+  /** For `objects[i].orbitClass` — Tier 1 has no `aOrbitClass`-style
+   * attribute the way Tier 0's geometry does, so the base colour is
+   * looked up here. */
   readonly objects: readonly ObjectMeta[];
-  /** Indexed by the Regime enum (LEO=0..Unknown=4) — the same order
-   * `TierZeroPoints.tsx`'s `uRegimeColors` uniform assumes (P4.D23/24). */
-  readonly regimeColors: readonly Color[];
+  /** Indexed by the OrbitClass enum (LEO=0..Unknown=4) — the same order
+   * `TierZeroPoints.tsx`'s `uOrbitClassColors` uniform assumes (P4.D23/24). */
+  readonly orbitClassColors: readonly Color[];
   readonly selectedColor: Color;
   readonly band: LodBand;
   /** Catalogue index of the current selection, or omitted/-1 for none.
@@ -90,8 +91,18 @@ export interface Tier1WriteArgs {
  * Allocation-free: every temporary is module-scope and reused forever.
  */
 export function writeTier1Instances(args: Tier1WriteArgs): number {
-  const { mesh, frame, members, memberCount, camPosKm, pixelsPerRadian, objects, regimeColors, selectedColor, band } =
-    args;
+  const {
+    mesh,
+    frame,
+    members,
+    memberCount,
+    camPosKm,
+    pixelsPerRadian,
+    objects,
+    orbitClassColors,
+    selectedColor,
+    band,
+  } = args;
   const selectedIndex = args.selectedIndex ?? -1;
   mesh.position.copy(camPosKm);
   for (let slot = 0; slot < memberCount; slot++) {
@@ -109,7 +120,7 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
     const brightness = instanceBrightness(_pos.length(), pixelsPerRadian, PLACEHOLDER_RADIUS_KM, band);
     const isSelected = i === selectedIndex;
     const dim = selectedIndex === -1 || isSelected ? 1 : TIER1_DIM_FACTOR;
-    const baseColor = isSelected ? selectedColor : regimeColors[objects[i].regime];
+    const baseColor = isSelected ? selectedColor : orbitClassColors[objects[i].orbitClass];
     _color.copy(baseColor).multiplyScalar(brightness * dim);
     mesh.setColorAt(slot, _color);
   }

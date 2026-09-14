@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
 
 const EARTH_RADIUS_KM = 6371; // same sphere approximation PropagationDebug.tsx already uses
@@ -15,7 +15,7 @@ function fakeObject(overrides: Partial<ObjectMeta> = {}): ObjectMeta {
     name: 'ISS (ZARYA)',
     objectId: '1998-067A',
     type: ObjType.Payload,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
     epochMs: Date.parse(REAL_EPOCH),
@@ -71,8 +71,8 @@ describe('resolveSelectableObject', () => {
     expect(resolveSelectableObject('99999' as never, objects, byNorad, frameState)).toBeNull();
   });
 
-  it("classifies debris distinctly from its regime, matching M1.4's classifyOrbitClass rule", () => {
-    const objects = [fakeObject({ type: ObjType.Debris, regime: Regime.GEO })];
+  it("classifies debris distinctly from its orbit class, matching M1.4's classifyOrbitClass rule", () => {
+    const objects = [fakeObject({ type: ObjType.Debris, orbitClass: OrbitClass.GEO })];
     const byNorad = { '25544': 0 };
     const frameState = {
       positions: new Float32Array([EARTH_RADIUS_KM + 100, 0, 0]),

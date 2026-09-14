@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { classifyRegime, validateRecord } from './catalog-validate.js';
-import { ObjType, Regime } from './catalog-types.js';
+import { deriveOrbitClass, validateRecord } from './catalog-validate.js';
+import { ObjType, OrbitClass } from './catalog-types.js';
 import type { OmmRecord } from '@orcas/physics';
 
 const NOW_MS = Date.parse('2026-08-22T00:00:00.000Z');
@@ -29,21 +29,21 @@ const VALID: OmmRecord = {
   MEAN_MOTION_DDOT: 0,
 };
 
-describe('classifyRegime', () => {
+describe('deriveOrbitClass', () => {
   it('classifies a ~417 km LEO orbit', () => {
-    expect(classifyRegime(15.5, 0.0001)).toBe(Regime.LEO);
+    expect(deriveOrbitClass(15.5, 0.0001)).toBe(OrbitClass.LEO);
   });
 
   it('classifies a GPS-like MEO orbit', () => {
-    expect(classifyRegime(2.0, 0.01)).toBe(Regime.MEO);
+    expect(deriveOrbitClass(2.0, 0.01)).toBe(OrbitClass.MEO);
   });
 
   it('classifies a geostationary orbit', () => {
-    expect(classifyRegime(1.0027, 0.0002)).toBe(Regime.GEO);
+    expect(deriveOrbitClass(1.0027, 0.0002)).toBe(OrbitClass.GEO);
   });
 
   it('classifies a highly eccentric (Molniya-like) orbit as HEO regardless of altitude', () => {
-    expect(classifyRegime(2.0, 0.74)).toBe(Regime.HEO);
+    expect(deriveOrbitClass(2.0, 0.74)).toBe(OrbitClass.HEO);
   });
 });
 
@@ -53,7 +53,7 @@ describe('validateRecord', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.meta.norad).toBe('90001');
-      expect(result.meta.regime).toBe(Regime.LEO);
+      expect(result.meta.orbitClass).toBe(OrbitClass.LEO);
       expect(result.meta.type).toBe(ObjType.Unknown);
       expect(Object.isFrozen(result.meta)).toBe(true);
       expect(Object.isFrozen(result.meta.record)).toBe(true);

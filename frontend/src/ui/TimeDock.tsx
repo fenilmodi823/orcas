@@ -6,14 +6,14 @@ import { TimeScrubber } from './TimeScrubber.js';
 import { ObjectSummary } from './ObjectSummary.js';
 import { ObjectDetail, type ObjectDetailData } from './ObjectDetail.js';
 import { FilterChip } from './FilterChip.js';
-import type { SelectableObject, OrbitClass } from '../state/selection-store.js';
+import type { SelectableObject, FilterClass } from '../state/selection-store.js';
 import './TimeDock.css';
 
 /** Design.md §5: panels spring, stiffness 220 / damping 26. */
 const PANEL_SPRING = { type: 'spring', stiffness: 220, damping: 26 } as const;
 
 export interface FilterOption {
-  orbitClass: OrbitClass;
+  orbitClass: FilterClass;
   label: string;
   count: number;
   active: boolean;
@@ -32,7 +32,7 @@ export interface TimeDockTimeProps {
   onCycleRate: () => void;
   onJumpToNow: () => void;
   onScrub: (time: Date) => void;
-  onToggleFilter: (orbitClass: OrbitClass) => void;
+  onToggleFilter: (orbitClass: FilterClass) => void;
 }
 
 export interface TimeDockObjectProps {

@@ -5,15 +5,15 @@ import { createSatelliteProxyGeometry } from './satellite-proxy.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { LOD_BAND_PX, tier0Alpha } from '../lod/lod-band.js';
 import { apparentPx } from '../points/points-shading.js';
-import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 
 const PX_PER_RAD = 1188;
 const b = (d: number) => instanceBrightness(d, PX_PER_RAD, PLACEHOLDER_RADIUS_KM);
 
-/** White for every regime and the selection accent — preserves this file's
- * pre-P4.D23 assertions, which read `.r` as a direct stand-in for
- * brightness/dim, unaffected by which regime a fake object carries. */
-const WHITE_REGIME_COLORS: readonly Color[] = [1, 1, 1, 1, 1].map(() => new Color(1, 1, 1));
+/** White for every orbit class and the selection accent — preserves this
+ * file's pre-P4.D23 assertions, which read `.r` as a direct stand-in for
+ * brightness/dim, unaffected by which orbit class a fake object carries. */
+const WHITE_ORBIT_CLASS_COLORS: readonly Color[] = [1, 1, 1, 1, 1].map(() => new Color(1, 1, 1));
 const WHITE_SELECTED_COLOR = new Color(1, 1, 1);
 
 function fakeObjects(count: number): ObjectMeta[] {
@@ -22,7 +22,7 @@ function fakeObjects(count: number): ObjectMeta[] {
     name: String(i),
     objectId: String(i),
     type: ObjType.Payload,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
     epochMs: 0,
@@ -77,7 +77,7 @@ describe('writeTier1Instances — camera-relative origin', () => {
       camPosKm,
       pixelsPerRadian: PX_PER_RAD,
       objects: fakeObjects(1),
-      regimeColors: WHITE_REGIME_COLORS,
+      orbitClassColors: WHITE_ORBIT_CLASS_COLORS,
       selectedColor: WHITE_SELECTED_COLOR,
       band: LOD_BAND_PX,
     });
@@ -148,7 +148,7 @@ describe('writeTier1Instances — P4.D27 focus dim', () => {
       camPosKm: new Vector3(...CLOSE_CAM),
       pixelsPerRadian: PX_PER_RAD,
       objects: fakeObjects(2),
-      regimeColors: WHITE_REGIME_COLORS,
+      orbitClassColors: WHITE_ORBIT_CLASS_COLORS,
       selectedColor: WHITE_SELECTED_COLOR,
       band: LOD_BAND_PX,
       selectedIndex: 0,
@@ -171,7 +171,7 @@ describe('writeTier1Instances — P4.D27 focus dim', () => {
       camPosKm: new Vector3(...CLOSE_CAM),
       pixelsPerRadian: PX_PER_RAD,
       objects: fakeObjects(2),
-      regimeColors: WHITE_REGIME_COLORS,
+      orbitClassColors: WHITE_ORBIT_CLASS_COLORS,
       selectedColor: WHITE_SELECTED_COLOR,
       band: LOD_BAND_PX,
       // selectedIndex omitted — pre-M1.7b callers keep their old behaviour.
@@ -185,9 +185,9 @@ describe('writeTier1Instances — P4.D27 focus dim', () => {
   });
 });
 
-describe('writeTier1Instances — P4.D23/24 regime colour', () => {
+describe('writeTier1Instances — P4.D23/24 orbit-class colour', () => {
   const CLOSE_CAM: [number, number, number] = [7000.01, 0, 0];
-  const REGIME_COLORS: readonly Color[] = [
+  const ORBIT_CLASS_COLORS: readonly Color[] = [
     new Color(1, 0, 0), // LEO
     new Color(0, 1, 0), // MEO
     new Color(0, 0, 1), // GEO
@@ -207,10 +207,10 @@ describe('writeTier1Instances — P4.D23/24 regime colour', () => {
     } as unknown as Parameters<typeof writeTier1Instances>[0]['frame'];
   }
 
-  it("a non-selected instance is coloured by its own object's regime", () => {
+  it("a non-selected instance is coloured by its own object's orbit class", () => {
     const mesh = new InstancedMesh(createSatelliteProxyGeometry(), new MeshStandardMaterial(), 4);
     const objects = fakeObjects(2);
-    objects[1] = { ...objects[1], regime: Regime.MEO };
+    objects[1] = { ...objects[1], orbitClass: OrbitClass.MEO };
     writeTier1Instances({
       mesh,
       frame: frameOf([7000, 0, 0, 7000, 0, 0.01]),
@@ -219,7 +219,7 @@ describe('writeTier1Instances — P4.D23/24 regime colour', () => {
       camPosKm: new Vector3(...CLOSE_CAM),
       pixelsPerRadian: PX_PER_RAD,
       objects,
-      regimeColors: REGIME_COLORS,
+      orbitClassColors: ORBIT_CLASS_COLORS,
       selectedColor: SELECTED_COLOR,
       band: LOD_BAND_PX,
     });
@@ -231,7 +231,7 @@ describe('writeTier1Instances — P4.D23/24 regime colour', () => {
     expect(meo.g).toBeCloseTo(1, 3); // MEO is green
   });
 
-  it('a selected instance is coloured by the selection accent, not its regime', () => {
+  it('a selected instance is coloured by the selection accent, not its orbit class', () => {
     const mesh = new InstancedMesh(createSatelliteProxyGeometry(), new MeshStandardMaterial(), 4);
     writeTier1Instances({
       mesh,
@@ -241,7 +241,7 @@ describe('writeTier1Instances — P4.D23/24 regime colour', () => {
       camPosKm: new Vector3(...CLOSE_CAM),
       pixelsPerRadian: PX_PER_RAD,
       objects: fakeObjects(1),
-      regimeColors: REGIME_COLORS,
+      orbitClassColors: ORBIT_CLASS_COLORS,
       selectedColor: SELECTED_COLOR,
       band: LOD_BAND_PX,
       selectedIndex: 0,

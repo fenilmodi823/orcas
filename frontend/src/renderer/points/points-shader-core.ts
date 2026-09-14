@@ -17,7 +17,7 @@ export const PICK_LAYER = 1;
  */
 export const POINTS_VERTEX_SHADER = /* glsl */ `
 attribute float aEntityId;
-attribute float aRegime;
+attribute float aOrbitClass;
 attribute float aRadius;
 attribute float aFlags;
 attribute float aStale;
@@ -34,11 +34,11 @@ uniform float uFocusActive;
 uniform float uSelectedEntityId;
 uniform vec3 uCamPos;
 uniform vec3 uEarthRadii;
-// P4.D23/24: every object renders in its orbit-regime colour at rest,
-// indexed by the Regime enum (LEO=0, MEO=1, GEO=2, HEO=3, Unknown=4).
-// Selection still overrides to uSelectedColor — regime colour is never
+// P4.D23/24: every object renders in its orbit-class colour at rest,
+// indexed by the OrbitClass enum (LEO=0, MEO=1, GEO=2, HEO=3, Unknown=4).
+// Selection still overrides to uSelectedColor — orbit-class colour is never
 // the interactive accent.
-uniform vec3 uRegimeColors[5];
+uniform vec3 uOrbitClassColors[5];
 uniform vec3 uSelectedColor;
 
 varying float vBrightness;
@@ -89,9 +89,9 @@ void main() {
   //    (both sides are small whole numbers with no accumulated error).
   float isSelected = step(abs(aEntityId - uSelectedEntityId), 0.5);
   brightness *= mix(1.0, mix(uDimFactor, 1.0, isSelected), uFocusActive);
-  // Regime colour at rest, overridden to the selection accent — the same
+  // Orbit-class colour at rest, overridden to the selection accent — the same
   // isSelected already computed above, no second comparison.
-  vTint = mix(uRegimeColors[int(aRegime)], uSelectedColor, isSelected);
+  vTint = mix(uOrbitClassColors[int(aOrbitClass)], uSelectedColor, isSelected);
   // 4. Tier 0 / Tier 1 cross-fade (brief §B.6). Tier 1 uses the SAME band
   //    via lod-band.ts's tier1Alpha, so the two alphas sum to 1 and the eye
   //    sees no event at the crossover. The band arrives as uniforms exactly

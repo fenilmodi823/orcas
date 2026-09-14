@@ -3,7 +3,7 @@ import type { MutableRefObject } from 'react';
 import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
-import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
@@ -21,7 +21,7 @@ import { writeTethers } from './points-tether.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
 import { readCyanToken } from '../scene-colors.js';
-import { readRegimeColor } from '../paths/path-regime-tint.js';
+import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 import { densityVisibleCount } from './significance-rank.js';
 
 const FRAGMENT_SHADER = /* glsl */ `
@@ -44,9 +44,15 @@ void main() {
 }
 `;
 
-/** Indexed by the Regime enum (LEO=0..Unknown=4) — the same order the
- * vertex shader's `uRegimeColors[int(aRegime)]` lookup assumes. */
-const REGIME_ORDER: readonly Regime[] = [Regime.LEO, Regime.MEO, Regime.GEO, Regime.HEO, Regime.Unknown];
+/** Indexed by the OrbitClass enum (LEO=0..Unknown=4) — the same order the
+ * vertex shader's `uOrbitClassColors[int(aOrbitClass)]` lookup assumes. */
+const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
+  OrbitClass.LEO,
+  OrbitClass.MEO,
+  OrbitClass.GEO,
+  OrbitClass.HEO,
+  OrbitClass.Unknown,
+];
 
 export interface TierZeroPointsHandle {
   requestPick(px: number, py: number): void;
@@ -152,10 +158,11 @@ export function TierZeroPoints({
         uLodHiPx: { value: LOD_BAND_PX.hiPx },
         uFocusActive: { value: 0.0 }, // no selection system until M1.5
         uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
-        // P4.D23/24: read once — regime colour is a per-vertex GPU lookup,
-        // not a per-frame CPU one. Order matches the Regime enum, which is
-        // what the vertex shader's uRegimeColors[int(aRegime)] assumes.
-        uRegimeColors: { value: REGIME_ORDER.map((regime) => readRegimeColor(regime)) },
+        // P4.D23/24: read once — orbit-class colour is a per-vertex GPU
+        // lookup, not a per-frame CPU one. Order matches the OrbitClass
+        // enum, which is what the vertex shader's
+        // uOrbitClassColors[int(aOrbitClass)] assumes.
+        uOrbitClassColors: { value: ORBIT_CLASS_ORDER.map((orbitClass) => readOrbitClassColor(orbitClass)) },
         uSelectedColor: { value: readCyanToken() },
         uCamPos: { value: new Vector3() },
         uEarthRadii: { value: new Vector3(WGS84_A_KM, WGS84_A_KM, WGS84_B_KM) },

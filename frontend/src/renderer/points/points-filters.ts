@@ -1,25 +1,25 @@
-import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
-import type { OrbitClass } from '../../state/selection-store.js';
+import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
+import type { FilterClass } from '../../state/selection-store.js';
 import { FLAG_VISIBLE } from './points-attributes.js';
 
-const REGIME_TO_ORBIT_CLASS: Partial<Record<Regime, OrbitClass>> = {
-  [Regime.LEO]: 'leo',
-  [Regime.MEO]: 'meo',
-  [Regime.GEO]: 'geo',
-  [Regime.HEO]: 'heo',
+const ORBIT_CLASS_TO_FILTER_CLASS: Partial<Record<OrbitClass, FilterClass>> = {
+  [OrbitClass.LEO]: 'leo',
+  [OrbitClass.MEO]: 'meo',
+  [OrbitClass.GEO]: 'geo',
+  [OrbitClass.HEO]: 'heo',
 };
 
 /**
- * Maps the data layer's two-axis Regime/ObjType classification onto the
- * UI layer's already-shipped five-way OrbitClass taxonomy (FilterChip.tsx,
- * view-store.ts). Debris takes precedence over regime — it is its own
+ * Maps the data layer's two-axis OrbitClass/ObjType classification onto the
+ * UI layer's already-shipped five-way FilterClass taxonomy (FilterChip.tsx,
+ * view-store.ts). Debris takes precedence over orbit class — it is its own
  * chip colour regardless of orbit shape. An object that is neither
- * debris nor a known regime has no matching chip: returns null, and
+ * debris nor a known orbit class has no matching chip: returns null, and
  * `packFilterFlags` treats null as always-visible (see its docstring).
  */
-export function classifyOrbitClass(object: ObjectMeta): OrbitClass | null {
+export function classifyOrbitClass(object: ObjectMeta): FilterClass | null {
   if (object.type === ObjType.Debris) return 'debris';
-  return REGIME_TO_ORBIT_CLASS[object.regime] ?? null;
+  return ORBIT_CLASS_TO_FILTER_CLASS[object.orbitClass] ?? null;
 }
 
 /**
@@ -27,7 +27,7 @@ export function classifyOrbitClass(object: ObjectMeta): OrbitClass | null {
  * the current filter selection, 0 otherwise. Empty `activeFilters` means
  * no restriction — every object is visible (the app's at-rest state). A
  * non-empty set narrows to only matching classes. An object with no
- * OrbitClass match (`classifyOrbitClass` returns null) is always
+ * FilterClass match (`classifyOrbitClass` returns null) is always
  * visible, since no chip exists that could be used to intentionally
  * hide it — the same "never hide data the UI has no control for"
  * principle M1.0 already applied to stale-but-valid objects.
@@ -44,7 +44,7 @@ export function classifyOrbitClass(object: ObjectMeta): OrbitClass | null {
  */
 export function packFilterFlags(
   objects: readonly ObjectMeta[],
-  activeFilters: ReadonlySet<OrbitClass>,
+  activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
 ): Float32Array {
@@ -59,9 +59,9 @@ export function packFilterFlags(
 }
 
 /** Real per-class object counts for the /points route's FilterChips —
- * an object with no OrbitClass match is not counted in any chip. */
-export function countByOrbitClass(objects: readonly ObjectMeta[]): Record<OrbitClass, number> {
-  const counts: Record<OrbitClass, number> = { leo: 0, meo: 0, geo: 0, heo: 0, debris: 0 };
+ * an object with no FilterClass match is not counted in any chip. */
+export function countByOrbitClass(objects: readonly ObjectMeta[]): Record<FilterClass, number> {
+  const counts: Record<FilterClass, number> = { leo: 0, meo: 0, geo: 0, heo: 0, debris: 0 };
   for (const object of objects) {
     const orbitClass = classifyOrbitClass(object);
     if (orbitClass !== null) counts[orbitClass]++;

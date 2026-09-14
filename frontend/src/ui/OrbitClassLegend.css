@@ -1,11 +1,11 @@
-.regime-legend {
+.orbit-class-legend {
   position: absolute;
   right: var(--space-4, 1rem);
   bottom: var(--space-4, 1rem);
   padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
 }
 
-.regime-legend__list {
+.orbit-class-legend__list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -14,7 +14,7 @@
   gap: var(--space-2, 0.5rem);
 }
 
-.regime-legend__row {
+.orbit-class-legend__row {
   display: flex;
   align-items: center;
   gap: var(--space-2, 0.5rem);
@@ -23,12 +23,12 @@
   font-family: var(--font-ui);
 }
 
-.regime-legend__icon {
+.orbit-class-legend__icon {
   flex: none;
 }
 
-.regime-legend__dismiss,
-.regime-legend-reopen {
+.orbit-class-legend__dismiss,
+.orbit-class-legend-reopen {
   position: absolute;
   top: var(--space-2, 0.5rem);
   right: var(--space-2, 0.5rem);
@@ -42,15 +42,15 @@
   line-height: 1;
 }
 
-.regime-legend-reopen {
+.orbit-class-legend-reopen {
   position: absolute;
   right: var(--space-4, 1rem);
   bottom: var(--space-4, 1rem);
   top: auto;
 }
 
-.regime-legend__dismiss:focus-visible,
-.regime-legend-reopen:focus-visible {
+.orbit-class-legend__dismiss:focus-visible,
+.orbit-class-legend-reopen:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }

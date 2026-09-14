@@ -1,10 +1,10 @@
-import { ObjType, Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
 
 /**
  * Cheapest signal available pre-SATCAT (`memory.md` Next actions #3): an
  * orbit-class weight, ascending "most significant first." Debris sorts
- * last regardless of its regime — a piece of LEO debris is not more
+ * last regardless of its orbit class — a piece of LEO debris is not more
  * significant than an operational GEO comsat. GEO/MEO ahead of LEO is a
  * judgment call (fewer, larger, individually-recognisable payloads vs. a
  * shell dominated by small objects and debris), not a measured signal —
@@ -12,14 +12,14 @@ import { FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
  */
 function classWeight(object: ObjectMeta): number {
   if (object.type === ObjType.Debris) return 5;
-  switch (object.regime) {
-    case Regime.GEO:
+  switch (object.orbitClass) {
+    case OrbitClass.GEO:
       return 0;
-    case Regime.MEO:
+    case OrbitClass.MEO:
       return 1;
-    case Regime.HEO:
+    case OrbitClass.HEO:
       return 2;
-    case Regime.LEO:
+    case OrbitClass.LEO:
       return 3;
     default:
       return 4;

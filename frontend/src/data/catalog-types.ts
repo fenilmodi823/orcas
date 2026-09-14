@@ -10,7 +10,7 @@ import type { OmmRecord } from '@orcas/physics';
  */
 export type NoradId = string & { readonly __brand: 'NoradId' };
 
-export const enum Regime {
+export const enum OrbitClass {
   LEO = 0,
   MEO = 1,
   GEO = 2,
@@ -32,7 +32,7 @@ export interface ObjectMeta {
   readonly name: string;
   readonly objectId: string;
   readonly type: ObjType;
-  readonly regime: Regime;
+  readonly orbitClass: OrbitClass;
   readonly isActive: boolean;
   readonly sourceType: string;
   /** Element-set epoch, ms since Unix epoch (not TAI — this is a debug/UI

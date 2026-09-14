@@ -19,15 +19,15 @@ describe('PICK_LAYER', () => {
   });
 });
 
-describe('Tier 0 regime colour at rest (P4.D23/24)', () => {
-  it('declares the regime colour lookup and the selection accent', () => {
-    expect(POINTS_VERTEX_SHADER).toContain('uniform vec3 uRegimeColors[5];');
+describe('Tier 0 orbit-class colour at rest (P4.D23/24)', () => {
+  it('declares the orbit-class colour lookup and the selection accent', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('uniform vec3 uOrbitClassColors[5];');
     expect(POINTS_VERTEX_SHADER).toContain('uniform vec3 uSelectedColor;');
   });
 
   it('declares and writes vTint, so the display fragment shader can read it', () => {
     expect(POINTS_VERTEX_SHADER).toContain('varying vec3 vTint;');
-    expect(POINTS_VERTEX_SHADER).toContain('vTint = mix(uRegimeColors[int(aRegime)], uSelectedColor, isSelected);');
+    expect(POINTS_VERTEX_SHADER).toContain('vTint = mix(uOrbitClassColors[int(aOrbitClass)], uSelectedColor, isSelected);');
   });
 });
 

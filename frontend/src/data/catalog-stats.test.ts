@@ -30,7 +30,7 @@ function fixture(overrides: Partial<OmmRecord> = {}): OmmRecord {
 }
 
 describe('computeCatalogStats', () => {
-  it('counts objects by regime', () => {
+  it('counts objects by orbit class', () => {
     const snapshot = buildSnapshot(
       [
         fixture({ NORAD_CAT_ID: '1', MEAN_MOTION: 15.5, ECCENTRICITY: 0.0001 }), // LEO
@@ -41,7 +41,7 @@ describe('computeCatalogStats', () => {
       NOW_MS,
     );
     const stats = computeCatalogStats(snapshot, NOW_MS);
-    expect(stats.regimeCounts).toEqual({ leo: 1, meo: 1, geo: 1, heo: 1, unknown: 0 });
+    expect(stats.orbitClassCounts).toEqual({ leo: 1, meo: 1, geo: 1, heo: 1, unknown: 0 });
     expect(stats.objectCount).toBe(4);
   });
 

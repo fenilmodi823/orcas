@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry } from 'three';
 import type { ObjectMeta } from '../../data/catalog-types.js';
-import type { OrbitClass } from '../../state/selection-store.js';
-import { packEntityIds, packRegimes, packRadii } from './points-attributes.js';
+import type { FilterClass } from '../../state/selection-store.js';
+import { packEntityIds, packOrbitClasses, packRadii } from './points-attributes.js';
 import { packFilterFlags } from './points-filters.js';
 
 /**
@@ -19,14 +19,14 @@ export function createPointsGeometry(
   objects: readonly ObjectMeta[],
   positions: Float32Array,
   staleFlags: Uint8Array,
-  activeFilters: ReadonlySet<OrbitClass>,
+  activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
 ): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('aEntityId', new BufferAttribute(packEntityIds(objects.length), 1));
-  geometry.setAttribute('aRegime', new BufferAttribute(packRegimes(objects), 1));
+  geometry.setAttribute('aOrbitClass', new BufferAttribute(packOrbitClasses(objects), 1));
   geometry.setAttribute('aRadius', new BufferAttribute(packRadii(objects.length), 1));
   geometry.setAttribute(
     'aFlags',
@@ -51,7 +51,7 @@ export function createPointsGeometry(
 export function updateFlagsAttribute(
   geometry: BufferGeometry,
   objects: readonly ObjectMeta[],
-  activeFilters: ReadonlySet<OrbitClass>,
+  activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
 ): void {

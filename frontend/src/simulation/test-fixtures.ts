@@ -1,7 +1,7 @@
 import type { SatRec } from 'satellite.js';
 import { satrecFromOmm } from '@orcas/physics';
 import type { OmmRecord } from '@orcas/physics';
-import { Regime, ObjType, type ObjectMeta } from '../data/catalog-types.js';
+import { OrbitClass, ObjType, type ObjectMeta } from '../data/catalog-types.js';
 
 function omm(norad: string): OmmRecord {
   return {
@@ -31,7 +31,7 @@ function objectMeta(norad: string, record: OmmRecord): ObjectMeta {
     name: record.OBJECT_NAME,
     objectId: record.OBJECT_ID,
     type: ObjType.Payload,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'real',
     epochMs: Date.parse('2026-01-01T00:00:00.000Z'),

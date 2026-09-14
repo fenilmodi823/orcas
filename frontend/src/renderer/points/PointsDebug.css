@@ -123,7 +123,7 @@
 /* Always visible while it applies, never dismissible — an honesty
    requirement (Rules.md §4 "never blank"/"never present stale as live"),
    same philosophy as StatusPill. Bottom-left is the one corner the debug
-   panel, camera panel, and regime legend don't already occupy. */
+   panel, camera panel, and orbit class legend don't already occupy. */
 .points-debug__data-notice {
   position: absolute;
   left: var(--space-4, 1rem);

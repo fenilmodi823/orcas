@@ -5,7 +5,7 @@ import { computeCatalogStats } from './catalog-stats.js';
 import { useCatalog } from './use-catalog.js';
 import './CatalogDebug.css';
 
-const REGIME_LABELS = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', unknown: 'Unknown' } as const;
+const ORBIT_CLASS_LABELS = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', unknown: 'Unknown' } as const;
 const AGE_BUCKET_LABELS = {
   underOneDay: '< 1 day',
   oneToSevenDays: '1–7 days',
@@ -15,7 +15,7 @@ const AGE_BUCKET_LABELS = {
 
 /**
  * M1.0's debug route (Phase-4 brief): no 3D, just the numbers — object
- * count, regime histogram, epoch-age histogram, rejected-record count
+ * count, orbit-class histogram, epoch-age histogram, rejected-record count
  * with reasons, snapshot version and fetch time. Proves the ingest +
  * validate + freeze + persist pipeline is real before any rendering work
  * starts on top of it.
@@ -64,11 +64,11 @@ export function CatalogDebug() {
         </div>
 
         <section>
-          <h2>Regime</h2>
+          <h2>Orbit class</h2>
           <ul className="catalog-debug__histogram">
-            {Object.entries(stats.regimeCounts).map(([key, count]) => (
+            {Object.entries(stats.orbitClassCounts).map(([key, count]) => (
               <li key={key}>
-                <span>{REGIME_LABELS[key as keyof typeof REGIME_LABELS]}</span>
+                <span>{ORBIT_CLASS_LABELS[key as keyof typeof ORBIT_CLASS_LABELS]}</span>
                 <span>{count}</span>
               </li>
             ))}

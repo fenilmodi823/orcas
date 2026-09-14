@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Regime } from '../../data/catalog-types.js';
+import { OrbitClass } from '../../data/catalog-types.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
-import { PLACEHOLDER_RADIUS_KM, packEntityIds, packRegimes, packRadii } from './points-attributes.js';
+import { PLACEHOLDER_RADIUS_KM, packEntityIds, packOrbitClasses, packRadii } from './points-attributes.js';
 
-function fakeObject(regime: Regime): ObjectMeta {
+function fakeObject(orbitClass: OrbitClass): ObjectMeta {
   return {
     norad: 'x' as ObjectMeta['norad'],
     name: 'x',
     objectId: 'x',
     type: 0,
-    regime,
+    orbitClass,
     isActive: true,
     sourceType: 'live',
     epochMs: 0,
@@ -28,15 +28,15 @@ describe('packEntityIds', () => {
   });
 });
 
-describe('packRegimes', () => {
-  it('copies each object regime enum value verbatim', () => {
-    const objects = [fakeObject(Regime.LEO), fakeObject(Regime.GEO), fakeObject(Regime.HEO)];
-    const regimes = packRegimes(objects);
-    expect(Array.from(regimes)).toEqual([Regime.LEO, Regime.GEO, Regime.HEO]);
+describe('packOrbitClasses', () => {
+  it('copies each object orbit-class enum value verbatim', () => {
+    const objects = [fakeObject(OrbitClass.LEO), fakeObject(OrbitClass.GEO), fakeObject(OrbitClass.HEO)];
+    const orbitClasses = packOrbitClasses(objects);
+    expect(Array.from(orbitClasses)).toEqual([OrbitClass.LEO, OrbitClass.GEO, OrbitClass.HEO]);
   });
 
   it('produces exactly one entry per object', () => {
-    expect(packRegimes([fakeObject(Regime.LEO)])).toHaveLength(1);
+    expect(packOrbitClasses([fakeObject(OrbitClass.LEO)])).toHaveLength(1);
   });
 });
 

@@ -15,7 +15,7 @@ const EARTH_RADIUS_KM = 6371;
  * from a NORAD id plus the live catalogue and FrameState. Null if the
  * id isn't in the current snapshot (brief §D.4: "if the object has left
  * the catalogue... clear the selection explicitly and say so").
- * `classifyOrbitClass` can return null for a non-debris, unknown-regime
+ * `classifyOrbitClass` can return null for a non-debris, unknown-orbit-class
  * object (M1.4) — SelectableObject.orbitClass is non-nullable, so this
  * falls back to 'debris' for DISPLAY colour only; that fallback has no
  * bearing on M1.4's filter-visibility rule for the same object.

@@ -48,14 +48,14 @@ function directJ2000(satrec: Parameters<typeof propagate>[0], at: Date, noradId:
   return applyMat3(matrix, state.positionEciKm);
 }
 
-// Regime fixtures spanning LEO / MEO / GEO / a Molniya-class HEO — a
+// Orbit-class fixtures spanning LEO / MEO / GEO / a Molniya-class HEO — a
 // deliberately smaller, synthetic stand-in for the brief's "1,000 real
 // objects" residual test (§I M1.1 testing list): no catalogue of that
 // size exists yet (M1.0's own snapshot has 22 real objects), and these
-// four regimes plus the eccentric edge case are what the residual bound
-// actually depends on, per §A.5's error table. See memory.md for this
-// scoping note.
-const REGIME_FIXTURES: Record<string, OmmRecord> = {
+// four orbit classes plus the eccentric edge case are what the residual
+// bound actually depends on, per §A.5's error table. See memory.md for
+// this scoping note.
+const ORBIT_CLASS_FIXTURES: Record<string, OmmRecord> = {
   leo: omm({ NORAD_CAT_ID: '900001', MEAN_MOTION: 15.2, ECCENTRICITY: 0.001, INCLINATION: 51.6 }),
   meo: omm({ NORAD_CAT_ID: '900002', MEAN_MOTION: 2.0, ECCENTRICITY: 0.01, INCLINATION: 55 }),
   geo: omm({ NORAD_CAT_ID: '900003', MEAN_MOTION: 1.0027, ECCENTRICITY: 0.0002, INCLINATION: 0.05 }),
@@ -64,7 +64,7 @@ const REGIME_FIXTURES: Record<string, OmmRecord> = {
 
 describe('buildSegment', () => {
   it('produces endpoints consistent with two direct propagate() calls', () => {
-    const record = REGIME_FIXTURES.leo;
+    const record = ORBIT_CLASS_FIXTURES.leo;
     const satrec = satrecFromOmm(record);
     const t0 = new Date(EPOCH_MS);
     const t1 = new Date(EPOCH_MS + 30_000);
@@ -90,7 +90,7 @@ describe('buildSegment', () => {
 
 describe('sampleSegment', () => {
   it('matches segment endpoints exactly at s=0 and s=1', () => {
-    const record = REGIME_FIXTURES.leo;
+    const record = ORBIT_CLASS_FIXTURES.leo;
     const satrec = satrecFromOmm(record);
     const t0Ms = EPOCH_MS;
     const t1Ms = EPOCH_MS + 30_000;
@@ -104,9 +104,9 @@ describe('sampleSegment', () => {
 });
 
 describe('interpolation residual against direct SGP4', () => {
-  it.each(Object.entries(REGIME_FIXTURES))(
+  it.each(Object.entries(ORBIT_CLASS_FIXTURES))(
     '%s: Hermite sampling stays within the predicted bound across one period',
-    (regime, record) => {
+    (orbitClass, record) => {
       const satrec = satrecFromOmm(record);
       const hSeconds = chooseStepSeconds(record.MEAN_MOTION, record.ECCENTRICITY, 1);
       const periodMs = (1440 / record.MEAN_MOTION) * 60_000;
@@ -129,7 +129,7 @@ describe('interpolation residual against direct SGP4', () => {
       // during implementation (not guessed): real max ~2.57m, well
       // inside this margin and three orders of magnitude below SGP4's
       // own ~1km epoch uncertainty.
-      const maxResidualM = regime === 'molniya' ? 5.0 : 1.0;
+      const maxResidualM = orbitClass === 'molniya' ? 5.0 : 1.0;
       let observedMaxM = 0;
 
       // buildSegmentChain's real last segment ends at Math.trunc(endMs)
@@ -171,7 +171,7 @@ describe('interpolation residual against direct SGP4', () => {
 
 describe('determinism', () => {
   it('same inputs produce bit-identical segments', () => {
-    const record = REGIME_FIXTURES.leo;
+    const record = ORBIT_CLASS_FIXTURES.leo;
     const satrec = satrecFromOmm(record);
     const t0 = new Date(EPOCH_MS);
     const t1 = new Date(EPOCH_MS + 30_000);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BufferAttribute } from 'three';
-import { Regime, type ObjectMeta } from '../../data/catalog-types.js';
+import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js';
 import { FLAG_VISIBLE, PLACEHOLDER_RADIUS_KM } from './points-attributes.js';
 
@@ -10,7 +10,7 @@ function fakeObjects(count: number): ObjectMeta[] {
     name: `obj-${i}`,
     objectId: `obj-${i}`,
     type: 0,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
     epochMs: 0,
@@ -33,7 +33,7 @@ describe('createPointsGeometry', () => {
       new Set(),
     );
     expect(geometry.getAttribute('aEntityId').count).toBe(7);
-    expect(geometry.getAttribute('aRegime').count).toBe(7);
+    expect(geometry.getAttribute('aOrbitClass').count).toBe(7);
     expect(geometry.getAttribute('aRadius').count).toBe(7);
     expect(geometry.getAttribute('aFlags').count).toBe(7);
   });
@@ -64,7 +64,7 @@ describe('createPointsGeometry — aStale attribute', () => {
 
 describe('createPointsGeometry — real filter-driven aFlags', () => {
   it('builds aFlags from the classifier and active filters, not an always-visible placeholder', () => {
-    const objects = fakeObjects(2); // both Regime.LEO per the existing fakeObjects helper
+    const objects = fakeObjects(2); // both OrbitClass.LEO per the existing fakeObjects helper
     const geometry = createPointsGeometry(objects, new Float32Array(3 * 2), new Uint8Array(2), new Set(['meo']));
     // Neither object is MEO, and the filter set is non-empty -> both hidden.
     expect(Array.from(geometry.getAttribute('aFlags').array as Float32Array)).toEqual([0, 0]);

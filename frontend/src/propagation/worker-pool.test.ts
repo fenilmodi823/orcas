@@ -3,7 +3,7 @@ import { satrecFromOmm } from '@orcas/physics';
 import type { OmmRecord } from '@orcas/physics';
 import { createPropagationPool, createInProcessRunner } from './worker-pool.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
-import { Regime, ObjType } from '../data/catalog-types.js';
+import { OrbitClass, ObjType } from '../data/catalog-types.js';
 
 function objectMeta(norad: string, record: OmmRecord): ObjectMeta {
   return {
@@ -11,7 +11,7 @@ function objectMeta(norad: string, record: OmmRecord): ObjectMeta {
     name: record.OBJECT_NAME,
     objectId: record.OBJECT_ID,
     type: ObjType.Payload,
-    regime: Regime.LEO,
+    orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'real',
     epochMs: Date.parse('2026-01-01T00:00:00.000Z'),

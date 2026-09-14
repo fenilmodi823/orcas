@@ -8,7 +8,7 @@ import type { LineSegments2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import { readRegimeColor } from './path-regime-tint.js';
+import { readOrbitClassColor } from './path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
 import { sampleGroundTrack, DEFAULT_GROUND_TRACK_SAMPLES } from './ground-track.js';
 import { toGroundTrackSegments } from './ground-track-split.js';
@@ -126,7 +126,7 @@ export function GroundTracks({
     if (next === selectedNorad) {
       slot.rgb = cyan;
     } else {
-      const c = readRegimeColor(objects[slot.occupantIndex].regime);
+      const c = readOrbitClassColor(objects[slot.occupantIndex].orbitClass);
       slot.rgb = { r: c.r, g: c.g, b: c.b };
     }
   }

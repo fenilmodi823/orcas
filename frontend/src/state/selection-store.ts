@@ -1,13 +1,18 @@
 import { create } from 'zustand';
 import type { NoradId } from '../data/catalog-types.js';
 
-export type OrbitClass = 'leo' | 'meo' | 'geo' | 'heo' | 'debris';
+/** UI filter-chip/display taxonomy (Design.md's FilterChip vocabulary) —
+ * distinct from the physical `OrbitClass` enum in catalog-types.ts: this
+ * one folds in `'debris'` (an ObjType, not an orbit shape) with precedence
+ * over the underlying orbit class — see `classifyOrbitClass` in
+ * points-filters.ts. */
+export type FilterClass = 'leo' | 'meo' | 'geo' | 'heo' | 'debris';
 
 export interface SelectableObject {
   id: string;
   name: string;
   noradId: string;
-  orbitClass: OrbitClass;
+  orbitClass: FilterClass;
   altitudeKm: number;
   velocityKmS: number;
   inclinationDeg: number;

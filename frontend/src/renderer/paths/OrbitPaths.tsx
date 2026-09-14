@@ -8,7 +8,7 @@ import type { Line2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import { readRegimeColor } from './path-regime-tint.js';
+import { readOrbitClassColor } from './path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
 import { featuredIndices, FEATURED_OBJECT_NAMES } from './featured-norads.js';
 import { sampleOrbitPath, DEFAULT_PATH_SAMPLES } from './orbit-path.js';
@@ -88,7 +88,7 @@ function makeSlot(
  * Permanent orbit paths for the featured set, plus one for the current
  * selection (brief §I M1.7, §F.6). Each path is one fat line (drei
  * <Line> -> Line2), propagated through SGP4 in J2000, resampled at
- * 0.2 Hz. Featured lines are tinted by orbital regime (P4.D24); the
+ * 0.2 Hz. Featured lines are tinted by orbit class (P4.D24); the
  * selection line is --orca-cyan.
  *
  * Zero re-renders after mount — fixed JSX, every update an imperative
@@ -126,7 +126,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     const slots: PathSlot[] = [];
     for (let k = 0; k < n; k++) {
       const i = buf[k];
-      const c = readRegimeColor(objects[i].regime);
+      const c = readOrbitClassColor(objects[i].orbitClass);
       slots.push(
         makeSlot(i, objects[i].norad, satrecFromOmm(objects[i].record), { r: c.r, g: c.g, b: c.b }),
       );

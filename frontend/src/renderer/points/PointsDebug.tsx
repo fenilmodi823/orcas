@@ -15,12 +15,12 @@ import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import type { OrbitClass } from '../../state/selection-store.js';
+import type { FilterClass } from '../../state/selection-store.js';
 import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
 import { isClickNotDrag } from './points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
-import { RegimeLegend } from '../../ui/RegimeLegend.js';
+import { OrbitClassLegend } from '../../ui/OrbitClassLegend.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
@@ -59,14 +59,14 @@ function CameraController({
   return null;
 }
 
-const ORBIT_CLASS_LABELS: Record<OrbitClass, string> = {
+const FILTER_CLASS_LABELS: Record<FilterClass, string> = {
   leo: 'LEO',
   meo: 'MEO',
   geo: 'GEO',
   heo: 'HEO',
   debris: 'Debris',
 };
-const ORBIT_CLASSES: readonly OrbitClass[] = ['leo', 'meo', 'geo', 'heo', 'debris'];
+const FILTER_CLASSES: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debris'];
 
 /** M1.3's debug route (brief §I): no shared scene, no shared Earth — a
  * locally-scoped, correctly-scaled (1 unit = 1 km) view built only for
@@ -328,8 +328,8 @@ function PointsDebugPanel({
       <PanelErrorBoundary label="Camera panel">
         <CameraDevPanel />
       </PanelErrorBoundary>
-      <PanelErrorBoundary label="Regime legend">
-        <RegimeLegend />
+      <PanelErrorBoundary label="Orbit class legend">
+        <OrbitClassLegend />
       </PanelErrorBoundary>
       {DATA_NOTICES[origin] && <p className="points-debug__data-notice">{DATA_NOTICES[origin]}</p>}
       {panelCollapsed && (
@@ -376,11 +376,11 @@ function PointsDebugPanel({
           )}
 
           <div className="points-debug__filters">
-            {ORBIT_CLASSES.map((orbitClass) => (
+            {FILTER_CLASSES.map((orbitClass) => (
               <FilterChip
                 key={orbitClass}
                 orbitClass={orbitClass}
-                label={ORBIT_CLASS_LABELS[orbitClass]}
+                label={FILTER_CLASS_LABELS[orbitClass]}
                 count={counts[orbitClass]}
                 active={activeFilters.has(orbitClass)}
                 onToggle={() => toggleFilter(orbitClass)}

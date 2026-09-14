@@ -19,7 +19,7 @@
   --caution: #ffb020;
   --nominal: #30d158;
 
-  /* Orbit-regime colours — objects render in these AT REST (P4.D23/24).
+  /* Orbit-class colours — objects render in these AT REST (P4.D23/24).
      Deuteranopia-checked and 3:1-contrast-checked in Design.md §9: closest
      simulated pair (--meo/--debris) separated by Euclidean distance 61, all
      ten pairs >50. None may equal --orca-cyan (selection) or --critical
