@@ -16,9 +16,10 @@ from app.infra.db.base import Base
 
 class SpaceObject(Base):
     """Identity, slow-changing. Populated from the CelesTrak GP feed on
-    first sighting; object_type/operator/country/launch_date/rcs_size are
-    SATCAT fields, not in GP OMM — nullable here, filled by a later SATCAT
-    ingestion pass, not this worker.
+    first sighting; object_type/operator/country/launch_date/rcs_size/rcs/
+    decay_date/ops_status_code/data_status_code/launch_site are SATCAT
+    fields, not in GP OMM — nullable here, filled by the SATCAT ingestion
+    pass (app/services/satcat_service.py), not this worker.
     """
 
     __tablename__ = "space_object"
@@ -32,6 +33,17 @@ class SpaceObject(Base):
     country: Mapped[str | None] = mapped_column(String(8))
     launch_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rcs_size: Mapped[str | None] = mapped_column(String(16))
+    rcs: Mapped[float | None] = mapped_column(Float)  # m^2, raw radar cross-section (SATCAT RCS)
+    decay_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ops_status_code: Mapped[str | None] = mapped_column(String(4))
+    data_status_code: Mapped[str | None] = mapped_column(String(4))
+    launch_site: Mapped[str | None] = mapped_column(String(16))
+    analyst: Mapped[bool] = mapped_column(default=False)
+    # SATCAT-specific provenance — distinct from element_set.source/ingested_at,
+    # since SATCAT updates on its own cadence (RA14.D6: snapshot age and
+    # element-set epoch are two separate facts, never merged into one).
+    satcat_source: Mapped[str | None] = mapped_column(String(32))
+    satcat_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(default=True)
 
     element_sets: Mapped[list["ElementSet"]] = relationship(back_populates="space_object")
