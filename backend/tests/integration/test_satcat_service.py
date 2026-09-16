@@ -86,7 +86,7 @@ async def test_ingest_satcat_backfills_matching_object(monkeypatch: pytest.Monke
         space_object = (
             await session.execute(select(SpaceObject).where(SpaceObject.norad_id == TEST_NORAD_ID))
         ).scalar_one()
-        assert space_object.object_type == "PAY"
+        assert space_object.object_type == "PAYLOAD"
         assert space_object.country == "US"
         assert space_object.rcs == 1.5
         assert space_object.satcat_source == "celestrak-satcat"

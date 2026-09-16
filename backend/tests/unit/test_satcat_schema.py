@@ -26,7 +26,7 @@ VALID_RAW = {
 def test_valid_row_round_trips_and_empty_strings_become_none() -> None:
     record = validate_satcat_row(VALID_RAW)
     assert record["NORAD_CAT_ID"] == "5"
-    assert record["OBJECT_TYPE"] == "PAY"
+    assert record["OBJECT_TYPE"] == "PAYLOAD"
     assert record["OPS_STATUS_CODE"] is None
     assert record["DECAY_DATE"] is None
     assert record["RCS"] == 0.1220
@@ -66,3 +66,31 @@ def test_log_if_unseen_ignores_none() -> None:
     seen: set[str] = set()
     _log_if_unseen(seen, None, "OBJECT_TYPE")
     assert seen == set()
+
+
+def test_malformed_launch_date_is_rejected() -> None:
+    bad = {**VALID_RAW, "LAUNCH_DATE": "not-a-date"}
+    with pytest.raises(SatcatValidationError):
+        validate_satcat_row(bad)
+
+
+def test_malformed_decay_date_is_rejected() -> None:
+    bad = {**VALID_RAW, "DECAY_DATE": "1958/03/17"}
+    with pytest.raises(SatcatValidationError):
+        validate_satcat_row(bad)
+
+
+def test_overlong_ops_status_code_is_rejected() -> None:
+    bad = {**VALID_RAW, "OPS_STATUS_CODE": "TOOLONG"}
+    with pytest.raises(SatcatValidationError):
+        validate_satcat_row(bad)
+
+
+def test_object_type_short_codes_normalized_to_long_form() -> None:
+    assert validate_satcat_row({**VALID_RAW, "OBJECT_TYPE": "PAY"})["OBJECT_TYPE"] == "PAYLOAD"
+    assert validate_satcat_row({**VALID_RAW, "OBJECT_TYPE": "R/B"})["OBJECT_TYPE"] == "ROCKET BODY"
+    assert validate_satcat_row({**VALID_RAW, "OBJECT_TYPE": "DEB"})["OBJECT_TYPE"] == "DEBRIS"
+
+
+def test_unrecognized_object_type_passes_through_unchanged() -> None:
+    assert validate_satcat_row({**VALID_RAW, "OBJECT_TYPE": "TBA"})["OBJECT_TYPE"] == "TBA"
