@@ -31,6 +31,25 @@ class OmmRecord(TypedDict):
     MEAN_MOTION_DDOT: float
 
 
+class SatcatRecord(TypedDict):
+    """CelesTrak SATCAT row — catalogue metadata (type, status, size,
+    decay), not orbital elements. Field set confirmed live 2026-09-15
+    against https://celestrak.org/pub/satcat.csv.
+    """
+
+    OBJECT_NAME: str
+    OBJECT_ID: str
+    NORAD_CAT_ID: str  # VARCHAR — same rule as OmmRecord.
+    OBJECT_TYPE: str | None
+    OPS_STATUS_CODE: str | None
+    OWNER: str | None  # country/agency code, e.g. "US", "CIS" — not a company name.
+    LAUNCH_DATE: str | None  # bare ISO date, e.g. "1958-03-17"
+    LAUNCH_SITE: str | None
+    DECAY_DATE: str | None  # bare ISO date, or None if still on-orbit
+    RCS: float | None  # m^2, radar cross-section — NOT a physical radius (RA-14 §3.1)
+    DATA_STATUS_CODE: str | None
+
+
 @dataclass(frozen=True)
 class Vec3:
     x: float
