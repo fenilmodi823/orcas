@@ -17,6 +17,7 @@ from app.infra.celestrak.client import fetch_gp_omm
 from app.infra.celestrak.schema import OmmValidationError, validate_omm_record
 from app.infra.db.base import get_session
 from app.infra.db.models import ElementSet, SpaceObject
+from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ def _parse_epoch(epoch: str) -> datetime:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
-async def _upsert_space_object(session: AsyncSession, record: OmmRecord) -> SpaceObject:
+async def _upsert_space_object(
+    session: AsyncSession, record: OmmRecord, group: str | None
+) -> SpaceObject:
     stmt = select(SpaceObject).where(SpaceObject.norad_id == record["NORAD_CAT_ID"])
     space_object = (await session.execute(stmt)).scalar_one_or_none()
     if space_object is None:
@@ -45,15 +48,19 @@ async def _upsert_space_object(session: AsyncSession, record: OmmRecord) -> Spac
             norad_id=record["NORAD_CAT_ID"],
             intl_designator=record["OBJECT_ID"],
             name=record["OBJECT_NAME"],
+            analyst=(group == "analyst"),
         )
         session.add(space_object)
         await session.flush()  # assigns space_object.id for the element_set FK below
     elif space_object.name != record["OBJECT_NAME"]:
         space_object.name = record["OBJECT_NAME"]  # CelesTrak names change (renames, deployments)
+    if group == "analyst":
+        space_object.analyst = True  # one-way: once seen via the analyst group, stays flagged
     return space_object
 
 
 async def ingest_gp(group: str | None = None) -> IngestionResult:
+    effective_group = group or settings.celestrak_group
     raw_records = await fetch_gp_omm(group)
 
     validated: list[OmmRecord] = []
@@ -69,7 +76,7 @@ async def ingest_gp(group: str | None = None) -> IngestionResult:
     inserted = 0
     async with get_session() as session:
         for record in validated:
-            space_object = await _upsert_space_object(session, record)
+            space_object = await _upsert_space_object(session, record, effective_group)
             session.add(
                 ElementSet(
                     object_id=space_object.id,

@@ -118,3 +118,29 @@ async def test_ingest_gp_is_append_only_on_re_ingestion(monkeypatch: pytest.Monk
         )
         # but element_set never updates — two epochs, both preserved
         assert len(rows) == 2
+
+
+@pytest.mark.asyncio
+async def test_ingest_gp_flags_analyst_group_objects(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
+
+    await ingest_gp(group="analyst")
+
+    async with get_session() as session:
+        space_object = (
+            await session.execute(select(SpaceObject).where(SpaceObject.norad_id == TEST_NORAD_ID))
+        ).scalar_one()
+        assert space_object.analyst is True
+
+
+@pytest.mark.asyncio
+async def test_ingest_gp_does_not_flag_non_analyst_group_objects(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
+
+    await ingest_gp(group="active")
+
+    async with get_session() as session:
+        space_object = (
+            await session.execute(select(SpaceObject).where(SpaceObject.norad_id == TEST_NORAD_ID))
+        ).scalar_one()
+        assert space_object.analyst is False
