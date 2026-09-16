@@ -134,7 +134,9 @@ async def test_ingest_gp_flags_analyst_group_objects(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.asyncio
-async def test_ingest_gp_does_not_flag_non_analyst_group_objects(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_ingest_gp_does_not_flag_non_analyst_group_objects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
 
     await ingest_gp(group="active")

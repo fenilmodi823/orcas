@@ -94,7 +94,9 @@ async def test_ingest_satcat_backfills_matching_object(monkeypatch: pytest.Monke
 
 
 @pytest.mark.asyncio
-async def test_ingest_satcat_skips_row_with_no_matching_object(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_ingest_satcat_skips_row_with_no_matching_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     unmatched_row = {**BASE_ROW, "NORAD_CAT_ID": "999997"}
     monkeypatch.setattr(
         "app.services.satcat_service.fetch_satcat_csv", _fake_fetch(_csv_from_rows([unmatched_row]))
