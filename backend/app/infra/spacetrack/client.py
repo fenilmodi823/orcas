@@ -45,7 +45,7 @@ async def fetch_spacetrack_gp() -> list[dict[str, Any]]:
             response = await client.get(_GP_QUERY_URL)
             response.raise_for_status()
             data = response.json()
-    except httpx.HTTPError as exc:
+    except (httpx.HTTPError, ValueError) as exc:
         raise SpaceTrackFetchError(f"Space-Track gp fetch failed: {exc}") from exc
 
     if not isinstance(data, list):
