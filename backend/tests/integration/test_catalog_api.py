@@ -39,6 +39,7 @@ SAMPLE_OBJECT: SnapshotObject = {
     "OBJECT_TYPE": None,
     "IS_ACTIVE": True,
     "SOURCE_TYPE": "real",
+    "SOURCE": "celestrak",
 }
 
 

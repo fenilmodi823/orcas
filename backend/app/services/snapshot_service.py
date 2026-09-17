@@ -34,6 +34,7 @@ class SnapshotObject(OmmRecord):
     OBJECT_TYPE: str | None
     IS_ACTIVE: bool
     SOURCE_TYPE: str
+    SOURCE: str
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,20 @@ class SnapshotResult:
     objects: list[SnapshotObject]
     newest_epoch: datetime | None
     source: str
+    """Every distinct element_set.source present in this snapshot, sorted
+    and '+'-joined (e.g. "celestrak+spacetrack-gp") — never a single
+    arbitrary row's source. Per-object provenance also lives on each
+    SnapshotObject's SOURCE field; this is the catalogue-wide summary
+    (RA14.D3/D5: attribution is a hard requirement, never a courtesy).
+    """
+
+
+def _aggregate_sources(sources: set[str]) -> str:
+    """Sorted, '+'-joined distinct sources — never a single arbitrary row's
+    source once more than one ingestion path has contributed element sets
+    (RA14.D3/D5: attribution is a hard requirement, never a courtesy).
+    """
+    return "+".join(sorted(sources)) if sources else "celestrak"
 
 
 async def build_snapshot(session: AsyncSession) -> SnapshotResult:
@@ -59,7 +74,7 @@ async def build_snapshot(session: AsyncSession) -> SnapshotResult:
 
     objects: list[SnapshotObject] = []
     newest_epoch: datetime | None = None
-    source = "celestrak"
+    sources_seen: set[str] = set()
     for space_object, element_set in rows:
         objects.append(
             SnapshotObject(
@@ -83,13 +98,16 @@ async def build_snapshot(session: AsyncSession) -> SnapshotResult:
                 OBJECT_TYPE=space_object.object_type,
                 IS_ACTIVE=space_object.is_active,
                 SOURCE_TYPE=element_set.source_type,
+                SOURCE=element_set.source,
             )
         )
         if newest_epoch is None or element_set.epoch > newest_epoch:
             newest_epoch = element_set.epoch
-        source = element_set.source
+        sources_seen.add(element_set.source)
 
-    return SnapshotResult(objects=objects, newest_epoch=newest_epoch, source=source)
+    return SnapshotResult(
+        objects=objects, newest_epoch=newest_epoch, source=_aggregate_sources(sources_seen)
+    )
 
 
 def write_snapshot(result: SnapshotResult, snapshot_dir: str) -> None:

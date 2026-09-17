@@ -21,7 +21,7 @@ from app.services.snapshot_service import (
 TEST_NORAD_IDS = ["987001", "987002"]
 
 
-def _element_set_kwargs(object_id: int, epoch: datetime) -> dict:
+def _element_set_kwargs(object_id: int, epoch: datetime, source: str = "celestrak") -> dict:
     return dict(
         object_id=object_id,
         epoch=epoch,
@@ -38,7 +38,7 @@ def _element_set_kwargs(object_id: int, epoch: datetime) -> dict:
         classification_type="U",
         element_set_no=1,
         rev_at_epoch=100,
-        source="celestrak",
+        source=source,
         source_format="omm_json",
         source_type="real",
         ingested_at=datetime.now(UTC),
@@ -58,7 +58,9 @@ async def _seed_and_cleanup():
         # Object 0 has two element sets — snapshot must pick jan2, not jan1.
         session.add(ElementSet(**_element_set_kwargs(objects[0].id, jan1)))
         session.add(ElementSet(**_element_set_kwargs(objects[0].id, jan2)))
-        session.add(ElementSet(**_element_set_kwargs(objects[1].id, jan1)))
+        # Object 1 is spacetrack-gp-sourced — covers per-object SOURCE with
+        # a real mixed-source scenario (RA14.D5), not just single-source.
+        session.add(ElementSet(**_element_set_kwargs(objects[1].id, jan1, source="spacetrack-gp")))
 
     yield
 
@@ -83,6 +85,8 @@ async def test_build_snapshot_picks_latest_element_set_per_object() -> None:
     assert by_id["987001"]["OBJECT_NAME"] == "ORCAS-SNAP-ALPHA"
     assert by_id["987001"]["OBJECT_TYPE"] is None  # SATCAT not ingested yet
     assert by_id["987001"]["IS_ACTIVE"] is True
+    assert by_id["987001"]["SOURCE"] == "celestrak"
+    assert by_id["987002"]["SOURCE"] == "spacetrack-gp"
     assert result.newest_epoch is not None
     assert result.newest_epoch >= datetime(2026, 1, 2, tzinfo=UTC)
 
@@ -103,4 +107,10 @@ async def test_write_snapshot_round_trips_through_gzip(tmp_path) -> None:  # typ
 
     meta = json.loads((tmp_path / META_FILENAME).read_text(encoding="utf-8"))
     assert meta["object_count"] == len(result.objects)
-    assert meta["source"] == "celestrak"
+    # meta["source"] aggregates every distinct source in the WHOLE table,
+    # not just this test's own fixture objects (build_snapshot queries
+    # every space_object) — assert membership, not an exact literal, so
+    # this doesn't depend on what else has been ingested into the shared
+    # dev database. The aggregation logic itself is unit-tested directly
+    # in test_snapshot_service_sources.py.
+    assert "celestrak" in meta["source"].split("+")
