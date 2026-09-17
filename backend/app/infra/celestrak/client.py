@@ -29,7 +29,7 @@ async def fetch_gp_omm(group: str | None = None) -> list[dict[str, Any]]:
             response = await client.get(settings.celestrak_base_url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
-    except httpx.HTTPError as exc:
+    except (httpx.HTTPError, ValueError) as exc:
         raise CelesTrakFetchError(f"GP fetch failed for group={group}: {exc}") from exc
 
     if not isinstance(data, list):

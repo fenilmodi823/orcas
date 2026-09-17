@@ -42,6 +42,17 @@ async def test_fetch_gp_omm_raises_on_non_array_response(monkeypatch: pytest.Mon
         await fetch_gp_omm()
 
 
+@pytest.mark.asyncio
+async def test_fetch_gp_omm_raises_on_non_json_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>unexpected</html>")
+
+    _patch_client(monkeypatch, handler)
+
+    with pytest.raises(CelesTrakFetchError):
+        await fetch_gp_omm()
+
+
 def _patch_client(monkeypatch: pytest.MonkeyPatch, handler) -> None:  # type: ignore[no-untyped-def]
     real_client = httpx.AsyncClient
 

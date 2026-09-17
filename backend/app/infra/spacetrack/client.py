@@ -39,7 +39,7 @@ async def fetch_spacetrack_gp() -> list[dict[str, Any]]:
         "password": settings.space_track_password,
     }
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=300.0)) as client:
             login_response = await client.post(_LOGIN_URL, data=credentials)
             login_response.raise_for_status()
             response = await client.get(_GP_QUERY_URL)

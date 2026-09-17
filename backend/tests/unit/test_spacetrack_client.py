@@ -14,7 +14,9 @@ async def test_fetch_spacetrack_gp_logs_in_then_fetches(monkeypatch: pytest.Monk
         calls.append(request)
         if request.url.path == "/ajaxauth/login":
             assert request.method == "POST"
-            return httpx.Response(200, text="")
+            return httpx.Response(
+                200, text="", headers={"set-cookie": "chocolatechip=abc123; Path=/"}
+            )
         assert "/basicspacedata/query/class/gp/" in str(request.url)
         return httpx.Response(200, json=[{"OBJECT_NAME": "TEST"}])
 
@@ -24,6 +26,7 @@ async def test_fetch_spacetrack_gp_logs_in_then_fetches(monkeypatch: pytest.Monk
     assert records == [{"OBJECT_NAME": "TEST"}]
     assert len(calls) == 2
     assert calls[0].url.path == "/ajaxauth/login"
+    assert "chocolatechip=abc123" in calls[1].headers.get("cookie", "")
 
 
 @pytest.mark.asyncio
