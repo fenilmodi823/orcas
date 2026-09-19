@@ -6,6 +6,7 @@ logged, never hardcoded as a closed set (RA14.D8).
 """
 
 import logging
+from collections.abc import Mapping
 from datetime import date
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -115,7 +116,7 @@ class _CelesTrakSatcatRow(BaseModel):
         )
 
 
-def validate_satcat_row(raw: dict[str, object]) -> SatcatRecord:
+def validate_satcat_row(raw: Mapping[str, object]) -> SatcatRecord:
     """Validate one raw SATCAT CSV row (already dict-shaped by
     csv.DictReader). Raises SatcatValidationError — never returns a
     partially-valid record.
