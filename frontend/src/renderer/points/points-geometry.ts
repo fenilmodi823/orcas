@@ -22,6 +22,7 @@ export function createPointsGeometry(
   activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
+  showDebris = true,
 ): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
@@ -30,7 +31,7 @@ export function createPointsGeometry(
   geometry.setAttribute('aRadius', new BufferAttribute(packRadii(objects.length), 1));
   geometry.setAttribute(
     'aFlags',
-    new BufferAttribute(packFilterFlags(objects, activeFilters, ranks, rankThreshold), 1),
+    new BufferAttribute(packFilterFlags(objects, activeFilters, ranks, rankThreshold, showDebris), 1),
   );
   // Plain BufferAttribute, not Uint8BufferAttribute — that subclass's
   // constructor does `new Uint8Array(array)`, which copies even when
@@ -54,9 +55,10 @@ export function updateFlagsAttribute(
   activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
+  showDebris = true,
 ): void {
   const attribute = geometry.getAttribute('aFlags') as BufferAttribute;
-  const flags = packFilterFlags(objects, activeFilters, ranks, rankThreshold);
+  const flags = packFilterFlags(objects, activeFilters, ranks, rankThreshold, showDebris);
   (attribute.array as Float32Array).set(flags);
   attribute.needsUpdate = true;
 }

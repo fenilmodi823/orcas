@@ -1,0 +1,22 @@
+.debris-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin: var(--space-3, 0.75rem) 0;
+  cursor: pointer;
+}
+
+.debris-toggle input {
+  accent-color: var(--debris);
+  margin: 0;
+}
+
+.debris-toggle__label {
+  color: var(--text-lo);
+}
+
+.debris-toggle__count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

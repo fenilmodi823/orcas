@@ -12,6 +12,7 @@ import { FilterChip } from '../../ui/FilterChip.js';
 import { TimeDock } from '../../ui/TimeDock.js';
 import { ObjectTether, type ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
+import { DebrisToggle } from '../../ui/DebrisToggle.js';
 import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
@@ -365,6 +366,7 @@ function PointsDebugPanel({
             targetDistanceKmRef={camTargetDistanceKmRef}
           />
           <DensitySlider />
+          <DebrisToggle count={counts.debris} />
           {perfEnabled && (
             <PerfHud
               frameMsRef={frameMsRef}

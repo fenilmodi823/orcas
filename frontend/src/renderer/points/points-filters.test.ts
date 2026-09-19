@@ -107,3 +107,30 @@ describe('countByOrbitClass', () => {
     expect(countByOrbitClass(objects)).toEqual({ leo: 0, meo: 0, geo: 0, heo: 0, debris: 0 });
   });
 });
+
+describe('packFilterFlags — debris toggle (P4.D25)', () => {
+  const objects = [
+    fakeObject(OrbitClass.LEO, ObjType.Payload),
+    fakeObject(OrbitClass.LEO, ObjType.RocketBody),
+    fakeObject(OrbitClass.LEO, ObjType.Debris),
+  ];
+
+  it('hides only debris when showDebris is false', () => {
+    const flags = packFilterFlags(objects, new Set(), undefined, undefined, false);
+    expect(Array.from(flags)).toEqual([FLAG_VISIBLE, FLAG_VISIBLE, 0]);
+  });
+
+  it('shows debris when showDebris is true, and by default', () => {
+    expect(Array.from(packFilterFlags(objects, new Set(), undefined, undefined, true))).toEqual([
+      FLAG_VISIBLE,
+      FLAG_VISIBLE,
+      FLAG_VISIBLE,
+    ]);
+    expect(Array.from(packFilterFlags(objects, new Set()))).toEqual([FLAG_VISIBLE, FLAG_VISIBLE, FLAG_VISIBLE]);
+  });
+
+  it('an explicitly active Debris chip overrides the toggle', () => {
+    const flags = packFilterFlags(objects, new Set(['debris']), undefined, undefined, false);
+    expect(Array.from(flags)).toEqual([0, 0, FLAG_VISIBLE]);
+  });
+});

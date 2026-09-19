@@ -132,6 +132,7 @@ export function TierZeroPoints({
       useViewStore.getState().activeFilters,
       ranks,
       densityVisibleCount(objects, initialDensity) - 1,
+      useViewStore.getState().showDebris,
     );
     const material = new ShaderMaterial({
       vertexShader: POINTS_VERTEX_SHADER,
@@ -187,7 +188,11 @@ export function TierZeroPoints({
     // (brief: "filter re-evaluation on filter change only, never per
     // frame"), never inside useFrame.
     const unsubscribe = useViewStore.subscribe((state, previousState) => {
-      if (state.activeFilters === previousState.activeFilters && state.density === previousState.density) {
+      if (
+        state.activeFilters === previousState.activeFilters &&
+        state.density === previousState.density &&
+        state.showDebris === previousState.showDebris
+      ) {
         return;
       }
       const points = pointsRef.current;
@@ -198,6 +203,7 @@ export function TierZeroPoints({
         state.activeFilters,
         ranks,
         densityVisibleCount(objects, state.density) - 1,
+        state.showDebris,
       );
     });
     return unsubscribe;

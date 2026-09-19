@@ -15,10 +15,15 @@ interface ViewState {
   /** M1.7c: `OrbitClassLegend`'s dismissed state, same shape as
    * `panelCollapsed` — session only, not `localStorage`. */
   orbitClassLegendDismissed: boolean;
+  /** P4.D25: debris visibility layer. Default off; only ever affects
+   * `ObjType.Debris` objects, never payloads or rocket bodies. Session
+   * state only, like every other view toggle here. */
+  showDebris: boolean;
   toggleFilter: (filterClass: FilterClass) => void;
   openSearch: () => void;
   closeSearch: () => void;
   setDensity: (density: number) => void;
+  toggleDebris: () => void;
   togglePanel: () => void;
   toggleOrbitClassLegend: () => void;
 }
@@ -28,6 +33,7 @@ export const useViewStore = create<ViewState>((set) => ({
   activeFilters: new Set(),
   searchOpen: false,
   density: 100,
+  showDebris: false,
   panelCollapsed: false,
   orbitClassLegendDismissed: false,
   toggleFilter: (filterClass) =>
@@ -43,6 +49,7 @@ export const useViewStore = create<ViewState>((set) => ({
   openSearch: () => set({ searchOpen: true }),
   closeSearch: () => set({ searchOpen: false }),
   setDensity: (density) => set({ density }),
+  toggleDebris: () => set((state) => ({ showDebris: !state.showDebris })),
   togglePanel: () => set((state) => ({ panelCollapsed: !state.panelCollapsed })),
   toggleOrbitClassLegend: () => set((state) => ({ orbitClassLegendDismissed: !state.orbitClassLegendDismissed })),
 }));

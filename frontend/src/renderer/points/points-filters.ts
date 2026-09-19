@@ -41,19 +41,26 @@ export function classifyOrbitClass(object: ObjectMeta): FilterClass | null {
  * could (see `points-shader-core.ts`'s own warning about display/pick
  * drift: "the worst possible bug because it is intermittent"). Both
  * params are optional so every pre-M1.7b caller keeps working unchanged.
+ *
+ * `showDebris` (P4.D25) hides `'debris'`-classified objects when false,
+ * before the filter/density checks. Explicitly activating the Debris
+ * chip overrides it — asking to see only debris must never show nothing.
+ * Defaults to true so callers that predate the toggle are unchanged.
  */
 export function packFilterFlags(
   objects: readonly ObjectMeta[],
   activeFilters: ReadonlySet<FilterClass>,
   ranks?: Uint16Array,
   rankThreshold?: number,
+  showDebris = true,
 ): Float32Array {
   const flags = new Float32Array(objects.length);
   for (let i = 0; i < objects.length; i++) {
     const orbitClass = classifyOrbitClass(objects[i]);
+    const debrisVisible = showDebris || orbitClass !== 'debris' || activeFilters.has('debris');
     const filterVisible = orbitClass === null || activeFilters.size === 0 || activeFilters.has(orbitClass);
     const densityVisible = ranks === undefined || rankThreshold === undefined || ranks[i] <= rankThreshold;
-    flags[i] = filterVisible && densityVisible ? FLAG_VISIBLE : 0;
+    flags[i] = debrisVisible && filterVisible && densityVisible ? FLAG_VISIBLE : 0;
   }
   return flags;
 }
