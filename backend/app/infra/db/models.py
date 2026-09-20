@@ -58,7 +58,11 @@ class ElementSet(Base):
     """
 
     __tablename__ = "element_set"
-    __table_args__ = (Index("ix_element_set_object_epoch", "object_id", "epoch"),)
+    __table_args__ = (
+        Index("ix_element_set_object_epoch", "object_id", "epoch"),
+        # One stored row per (object, epoch, source); ingest skips repeats and this enforces it.
+        Index("uq_element_set_object_epoch_source", "object_id", "epoch", "source", unique=True),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     object_id: Mapped[int] = mapped_column(ForeignKey("space_object.id"), nullable=False)

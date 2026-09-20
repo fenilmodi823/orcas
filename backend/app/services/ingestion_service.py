@@ -83,10 +83,26 @@ async def _ingest_omm_records(
     async with get_session() as session:
         for record in validated:
             space_object = await _upsert_space_object(session, record, group)
+            epoch = _parse_epoch(record["EPOCH"])
+            # Idempotent per (object, epoch, source): re-running an ingest before the
+            # upstream publishes a new element set must not append a duplicate row.
+            # ponytail: one indexed SELECT per record, same shape as the upsert above;
+            # batch it into a single query if ingest time ever becomes a problem.
+            already_stored = await session.scalar(
+                select(ElementSet.id)
+                .where(
+                    ElementSet.object_id == space_object.id,
+                    ElementSet.epoch == epoch,
+                    ElementSet.source == source,
+                )
+                .limit(1)
+            )
+            if already_stored is not None:
+                continue
             session.add(
                 ElementSet(
                     object_id=space_object.id,
-                    epoch=_parse_epoch(record["EPOCH"]),
+                    epoch=epoch,
                     mean_motion=record["MEAN_MOTION"],
                     eccentricity=record["ECCENTRICITY"],
                     inclination=record["INCLINATION"],

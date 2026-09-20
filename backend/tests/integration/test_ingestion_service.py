@@ -6,10 +6,11 @@ collide with real ingested data, and cleans up after itself.
 import pytest
 import pytest_asyncio
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 
 from app.infra.db.base import get_session
 from app.infra.db.models import ElementSet, SpaceObject
-from app.services.ingestion_service import ingest_gp
+from app.services.ingestion_service import ingest_gp, ingest_spacetrack_gp
 
 TEST_NORAD_ID = "999999"
 
@@ -97,7 +98,11 @@ async def test_ingest_gp_is_append_only_on_re_ingestion(monkeypatch: pytest.Monk
     monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
     await ingest_gp()
 
-    renamed = {**BASE_RECORD, "OBJECT_NAME": "ORCAS-TEST-OBJECT-RENAMED"}
+    renamed = {
+        **BASE_RECORD,
+        "OBJECT_NAME": "ORCAS-TEST-OBJECT-RENAMED",
+        "EPOCH": "2026-08-14T12:00:00.000000",
+    }
     monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([renamed]))
     await ingest_gp()
 
@@ -118,6 +123,76 @@ async def test_ingest_gp_is_append_only_on_re_ingestion(monkeypatch: pytest.Monk
         )
         # but element_set never updates — two epochs, both preserved
         assert len(rows) == 2
+
+
+async def _element_set_sources() -> list[str]:
+    async with get_session() as session:
+        space_object = (
+            await session.execute(select(SpaceObject).where(SpaceObject.norad_id == TEST_NORAD_ID))
+        ).scalar_one()
+        return list(
+            (
+                await session.execute(
+                    select(ElementSet.source).where(ElementSet.object_id == space_object.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+
+@pytest.mark.asyncio
+async def test_ingest_gp_is_idempotent_for_an_already_stored_epoch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
+    first = await ingest_gp()
+    second = await ingest_gp()
+
+    assert (first.element_sets_inserted, second.element_sets_inserted) == (1, 0)
+    assert await _element_set_sources() == ["celestrak"]
+
+
+@pytest.mark.asyncio
+async def test_database_rejects_a_duplicate_object_epoch_source(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The service skips duplicates; the unique index is what makes that a guarantee
+    # rather than a habit (a concurrent run, or a future code path, cannot bypass it).
+    monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
+    await ingest_gp()
+
+    async with get_session() as session:
+        stored = (
+            await session.execute(
+                select(ElementSet)
+                .join(SpaceObject, SpaceObject.id == ElementSet.object_id)
+                .where(SpaceObject.norad_id == TEST_NORAD_ID)
+            )
+        ).scalar_one()
+        columns = {c.name: getattr(stored, c.name) for c in ElementSet.__table__.columns}
+        del columns["id"]
+        session.add(ElementSet(**columns))
+        with pytest.raises(IntegrityError):
+            await session.flush()
+        await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_same_epoch_from_a_different_source_is_kept_separately(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # RA14.D5: the two origins stay distinguishable, so the dedupe key includes source.
+    monkeypatch.setattr("app.services.ingestion_service.fetch_gp_omm", _fake_fetch([BASE_RECORD]))
+    await ingest_gp()
+
+    async def fetch_spacetrack() -> list[dict]:  # type: ignore[type-arg]
+        return [BASE_RECORD]
+
+    monkeypatch.setattr("app.services.ingestion_service.fetch_spacetrack_gp", fetch_spacetrack)
+    await ingest_spacetrack_gp()
+
+    assert sorted(await _element_set_sources()) == ["celestrak", "spacetrack-gp"]
 
 
 @pytest.mark.asyncio

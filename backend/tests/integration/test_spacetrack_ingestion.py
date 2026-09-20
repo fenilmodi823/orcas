@@ -84,6 +84,33 @@ async def test_ingest_spacetrack_gp_tags_source_correctly(monkeypatch: pytest.Mo
 
 
 @pytest.mark.asyncio
+async def test_ingest_spacetrack_gp_is_idempotent_for_an_already_stored_epoch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.services.ingestion_service.fetch_spacetrack_gp", _fake_fetch([BASE_RECORD])
+    )
+    first = await ingest_spacetrack_gp()
+    second = await ingest_spacetrack_gp()
+
+    assert (first.element_sets_inserted, second.element_sets_inserted) == (1, 0)
+    async with get_session() as session:
+        space_object = (
+            await session.execute(select(SpaceObject).where(SpaceObject.norad_id == TEST_NORAD_ID))
+        ).scalar_one()
+        rows = (
+            (
+                await session.execute(
+                    select(ElementSet).where(ElementSet.object_id == space_object.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(rows) == 1
+
+
+@pytest.mark.asyncio
 async def test_ingest_spacetrack_gp_rejects_malformed_record(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
