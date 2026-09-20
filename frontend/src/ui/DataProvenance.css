@@ -1,0 +1,66 @@
+.data-provenance {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--glass-edge);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.data-provenance__origin {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--text-lo);
+}
+
+.data-provenance__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--nominal);
+}
+
+/* Stale is a visual state, not just different words — the dot and the text
+   change together so a glance carries the same meaning as a read. */
+.data-provenance--stale .data-provenance__dot {
+  background: var(--caution);
+}
+
+.data-provenance--stale .data-provenance__origin {
+  color: var(--caution);
+}
+
+.data-provenance__facts {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.data-provenance__facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.data-provenance__facts dt {
+  flex: none;
+  min-width: 152px;
+  color: var(--text-lo);
+}
+
+/* Every measurement in mono with tabular figures — these update as the clock
+   runs, and proportional digits make the readout jitter. */
+.data-provenance__facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-provenance__age {
+  color: var(--text-lo);
+}

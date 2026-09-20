@@ -34,6 +34,7 @@ function objectMeta(norad: string, record: OmmRecord): ObjectMeta {
     orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'real',
+    source: 'celestrak',
     epochMs: Date.parse('2026-01-01T00:00:00.000Z'),
     record,
   };

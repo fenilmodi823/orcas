@@ -35,6 +35,10 @@ export interface ObjectMeta {
   readonly orbitClass: OrbitClass;
   readonly isActive: boolean;
   readonly sourceType: string;
+  /** Which ingestion path supplied this element set — "celestrak",
+   * "spacetrack-gp", … Attribution is a hard requirement (RA14.D3/D5), so it
+   * travels per object rather than only as a catalogue-wide summary. */
+  readonly source: string;
   /** Element-set epoch, ms since Unix epoch (not TAI — this is a debug/UI
    * timestamp, not a propagation input). */
   readonly epochMs: number;
@@ -46,7 +50,7 @@ export type RejectionReason =
   | 'missing-required-field'
   | 'invalid-field-type'
   | 'duplicate-norad-id'
-  | 'epoch-in-the-future'
+  | 'epoch-implausibly-far-ahead'
   | 'propagation-failed';
 
 export interface RejectedRecord {

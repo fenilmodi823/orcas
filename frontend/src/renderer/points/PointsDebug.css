@@ -26,6 +26,15 @@
   top: var(--space-4, 1rem);
   left: var(--space-4, 1rem);
   padding: var(--space-4, 1rem);
+  /* The panel grows with its content (filters, cross-check table, provenance)
+     and had no bound, so on a short viewport its lower rows were simply cut
+     off — measured 2026-09-20 at 794px tall in a 730px viewport. Bound it to
+     the viewport and let it scroll internally instead. The page itself stays
+     unscrollable (index.css), so this cannot bring back the wheel-scroll bug
+     fixed on 2026-09-12. */
+  max-height: calc(100vh - 2 * var(--space-4, 1rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   /* P4.D29: transform-only — the canvas is already full-bleed underneath
      this absolutely-positioned panel, so sliding it off reclaims the width
      for free with no layout change anywhere else. */
@@ -120,19 +129,10 @@
   white-space: pre-line;
 }
 
-/* Always visible while it applies, never dismissible — an honesty
-   requirement (Rules.md §4 "never blank"/"never present stale as live"),
-   same philosophy as StatusPill. Bottom-left is the one corner the debug
-   panel, camera panel, and orbit class legend don't already occupy. */
-.points-debug__data-notice {
-  position: absolute;
-  left: var(--space-4, 1rem);
-  bottom: var(--space-4, 1rem);
-  max-width: 32ch;
-  margin: 0;
-  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
-  background: var(--glass-fill);
-  border-radius: var(--radius-lg);
+/* The provenance block renders in the panel's own flow (see PointsDebug.tsx).
+   It used to float bottom-left, but the panel now grows past that corner and
+   covered it — measured 2026-09-20, the panel reached y=664 of a 730px
+   viewport while the block sat at y=544. No corner here is reliably free. */
+.points-debug .data-provenance {
   color: var(--text-mid);
-  font-size: 0.8rem;
 }

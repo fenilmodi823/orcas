@@ -23,6 +23,23 @@ const EARTH_MU_KM3_S2 = 398600.4418; // standard gravitational parameter, Earth
 const EARTH_RADIUS_KM = 6378.137; // WGS-84 equatorial radius
 
 /**
+ * How far ahead of "now" an element-set epoch may legitimately sit.
+ *
+ * A future epoch is not invalid data. Space-Track's `gp` class publishes
+ * epochs ahead of the current time for some deep-space objects — measured on
+ * the live catalogue 2026-09-20, TESS (43435), both VELA satellites (837,
+ * 1458) and a YZ-1 rocket body (41929) were all up to about 23 hours ahead —
+ * and SGP4 propagates backwards from an epoch perfectly well. Rejecting every
+ * future epoch silently dropped those four real objects from the scene.
+ *
+ * ponytail: a flat 7-day window, an order of magnitude above the ~23 h
+ * actually observed, which still catches the wrong-year parse errors this
+ * check was written for. Narrow it if a real object ever needs less.
+ */
+const MAX_EPOCH_LOOKAHEAD_DAYS = 7;
+const MAX_EPOCH_LOOKAHEAD_MS = MAX_EPOCH_LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000;
+
+/**
  * Rough LEO/MEO/GEO/HEO classification from mean motion and eccentricity.
  * ponytail: altitude/eccentricity bands, not the authoritative ESA/NASA/ITU
  * classification — the Phase-4 brief's own gap G4 found no agreed
@@ -95,8 +112,12 @@ export function validateRecord(raw: unknown, nowMs: number): ValidationResult {
   if (Number.isNaN(epochMs)) {
     return reject('invalid-field-type', 'EPOCH is not a parseable date', raw);
   }
-  if (epochMs > nowMs) {
-    return reject('epoch-in-the-future', `epoch ${rec.EPOCH} is after now`, raw);
+  if (epochMs > nowMs + MAX_EPOCH_LOOKAHEAD_MS) {
+    return reject(
+      'epoch-implausibly-far-ahead',
+      `epoch ${rec.EPOCH} is more than ${MAX_EPOCH_LOOKAHEAD_DAYS} days after now`,
+      raw,
+    );
   }
 
   const record = Object.freeze({ ...raw }) as OmmRecord;
@@ -124,6 +145,7 @@ export function validateRecord(raw: unknown, nowMs: number): ValidationResult {
       orbitClass: deriveOrbitClass(record.MEAN_MOTION, record.ECCENTRICITY),
       isActive: typeof rec.IS_ACTIVE === 'boolean' ? rec.IS_ACTIVE : false,
       sourceType: sourceTypeRaw,
+      source: typeof rec.SOURCE === 'string' ? rec.SOURCE : 'unknown',
       epochMs,
       record,
     }),

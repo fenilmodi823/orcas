@@ -18,6 +18,7 @@ function fakeObject(overrides: Partial<ObjectMeta> = {}): ObjectMeta {
     orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
+    source: 'celestrak',
     epochMs: Date.parse(REAL_EPOCH),
     record: {
       OBJECT_NAME: 'ISS (ZARYA)',

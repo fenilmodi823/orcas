@@ -11,6 +11,7 @@ function fakeObject(name: string, orbitClass: OrbitClass, type: ObjType, meanMot
     orbitClass,
     isActive: true,
     sourceType: 'live',
+    source: 'celestrak',
     epochMs: 0,
     record: { MEAN_MOTION: meanMotion } as ObjectMeta['record'],
   };

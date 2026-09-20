@@ -92,10 +92,20 @@ describe('validateRecord', () => {
     if (!result.ok) expect(result.rejection.reason).toBe('invalid-field-type');
   });
 
-  it('rejects an epoch in the future', () => {
+  it('rejects an epoch implausibly far ahead of now', () => {
+    // 10 days ahead — past the 7-day look-ahead window, so almost certainly a
+    // wrong-year parse rather than real upstream data.
     const result = validateRecord({ ...VALID, EPOCH: '2026-09-01T00:00:00.000000' }, NOW_MS);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.rejection.reason).toBe('epoch-in-the-future');
+    if (!result.ok) expect(result.rejection.reason).toBe('epoch-implausibly-far-ahead');
+  });
+
+  it('accepts an epoch a day ahead of now, as Space-Track really publishes', () => {
+    // Space-Track's gp class publishes epochs ahead for some deep-space
+    // objects; TESS and both VELA satellites were ~23 h ahead on 2026-09-20.
+    // Rejecting these silently dropped four real objects from the scene.
+    const result = validateRecord({ ...VALID, EPOCH: '2026-08-23T00:00:00.000000' }, NOW_MS);
+    expect(result.ok).toBe(true);
   });
 
   it('rejects a record whose elements cannot be propagated to now (decayed/bad)', () => {

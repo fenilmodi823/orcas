@@ -12,6 +12,7 @@ function fakeObject(orbitClass: OrbitClass): ObjectMeta {
     orbitClass,
     isActive: true,
     sourceType: 'live',
+    source: 'celestrak',
     epochMs: 0,
     record: {} as ObjectMeta['record'],
   };

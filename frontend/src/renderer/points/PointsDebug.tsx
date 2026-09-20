@@ -3,7 +3,6 @@ import type { MutableRefObject, PointerEvent as ReactPointerEvent } from 'react'
 import { Canvas } from '@react-three/fiber';
 import { GlassSurface } from '../../ui/GlassSurface.js';
 import { useCatalog } from '../../data/use-catalog.js';
-import type { CatalogOrigin } from '../../data/use-catalog.js';
 import { useSimulationLoop } from '../../simulation/use-simulation-loop.js';
 import { TierZeroPoints, type TierZeroPointsHandle } from './TierZeroPoints.js';
 import { countByOrbitClass } from './points-filters.js';
@@ -12,6 +11,9 @@ import { FilterChip } from '../../ui/FilterChip.js';
 import { TimeDock } from '../../ui/TimeDock.js';
 import { ObjectTether, type ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
+import { DataProvenance } from '../../ui/DataProvenance.js';
+import { useProvenance } from '../../data/use-provenance.js';
+import type { CatalogOrigin } from '../../data/use-catalog.js';
 import { DebrisToggle } from '../../ui/DebrisToggle.js';
 import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
@@ -32,7 +34,7 @@ import { StarSky } from '../sky/StarSky.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
 import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
 import type { FrameState } from '../../simulation/frame-state.js';
-import type { ObjectMeta } from '../../data/catalog-types.js';
+import type { CatalogSnapshot } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
 import { CrossCheckTable } from './CrossCheckTable.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
@@ -99,23 +101,18 @@ export function PointsDebug() {
     );
   }
 
-  return <PointsDebugPanel objects={snapshot.objects} byNorad={snapshot.byNorad} origin={origin} />;
+  return <PointsDebugPanel snapshot={snapshot} origin={origin} />;
 }
 
-const DATA_NOTICES: Partial<Record<CatalogOrigin, string>> = {
-  cached: 'Data may be stale — showing the last cached snapshot.',
-  bundled: 'No live connection — showing bundled sample data, not real satellites.',
-};
-
 function PointsDebugPanel({
-  objects,
-  byNorad,
+  snapshot,
   origin,
 }: {
-  objects: readonly ObjectMeta[];
-  byNorad: Readonly<Record<string, number>>;
+  snapshot: CatalogSnapshot;
   origin: CatalogOrigin;
 }) {
+  const { objects, byNorad } = snapshot;
+  const provenance = useProvenance(snapshot, origin);
   const playingRef = useRef(true);
   const rateRef = useRef(1);
   const [startEpochMs] = useState(() => Date.now());
@@ -332,7 +329,6 @@ function PointsDebugPanel({
       <PanelErrorBoundary label="Orbit class legend">
         <OrbitClassLegend />
       </PanelErrorBoundary>
-      {DATA_NOTICES[origin] && <p className="points-debug__data-notice">{DATA_NOTICES[origin]}</p>}
       {panelCollapsed && (
         <button
           type="button"
@@ -391,6 +387,13 @@ function PointsDebugPanel({
           </div>
 
           <CrossCheckTable rows={crossCheck} />
+
+          {/* In the panel's flow rather than floating in a corner: it describes
+              the object count directly above it, and the panel has grown tall
+              enough that no corner is reliably free. */}
+          <PanelErrorBoundary label="Data provenance">
+            <DataProvenance provenance={provenance} />
+          </PanelErrorBoundary>
 
           {/* ESA's data policy requires the acknowledgement to be visible where
               the data is used, not only in source. */}

@@ -25,6 +25,7 @@ function fakeObjects(count: number): ObjectMeta[] {
     orbitClass: OrbitClass.LEO,
     isActive: true,
     sourceType: 'live',
+    source: 'celestrak',
     epochMs: 0,
     record: {} as ObjectMeta['record'],
   }));
