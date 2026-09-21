@@ -47,4 +47,29 @@ describe('TimeTransport', () => {
     expect(onJumpToNow).toHaveBeenCalledOnce();
     expect(screen.getByLabelText('Collapse').getAttribute('aria-expanded')).toBe('true');
   });
+
+  it('offers a direction toggle and signs the rate while reversed', () => {
+    const onToggleDirection = vi.fn();
+    render(
+      <TimeTransport
+        playing
+        rate={10}
+        currentTime={new Date('2009-02-10T16:56:00Z')}
+        expanded={false}
+        reversed
+        onTogglePlay={vi.fn()}
+        onCycleRate={vi.fn()}
+        onJumpToNow={vi.fn()}
+        onToggleExpanded={vi.fn()}
+        onToggleDirection={onToggleDirection}
+      />,
+    );
+
+    expect(screen.getByText('−10×')).toBeTruthy();
+    const toggle = screen.getByRole('button', { name: 'Run time forwards' });
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(toggle);
+    expect(onToggleDirection).toHaveBeenCalledOnce();
+  });
 });
+

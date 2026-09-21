@@ -14,14 +14,30 @@ export interface SearchPanelProps {
   items: readonly SearchableObject[];
   onSelect: (id: string) => void;
   onClose?: () => void;
+  /** Rendered results are capped. Every match is still scored, but drawing
+   * 31,900 buttons for an empty query would freeze the page — the full
+   * catalogue is what `/` searches over. */
+  maxResults?: number;
+  /** Focus the input on mount. For a summoned panel (Design.md §7: "search on
+   * `/`"); off by default so an always-mounted panel never steals focus on
+   * page load. */
+  autoFocus?: boolean;
 }
+
+const DEFAULT_MAX_RESULTS = 50;
 
 /**
  * Fuzzy search over name and NORAD ID. `/` focuses it from anywhere on the
  * page; arrow keys move the selection, Enter selects, Escape closes
  * (Design.md §6).
  */
-export function SearchPanel({ items, onSelect, onClose }: SearchPanelProps) {
+export function SearchPanel({
+  items,
+  onSelect,
+  onClose,
+  maxResults = DEFAULT_MAX_RESULTS,
+  autoFocus = false,
+}: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   // Resets the selection when the query changes — adjusted during render,
@@ -34,6 +50,10 @@ export function SearchPanel({ items, onSelect, onClose }: SearchPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
+
+  useEffect(() => {
     function onGlobalKeyDown(event: KeyboardEvent) {
       if (event.key === '/' && document.activeElement !== inputRef.current) {
         event.preventDefault();
@@ -44,7 +64,7 @@ export function SearchPanel({ items, onSelect, onClose }: SearchPanelProps) {
     return () => window.removeEventListener('keydown', onGlobalKeyDown);
   }, []);
 
-  const results = useMemo(() => {
+  const matches = useMemo(() => {
     if (query.length === 0) return items;
     return items
       .map((item) => {
@@ -56,6 +76,7 @@ export function SearchPanel({ items, onSelect, onClose }: SearchPanelProps) {
       .sort((a, b) => b.score - a.score)
       .map((result) => result.item);
   }, [items, query]);
+  const results = matches.slice(0, maxResults);
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown') {
@@ -100,6 +121,12 @@ export function SearchPanel({ items, onSelect, onClose }: SearchPanelProps) {
           </li>
         ))}
       </ul>
+      {matches.length > results.length && (
+        // Say that the list is cut, rather than letting it pass for everything.
+        <p className="search-panel__more">
+          Showing {results.length.toLocaleString()} of {matches.length.toLocaleString()} — type to narrow
+        </p>
+      )}
     </div>
   );
 }

@@ -56,3 +56,9 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-hi);
 }
+
+/* Direction toggle while time runs backwards: coloured, not just a different
+   icon state, so reverse playback is legible at a glance. */
+.time-transport__icon[data-active] {
+  color: var(--orca-cyan);
+}

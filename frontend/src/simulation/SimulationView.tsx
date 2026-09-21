@@ -20,6 +20,7 @@ import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
+import { SimulationSearch } from './SimulationSearch.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
 import './SimulationView.css';
 
@@ -70,6 +71,9 @@ function LiveSimulation({ snapshot, origin }: { snapshot: CatalogSnapshot; origi
       <PanelErrorBoundary label="Orbit class legend">
         <OrbitClassLegend />
       </PanelErrorBoundary>
+      <PanelErrorBoundary label="Search">
+        <SimulationSearch objects={scene.objects} />
+      </PanelErrorBoundary>
       <div className="simulation__dock">
         <PanelErrorBoundary label="Time dock">
           <SimulationDock scene={scene} provenance={provenance} />
@@ -94,6 +98,8 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
   const rate = useSimulationStore((s) => s.rate);
   const togglePlaying = useSimulationStore((s) => s.togglePlaying);
   const cycleRate = useSimulationStore((s) => s.cycleRate);
+  const reversed = useSimulationStore((s) => s.reversed);
+  const toggleDirection = useSimulationStore((s) => s.toggleDirection);
   const activeFilters = useViewStore((s) => s.activeFilters);
   const toggleFilter = useViewStore((s) => s.toggleFilter);
   const setSelected = useSelectionStore((s) => s.setSelected);
@@ -135,6 +141,8 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
       filters={filters}
       onTogglePlay={togglePlaying}
       onCycleRate={cycleRate}
+      reversed={reversed}
+      onToggleDirection={toggleDirection}
       onJumpToNow={() => {
         useSimulationStore.getState().jumpToNow();
         scrubTo(Date.now());

@@ -3,7 +3,7 @@ import type { ObjectMeta } from '../data/catalog-types.js';
 import { createBrowserPropagationPool } from '../propagation/worker-pool.js';
 import { createEmptyRing, rebuildRing, type KeyframeRing } from './keyframe-ring.js';
 import { createFrameState, evaluateFrame, type FrameState } from './frame-state.js';
-import { stepClock } from './loop.js';
+import { rebuildWindowFor, stepClock } from './loop.js';
 import { epochMsToTicks } from '../time/clock.js';
 
 // ponytail: fixed window for every object, not per-object chooseStepSeconds
@@ -72,7 +72,9 @@ export function useSimulationLoop(
     function requestRebuild(epochMs: number) {
       if (building) return;
       building = true;
-      void rebuildRing(ringRef.current, pool, objects, epochMs, epochMs + WINDOW_MS).then((result) => {
+      // Built ahead of the clock in whichever direction it is running.
+      const { t0Ms, t1Ms } = rebuildWindowFor(epochMs, playingRef.current ? rateRef.current : 0, WINDOW_MS);
+      void rebuildRing(ringRef.current, pool, objects, t0Ms, t1Ms).then((result) => {
         ringRef.current = result.ring;
         building = false;
       });

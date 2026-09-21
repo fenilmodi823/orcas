@@ -38,6 +38,8 @@ export interface TimeDockTimeProps {
    * filters when the dock is expanded — Design.md §7: "filters and layers by
    * expanding the dock upward". Summoned, never on screen at rest. */
   layers?: ReactNode;
+  reversed?: boolean;
+  onToggleDirection?: () => void;
 }
 
 export interface TimeDockObjectProps {
@@ -114,6 +116,8 @@ export function TimeDock(props: TimeDockProps) {
             onCycleRate={props.onCycleRate}
             onJumpToNow={props.onJumpToNow}
             onToggleExpanded={() => setExpanded((value) => !value)}
+            reversed={props.reversed}
+            onToggleDirection={props.onToggleDirection}
           />
           <TimeScrubber
             currentTime={props.currentTime}

@@ -5,7 +5,7 @@ import { computeRanks } from '../points/significance-rank.js';
 import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
 import { resolveSelectableObject } from '../points/points-selection-resolve.js';
 import { useSelectionStore, type SelectableObject } from '../../state/selection-store.js';
-import { useSimulationStore } from '../../state/simulation-store.js';
+import { effectiveRate, useSimulationStore } from '../../state/simulation-store.js';
 import type { TierZeroPointsHandle } from '../points/TierZeroPoints.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
@@ -50,7 +50,7 @@ export interface LiveSceneState {
  */
 export function useLiveScene(objects: readonly ObjectMeta[], byNorad: Readonly<Record<string, number>>): LiveSceneState {
   const playingRef = useRef(useSimulationStore.getState().playing);
-  const rateRef = useRef(useSimulationStore.getState().rate);
+  const rateRef = useRef(effectiveRate(useSimulationStore.getState()));
   const [startEpochMs] = useState(() => Date.now());
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
 
@@ -58,7 +58,7 @@ export function useLiveScene(objects: readonly ObjectMeta[], byNorad: Readonly<R
     () =>
       useSimulationStore.subscribe((state) => {
         playingRef.current = state.playing;
-        rateRef.current = state.rate;
+        rateRef.current = effectiveRate(state);
       }),
     [],
   );

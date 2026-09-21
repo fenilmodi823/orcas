@@ -48,4 +48,18 @@ describe('SearchPanel', () => {
 
     expect(document.activeElement).toBe(input);
   });
+
+  it('caps the rendered list and says how many matched, instead of drawing the whole catalogue', () => {
+    const many = Array.from({ length: 120 }, (_, i) => ({ id: String(i), name: `OBJECT ${i}`, noradId: String(i) }));
+    render(<SearchPanel items={many} onSelect={vi.fn()} maxResults={10} />);
+
+    expect(screen.getAllByRole('option')).toHaveLength(10);
+    expect(screen.getByText('Showing 10 of 120 — type to narrow')).toBeTruthy();
+  });
+
+  it('focuses its own input on mount only when summoned with autoFocus', () => {
+    render(<SearchPanel items={ITEMS} onSelect={vi.fn()} autoFocus />);
+
+    expect(document.activeElement).toBe(screen.getByLabelText('Search objects'));
+  });
 });

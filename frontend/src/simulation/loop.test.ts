@@ -3,7 +3,7 @@ import { createPropagationPool, createInProcessRunner } from '../propagation/wor
 import { rebuildRing, createEmptyRing } from './keyframe-ring.js';
 import { createFrameState, evaluateFrame } from './frame-state.js';
 import { epochMsToTicks } from '../time/clock.js';
-import { stepClock } from './loop.js';
+import { REVERSE_LEAD_MS, rebuildWindowFor, stepClock } from './loop.js';
 import { makeTestCatalog } from './test-fixtures.js';
 
 const { objects, satrecs } = makeTestCatalog(10);
@@ -46,3 +46,48 @@ describe('stepClock', () => {
     expect(stepped.velocities).toEqual(direct.velocities);
   });
 });
+
+describe('rebuildWindowFor — reversibility (brief §I M1.2)', () => {
+  const WINDOW = 30_000;
+  const E = T0_MS + 100_000;
+  // A rebuild is asynchronous: by the time it lands the clock has moved on.
+  // Two seconds of travel is generous for a worker rebuild of the window.
+  const TRAVEL_MS = 2_000;
+
+  it('keeps the forward window exactly as it was', () => {
+    expect(rebuildWindowFor(E, 1, WINDOW)).toEqual({ t0Ms: E, t1Ms: E + WINDOW });
+    expect(rebuildWindowFor(E, 0, WINDOW)).toEqual({ t0Ms: E, t1Ms: E + WINDOW });
+  });
+
+  it('builds the reverse window behind the clock, with a lead past the epoch', () => {
+    expect(rebuildWindowFor(E, -10, WINDOW)).toEqual({ t0Ms: E - WINDOW, t1Ms: E + REVERSE_LEAD_MS });
+  });
+
+  it('still covers the clock after it has run backwards during the rebuild', async () => {
+    const { t0Ms, t1Ms } = rebuildWindowFor(E, -1, WINDOW);
+    const ring = await buildTestRing(t0Ms, t1Ms);
+
+    const result = stepClock(epochMsToTicks(E), TRAVEL_MS, -1, ring);
+
+    expect(result.epochMs).toBe(E - TRAVEL_MS);
+    expect(result.needsRebuild).toBe(false);
+  });
+
+  it('shows why: a forward-only window is already behind a reversing clock', async () => {
+    // The old behaviour, kept as the regression it guards against.
+    const ring = await buildTestRing(E, E + WINDOW);
+
+    expect(stepClock(epochMsToTicks(E), TRAVEL_MS, -1, ring).needsRebuild).toBe(true);
+  });
+
+  it('evaluates real positions in reverse rather than flagging everything stale', async () => {
+    const { t0Ms, t1Ms } = rebuildWindowFor(E, -1, WINDOW);
+    const ring = await buildTestRing(t0Ms, t1Ms);
+
+    const frame = evaluateFrame(createFrameState(objects.length), ring, objects, E - TRAVEL_MS);
+
+    expect(frame.epochMs).toBe(E - TRAVEL_MS);
+    expect(Array.from(frame.positions).some((v) => v !== 0)).toBe(true);
+  });
+});
+

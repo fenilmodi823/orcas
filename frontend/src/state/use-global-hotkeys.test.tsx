@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { useGlobalHotkeys } from './use-global-hotkeys.js';
 import { useSelectionStore } from './selection-store.js';
 import { useSimulationStore } from './simulation-store.js';
+import { useViewStore } from './view-store.js';
 import type { NoradId } from '../data/catalog-types.js';
 
 function HotkeyProbe() {
@@ -47,5 +48,14 @@ describe('useGlobalHotkeys', () => {
     fireEvent.keyDown(input, { key: ' ' });
 
     expect(useSimulationStore.getState().playing).toBe(false);
+  });
+
+  it('"/" summons search', () => {
+    useViewStore.getState().closeSearch();
+    render(<HotkeyProbe />);
+
+    fireEvent.keyDown(window, { key: '/' });
+
+    expect(useViewStore.getState().searchOpen).toBe(true);
   });
 });

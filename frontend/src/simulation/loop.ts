@@ -25,3 +25,27 @@ export function stepClock(clockTicks: number, dtMs: number, rate: number, ring: 
   const needsRebuild = epochMs < ring.windowT0Ms || epochMs >= ring.windowT1Ms;
   return { clockTicks: nextTicks, epochMs, needsRebuild };
 }
+
+/** Extra coverage past the current epoch when running in reverse. The window
+ * is half-open, [t0, t1), so a reverse window ending exactly at the epoch
+ * would exclude the epoch itself and ask for another rebuild on the spot. */
+export const REVERSE_LEAD_MS = 1_000;
+
+/**
+ * Which span to build keyframes for, given the direction time is running.
+ *
+ * The window has to lie *ahead of the clock in the direction of travel*. It
+ * used to be `[epoch, epoch + window)` regardless, which is right forwards and
+ * wrong backwards: the epoch falls while the asynchronous rebuild runs, so
+ * every rebuild finished already behind its own window, the ring never caught
+ * up, and every object read as stale for as long as time ran in reverse.
+ * Forwards is unchanged. Paused counts as forwards.
+ */
+export function rebuildWindowFor(
+  epochMs: number,
+  rate: number,
+  windowMs: number,
+): { readonly t0Ms: number; readonly t1Ms: number } {
+  if (rate < 0) return { t0Ms: epochMs - windowMs, t1Ms: epochMs + REVERSE_LEAD_MS };
+  return { t0Ms: epochMs, t1Ms: epochMs + windowMs };
+}

@@ -84,3 +84,10 @@
   /* --text-lo fails 4.5:1 on glass at this size (Design.md §9) */
   color: var(--text-mid);
 }
+
+.search-panel__more {
+  margin: var(--space-2) 0 0;
+  padding: 0 var(--space-3);
+  color: var(--text-lo);
+  font-size: 0.72rem;
+}

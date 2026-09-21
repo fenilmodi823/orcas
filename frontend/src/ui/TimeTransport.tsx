@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Pause, Play } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pause, Play, Rewind } from 'lucide-react';
 import './TimeTransport.css';
 
 export interface TimeTransportProps {
@@ -10,6 +10,10 @@ export interface TimeTransportProps {
   onCycleRate: () => void;
   onJumpToNow: () => void;
   onToggleExpanded: () => void;
+  /** Time runs backwards. With `onToggleDirection`, shows a direction toggle
+   * and signs the rate label ("−10×"). */
+  reversed?: boolean;
+  onToggleDirection?: () => void;
 }
 
 /** Always with the date. Scrubbing moves the clock by days, and a bare time of
@@ -31,6 +35,8 @@ export function TimeTransport({
   onCycleRate,
   onJumpToNow,
   onToggleExpanded,
+  reversed = false,
+  onToggleDirection,
 }: TimeTransportProps) {
   return (
     <div className="time-transport">
@@ -42,7 +48,20 @@ export function TimeTransport({
       >
         {playing ? <Pause aria-hidden size={16} /> : <Play aria-hidden size={16} />}
       </button>
+      {onToggleDirection && (
+        <button
+          type="button"
+          className="time-transport__icon"
+          data-active={reversed ? '' : undefined}
+          onClick={onToggleDirection}
+          aria-label={reversed ? 'Run time forwards' : 'Run time backwards'}
+          aria-pressed={reversed}
+        >
+          <Rewind aria-hidden size={16} />
+        </button>
+      )}
       <button type="button" className="time-transport__rate" onClick={onCycleRate}>
+        {reversed ? '−' : ''}
         {rate}×
       </button>
       <span className="time-transport__clock">{formatUtcClock(currentTime)}</span>

@@ -1,0 +1,12 @@
+/* Summoned over the scene, top-centre — clear of the logo (top-left) and the
+   epoch pill (top-right), and away from the dock the result will open. */
+.simulation-search {
+  position: absolute;
+  top: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(480px, calc(100vw - 2 * var(--space-4)));
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

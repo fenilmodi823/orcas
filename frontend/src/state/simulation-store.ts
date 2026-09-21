@@ -6,12 +6,21 @@ interface SimulationState {
   currentTime: Date;
   rate: number;
   playing: boolean;
+  /** Time runs backwards. Kept apart from `rate` so the rate steps stay the
+   * familiar 1× … 10000× and direction is one toggle, as in NASA Eyes. */
+  reversed: boolean;
   play: () => void;
   pause: () => void;
   togglePlaying: () => void;
   cycleRate: () => void;
   setCurrentTime: (time: Date) => void;
   jumpToNow: () => void;
+  toggleDirection: () => void;
+}
+
+/** The signed rate the simulation loop consumes: negative runs time backwards. */
+export function effectiveRate(state: Pick<SimulationState, 'rate' | 'reversed'>): number {
+  return state.reversed ? -state.rate : state.rate;
 }
 
 /** Time, rate, playing — Architecture.md §5.
@@ -24,6 +33,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   currentTime: new Date(),
   rate: 1,
   playing: true,
+  reversed: false,
   play: () => set({ playing: true }),
   pause: () => set({ playing: false }),
   togglePlaying: () => set((state) => ({ playing: !state.playing })),
@@ -34,5 +44,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       return { rate: next };
     }),
   setCurrentTime: (currentTime) => set({ currentTime }),
-  jumpToNow: () => set({ currentTime: new Date(), rate: 1 }),
+  // Back to the present means back to real time: forwards, at 1x.
+  jumpToNow: () => set({ currentTime: new Date(), rate: 1, reversed: false }),
+  toggleDirection: () => set((state) => ({ reversed: !state.reversed })),
 }));
