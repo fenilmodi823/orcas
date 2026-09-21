@@ -19,7 +19,17 @@ interface ViewState {
    * `ObjType.Debris` objects, never payloads or rocket bodies. Session
    * state only, like every other view toggle here. */
   showDebris: boolean;
+  /** The OS's `prefers-reduced-motion` value, mirrored into the store so the
+   * camera state machine and the renderer read one source (brief §6.5).
+   * Updated live — users toggle it mid-session. */
+  osPrefersReducedMotion: boolean;
+  /** An in-app override. The OS setting is global; a user may want reduced
+   * motion everywhere *except* here, or only here. `null` means "follow the
+   * OS", which is the default: respect the OS value, never lock to it. */
+  reducedMotionOverride: boolean | null;
   toggleFilter: (filterClass: FilterClass) => void;
+  setOsPrefersReducedMotion: (value: boolean) => void;
+  setReducedMotionOverride: (value: boolean | null) => void;
   openSearch: () => void;
   closeSearch: () => void;
   setDensity: (density: number) => void;
@@ -36,6 +46,10 @@ export const useViewStore = create<ViewState>((set) => ({
   showDebris: false,
   panelCollapsed: false,
   orbitClassLegendDismissed: false,
+  osPrefersReducedMotion: false,
+  reducedMotionOverride: null,
+  setOsPrefersReducedMotion: (value) => set({ osPrefersReducedMotion: value }),
+  setReducedMotionOverride: (value) => set({ reducedMotionOverride: value }),
   toggleFilter: (filterClass) =>
     set((state) => {
       const next = new Set(state.activeFilters);
@@ -53,3 +67,8 @@ export const useViewStore = create<ViewState>((set) => ({
   togglePanel: () => set((state) => ({ panelCollapsed: !state.panelCollapsed })),
   toggleOrbitClassLegend: () => set((state) => ({ orbitClassLegendDismissed: !state.orbitClassLegendDismissed })),
 }));
+
+/** The effective preference: the in-app override when set, else the OS. */
+export function selectReducedMotion(state: ViewState): boolean {
+  return state.reducedMotionOverride ?? state.osPrefersReducedMotion;
+}

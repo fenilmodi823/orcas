@@ -8,12 +8,9 @@ import { createCameraSystem, type CameraSystem } from './camera-system.js';
 import { dragToManualInput, wheelToManualInput } from './manual-input.js';
 import { useCameraTunables } from './camera-tunables.js';
 import { useCameraStatus } from './camera-status.js';
+import { useReducedMotion } from '../../state/use-reduced-motion.js';
 
 const CROSSFADE_CLASS = 'points-debug__viewport--crossfade';
-
-function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 interface Args {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -40,6 +37,7 @@ export function useCameraController({
   targetDistanceKmRef,
 }: Args): void {
   const { camera } = useThree();
+  const reducedMotion = useReducedMotion();
   const sysRef = useRef<CameraSystem | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   // dev-panel tunables read via a ref so the mount-effect listeners always
@@ -55,7 +53,7 @@ export function useCameraController({
       window.setTimeout(() => container.classList.remove(CROSSFADE_CLASS), 260);
     };
     const sys = createCameraSystem(camera as PerspectiveCamera, {
-      reducedMotion: prefersReducedMotion(),
+      reducedMotion,
       onCrossFade,
     });
     sysRef.current = sys;
@@ -134,6 +132,12 @@ export function useCameraController({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- camera/refs are stable for the route lifetime, same precedent as TierZeroPoints' mount effects
   }, []);
+
+  // Push the live preference in rather than rebuilding the camera system:
+  // the OS setting can change mid-session and the in-app override at any time.
+  useEffect(() => {
+    if (sysRef.current) sysRef.current.reducedMotion = reducedMotion;
+  }, [reducedMotion]);
 
   // CameraSystem owns the camera it was given — it applies the pose AND the
   // per-frame near/far itself, so this hook never mutates `camera` directly.

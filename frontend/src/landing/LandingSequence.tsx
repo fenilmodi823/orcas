@@ -8,6 +8,7 @@ import {
   type LandingPhase,
 } from './landing-timeline.js';
 import './LandingSequence.css';
+import { useReducedMotion } from '../state/use-reduced-motion.js';
 
 export interface LandingSequenceProps {
   /**
@@ -22,10 +23,6 @@ export interface LandingSequenceProps {
 
 type Mode = 'full' | 'reduced' | 'skip';
 
-function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 /**
  * The landing sequence AND the permanent top-left site brand mark are the
  * same component instance for the app's whole lifetime — the 3.0s beat
@@ -35,7 +32,9 @@ function prefersReducedMotion(): boolean {
  */
 export function LandingSequence({ onDone }: LandingSequenceProps) {
   const [alreadyPlayed] = useState(() => landingSequenceHasPlayed());
-  const [reduced] = useState(() => prefersReducedMotion());
+  // One source for the whole app (brief §6.5 note 2), so an in-app override
+  // reaches the landing sequence and the camera alike.
+  const reduced = useReducedMotion();
   const mode: Mode = alreadyPlayed ? 'skip' : reduced ? 'reduced' : 'full';
 
   const [phase, setPhase] = useState<LandingPhase>(mode === 'full' ? 'point' : 'done');

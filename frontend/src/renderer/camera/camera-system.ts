@@ -45,6 +45,11 @@ export interface CameraSystem {
    * reciprocal — flight-path.ts's `blendRadiusKm`. Settable mid-flight so
    * the dev panel can retune a move that is already playing. */
   approachBlend: number;
+  /** Live, because the OS preference can be toggled mid-session and an
+   * in-app override can be flipped at any time (brief §6.5 note 1). Settable
+   * rather than a constructor option so a change does not tear down and
+   * rebuild the camera, which would throw away where the user is looking. */
+  reducedMotion: boolean;
   update(dtSec: number, frame: FrameState): void;
   applyManualInput(input: ManualInput): void;
   projectToScreen(posKm: Vector3, out: Vector2): boolean;
@@ -96,6 +101,14 @@ class CameraSystemImpl implements CameraSystem {
 
   get targetDistanceKm(): number {
     return this._targetDistanceKm;
+  }
+
+  get reducedMotion(): boolean {
+    return this.opts.reducedMotion ?? false;
+  }
+
+  set reducedMotion(value: boolean) {
+    this.opts.reducedMotion = value;
   }
 
   get approachBlend(): number {

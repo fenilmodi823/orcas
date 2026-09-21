@@ -38,6 +38,7 @@ import type { CatalogSnapshot } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
 import { CrossCheckTable } from './CrossCheckTable.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
+import { useContextLoss } from '../use-context-loss.js';
 import './PointsDebug.css';
 
 const EARTH_RADIUS_KM = 6371;
@@ -152,6 +153,8 @@ function PointsDebugPanel({
   const selectedTetherRef = useRef<ObjectTetherHandle>(null);
   const labelRefs = useRef<(ObjectLabelHandle | null)[]>([]);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
+  const contextLoss = useContextLoss(canvasEl);
   const tier1CountRef = useRef(0);
   const tier1MembersRef = useRef<Uint32Array | null>(null);
   const activeCountRef = useRef(0);
@@ -210,7 +213,11 @@ function PointsDebugPanel({
       >
         <PanelErrorBoundary label="3D scene">
           {/* dpr={[1, 2]} matches the Math.min(window.devicePixelRatio, 2) point-size math in TierZeroPoints.tsx / StarSky.tsx; per-tier DPR (brief §6.2) is a deliberate follow-up — it would desync those uniforms and needs live point-size verification. */}
-          <Canvas dpr={[1, 2]} camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}>
+          <Canvas
+            dpr={[1, 2]}
+            camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}
+            onCreated={({ gl }) => setCanvasEl(gl.domElement)}
+          >
             {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
                 order, so CameraController must come FIRST: everything below
                 projects world positions with `camera`, and one frame of stale
@@ -285,6 +292,15 @@ function PointsDebugPanel({
             )}
           </Canvas>
         </PanelErrorBoundary>
+        {contextLoss.lost && (
+          /* Rules.md's error table: never a black canvas. The scene stays
+             mounted and repaints itself once the GPU hands the context back,
+             so this says what is happening instead of forcing a reload. */
+          <p className="points-debug__context-lost" role="status">
+            The graphics context was lost — usually the browser reclaiming GPU
+            memory. The view will return on its own.
+          </p>
+        )}
         <ObjectTether
           ref={selectedTetherRef}
           name={resolvedSelected?.name ?? ''}

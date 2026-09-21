@@ -136,3 +136,21 @@
 .points-debug .data-provenance {
   color: var(--text-mid);
 }
+
+/* Shown only while the WebGL context is lost. Centred over the canvas because
+   at that moment the canvas is the thing that has gone blank — an honest
+   message in its place, never a black rectangle (Rules.md error table). */
+.points-debug__context-lost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 32ch;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  text-align: center;
+}
