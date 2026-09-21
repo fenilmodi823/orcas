@@ -10,7 +10,7 @@ import { useCameraTunables } from './camera-tunables.js';
 import { useCameraStatus } from './camera-status.js';
 import { useReducedMotion } from '../../state/use-reduced-motion.js';
 
-const CROSSFADE_CLASS = 'points-debug__viewport--crossfade';
+const CROSSFADE_CLASS = 'live-scene--crossfade';
 
 interface Args {
   readonly frameStateRef: MutableRefObject<FrameState>;

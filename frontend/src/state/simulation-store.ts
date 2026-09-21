@@ -14,11 +14,16 @@ interface SimulationState {
   jumpToNow: () => void;
 }
 
-/** Time, rate, playing — Architecture.md §5. */
+/** Time, rate, playing — Architecture.md §5.
+ *
+ * Opens playing, in real time: NASA Eyes starts live (Rules.md §10 defers UX
+ * to it), and the scene is the data — a paused catalogue on first load reads
+ * as broken. This store is what Space and the TimeDock write to, and
+ * `useLiveScene` mirrors it into the simulation loop. */
 export const useSimulationStore = create<SimulationState>((set) => ({
   currentTime: new Date(),
   rate: 1,
-  playing: false,
+  playing: true,
   play: () => set({ playing: true }),
   pause: () => set({ playing: false }),
   togglePlaying: () => set((state) => ({ playing: !state.playing })),

@@ -25,8 +25,6 @@ const PointsDebug = lazy(() =>
 const Scene = lazy(() => import('./scene/Scene.js').then((m) => ({ default: m.Scene })));
 
 function Simulation() {
-  useGlobalHotkeys();
-
   return (
     <>
       <Suspense fallback={null}>
@@ -41,6 +39,11 @@ function Simulation() {
 
 /** Thin shell. Proves packages/orcas-scene renders inside the frontend workspace. */
 export function App() {
+  // App-wide, as the hook's own docstring says: it used to live inside `/`
+  // only, so Space and Escape did nothing on the `/points` route that runs
+  // the same live scene. Called before any early return, as hooks must be.
+  useGlobalHotkeys();
+
   if (window.location.pathname === '/design') {
     return (
       <Suspense fallback={null}>
