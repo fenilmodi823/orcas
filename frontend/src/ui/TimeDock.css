@@ -11,3 +11,11 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4) 0;
 }
+
+/* Layer controls and provenance, stacked under the filter chips in the
+   expanded dock. */
+.time-dock__layers {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}

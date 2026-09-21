@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GlassSurface } from './GlassSurface.js';
 import { TimeTransport } from './TimeTransport.js';
@@ -33,6 +34,10 @@ export interface TimeDockTimeProps {
   onJumpToNow: () => void;
   onScrub: (time: Date) => void;
   onToggleFilter: (orbitClass: FilterClass) => void;
+  /** Layer controls and the full data-provenance block, shown under the
+   * filters when the dock is expanded — Design.md §7: "filters and layers by
+   * expanding the dock upward". Summoned, never on screen at rest. */
+  layers?: ReactNode;
 }
 
 export interface TimeDockObjectProps {
@@ -76,18 +81,21 @@ export function TimeDock(props: TimeDockProps) {
             transition={PANEL_SPRING}
           >
             {props.mode === 'time' ? (
-              <div className="time-dock__filters">
-                {props.filters.map((filter) => (
-                  <FilterChip
-                    key={filter.orbitClass}
-                    orbitClass={filter.orbitClass}
-                    label={filter.label}
-                    count={filter.count}
-                    active={filter.active}
-                    onToggle={() => props.onToggleFilter(filter.orbitClass)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="time-dock__filters">
+                  {props.filters.map((filter) => (
+                    <FilterChip
+                      key={filter.orbitClass}
+                      orbitClass={filter.orbitClass}
+                      label={filter.label}
+                      count={filter.count}
+                      active={filter.active}
+                      onToggle={() => props.onToggleFilter(filter.orbitClass)}
+                    />
+                  ))}
+                </div>
+                {props.layers && <div className="time-dock__layers">{props.layers}</div>}
+              </>
             ) : (
               <ObjectDetail detail={props.detail} />
             )}

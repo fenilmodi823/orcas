@@ -19,16 +19,20 @@ const PointsDebug = lazy(() =>
   import('./renderer/points/PointsDebug.js').then((m) => ({ default: m.PointsDebug })),
 );
 // The 3D stack itself is lazy for the same reason the debug routes are:
-// three + R3F + drei + @orcas/scene were the whole of the eager payload
-// otherwise. `LandingSequence` below deliberately stays eager so the intro
-// renders from frame one while this chunk streams in behind it.
-const Scene = lazy(() => import('./scene/Scene.js').then((m) => ({ default: m.Scene })));
+// three + R3F + drei were the whole of the eager payload otherwise.
+// `LandingSequence` below deliberately stays eager so the intro renders from
+// frame one while this chunk streams in behind it. M1.9: `/` now runs the
+// live catalogue scene; the Phase 3 placeholder (`scene/Scene.tsx`) is no
+// longer mounted, and is left in place until a phase-boundary deletion.
+const SimulationView = lazy(() =>
+  import('./simulation/SimulationView.js').then((m) => ({ default: m.SimulationView })),
+);
 
 function Simulation() {
   return (
     <>
       <Suspense fallback={null}>
-        <Scene />
+        <SimulationView />
       </Suspense>
       {/* Mounted alongside the Canvas, never gating it — Branding.md:
           the sequence must never block the scene loading behind it. */}

@@ -3,6 +3,7 @@ import {
   describeOrigin,
   describeProvenance,
   formatAge,
+  formatCreditLine,
   formatEpochUtc,
   isStale,
 } from './catalog-provenance.js';
@@ -97,6 +98,34 @@ describe('describeProvenance', () => {
     expect(result.newestEpochAgeMs).toBe(3 * DAY);
   });
 
+  it('takes a median epoch that one ahead-published outlier cannot move', () => {
+    // TESS, published nine hours ahead, set the newest epoch on 2026-09-21.
+    const result = describeProvenance(
+      snapshot([
+        object({ epochMs: NOW_MS - 3 * HOUR }),
+        object({ epochMs: NOW_MS - 2 * HOUR }),
+        object({ epochMs: NOW_MS - 1 * HOUR }),
+        object({ epochMs: NOW_MS + 9 * HOUR }),
+        object({ epochMs: NOW_MS - 4 * HOUR }),
+      ]),
+      'live',
+      NOW_MS,
+    );
+
+    expect(result.newestEpochMs).toBe(NOW_MS + 9 * HOUR);
+    expect(result.medianEpochMs).toBe(NOW_MS - 2 * HOUR);
+  });
+
+  it('averages the two middle epochs for an even count', () => {
+    const result = describeProvenance(
+      snapshot([object({ epochMs: NOW_MS - 4 * HOUR }), object({ epochMs: NOW_MS - 2 * HOUR })]),
+      'live',
+      NOW_MS,
+    );
+
+    expect(result.medianEpochMs).toBe(NOW_MS - 3 * HOUR);
+  });
+
   it('carries the rejected count so silent drops are visible', () => {
     expect(describeProvenance(snapshot([object()], 4), 'live', NOW_MS).rejectedCount).toBe(4);
   });
@@ -140,5 +169,27 @@ describe('origin labelling', () => {
   it('explains each origin without jargon', () => {
     expect(describeOrigin('cached')).toContain('unreachable');
     expect(describeOrigin('bundled')).toContain('sample');
+  });
+});
+
+describe('formatCreditLine', () => {
+  const base = describeProvenance(snapshot([object({ source: 'celestrak', epochMs: NOW_MS - HOUR })]), 'live', NOW_MS);
+
+  it('names every source with its documented attribution', () => {
+    const line = formatCreditLine({ ...base, sources: ['celestrak', 'spacetrack-gp'] });
+
+    expect(line).toContain('CelesTrak GP');
+    expect(line).toContain('Space-Track.org (18th Space Defense Squadron), GP catalogue');
+  });
+
+  it('carries the element-set epoch and says positions are propagations', () => {
+    const line = formatCreditLine(base);
+
+    expect(line).toContain('median element-set epoch 2026-09-20 15:00:00 UTC');
+    expect(line).toContain('Positions are SGP4 propagations, not observations.');
+  });
+
+  it('shows an unrecognised source by its id rather than dropping the attribution', () => {
+    expect(formatCreditLine({ ...base, sources: ['some-new-feed'] })).toContain('some-new-feed');
   });
 });

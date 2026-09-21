@@ -20,7 +20,8 @@ describe('TimeTransport', () => {
 
     fireEvent.click(screen.getByLabelText('Play'));
     expect(onTogglePlay).toHaveBeenCalledOnce();
-    expect(screen.getByText('16:56:00Z')).toBeTruthy();
+    // Dated: after scrubbing days away a bare time of day reads as today.
+    expect(screen.getByText('2009-02-10 16:56:00Z')).toBeTruthy();
   });
 
   it('cycles the rate and jumps to now on click', () => {

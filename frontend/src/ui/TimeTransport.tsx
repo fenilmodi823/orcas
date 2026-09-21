@@ -12,8 +12,13 @@ export interface TimeTransportProps {
   onToggleExpanded: () => void;
 }
 
+/** Always with the date. Scrubbing moves the clock by days, and a bare time of
+ * day after a jump of a week reads as *today* — the same trap as an undated
+ * data epoch. NASA Eyes' own clock carries the date for this reason
+ * (Rules.md §10 defers UX to it). */
 function formatUtcClock(date: Date): string {
-  return `${date.toISOString().slice(11, 19)}Z`;
+  const iso = date.toISOString();
+  return `${iso.slice(0, 10)} ${iso.slice(11, 19)}Z`;
 }
 
 /** The persistent transport row — always visible, mode="time" (Design.md §6, D7). */

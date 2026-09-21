@@ -24,6 +24,16 @@ export interface CatalogProvenance {
   readonly newestEpochMs: number;
   readonly oldestEpochMs: number;
   /**
+   * The median element-set epoch — the one figure that honestly stands for a
+   * catalogue of tens of thousands of independently-updated objects.
+   *
+   * The newest epoch is set by a single object, and upstream publishes some
+   * deep-space objects ahead of now: on 2026-09-21 TESS alone put the newest
+   * epoch nine hours in the future while the simulation clock read 05:54Z. No
+   * one outlier can move a median, so the at-rest epoch pill uses this.
+   */
+  readonly medianEpochMs: number;
+  /**
    * Age of the newest element set, clamped at zero.
    *
    * Upstream legitimately publishes some epochs ahead of now — Space-Track's
@@ -36,6 +46,8 @@ export interface CatalogProvenance {
   /** Age of the snapshot fetch itself, distinct from the element-set epoch:
    * snapshot age and epoch are two separate facts, never merged (RA14.D6). */
   readonly fetchedAgeMs: number;
+  /** The clock reading every age above was measured against. */
+  readonly nowMs: number;
 }
 
 export function describeProvenance(
@@ -55,6 +67,11 @@ export function describeProvenance(
 
   const empty = snapshot.objects.length === 0;
   const newest = empty ? nowMs : newestEpochMs;
+  // ponytail: a full sort on each 30 s provenance tick (~31k numbers, a few
+  // ms); cache per snapshot if the catalogue ever grows by an order of magnitude.
+  const epochs = Float64Array.from(snapshot.objects, (o) => o.epochMs).sort();
+  const mid = epochs.length >> 1;
+  const median = empty ? nowMs : epochs.length % 2 ? epochs[mid] : (epochs[mid - 1] + epochs[mid]) / 2;
 
   return {
     origin,
@@ -63,9 +80,11 @@ export function describeProvenance(
     rejectedCount: snapshot.rejected.length,
     newestEpochMs: newest,
     oldestEpochMs: empty ? nowMs : oldestEpochMs,
+    medianEpochMs: median,
     newestEpochAgeMs: Math.max(0, nowMs - newest),
     newestEpochIsAhead: newest > nowMs,
     fetchedAgeMs: Math.max(0, nowMs - snapshot.fetchedAtMs),
+    nowMs,
   };
 }
 
@@ -101,4 +120,32 @@ export function describeOrigin(origin: CatalogOrigin): string {
 /** True when what is on screen is not live data and the UI must say so. */
 export function isStale(origin: CatalogOrigin): boolean {
   return origin !== 'live';
+}
+
+/**
+ * How each ingestion source is credited on screen. Wording follows RA-14 §2.3's
+ * provenance line, which names the operator behind the Space-Track catalogue;
+ * USSPACECOM's redistribution approval is conditional on that citation
+ * (RA14.D3), so this is a licence term, not decoration.
+ */
+const SOURCE_CREDITS: Readonly<Record<string, string>> = {
+  celestrak: 'CelesTrak GP',
+  'spacetrack-gp': 'Space-Track.org (18th Space Defense Squadron), GP catalogue',
+};
+
+/**
+ * RA-14 §2.3: "a provenance line wherever catalogue data is shown, carrying the
+ * source name, the query, and the element-set epoch", ending with the plain
+ * statement that positions are propagations, not observations.
+ *
+ * An unrecognised source is shown by its raw id rather than dropped — silently
+ * losing an attribution would be worse than an ugly one.
+ */
+export function formatCreditLine(provenance: CatalogProvenance): string {
+  const sources = provenance.sources.map((source) => SOURCE_CREDITS[source] ?? source);
+  const origin = sources.length > 0 ? sources.join('; ') : 'unknown source';
+  return (
+    `Orbital data: ${origin}, median element-set epoch ${formatEpochUtc(provenance.medianEpochMs)}. ` +
+    'Positions are SGP4 propagations, not observations.'
+  );
 }

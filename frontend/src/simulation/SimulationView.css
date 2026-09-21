@@ -1,0 +1,51 @@
+/* `/` — Design.md §7. The scene owns the screen; the chrome is the logo
+   (top-left, the landing sequence's persistent brand mark), the epoch pill
+   (top-right), the dock (bottom-centre) and the orbit-class legend (its own
+   corner anchor). Nothing else is on screen at rest. */
+.simulation {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.simulation__pill {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+}
+
+.simulation__dock {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-8);
+  transform: translateX(-50%);
+  width: min(880px, calc(100vw - 2 * var(--space-4)));
+}
+
+/* Legally required attribution, styled as a map credit: present, legible on
+   inspection, and never competing with the scene. */
+.simulation__credit {
+  position: absolute;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-2);
+  margin: 0;
+  color: var(--text-lo);
+  font-size: 0.66rem;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.simulation__status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  color: var(--text-lo);
+}
+
+.simulation__status[data-error] {
+  color: var(--critical);
+}
