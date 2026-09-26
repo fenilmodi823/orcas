@@ -1,11 +1,9 @@
 import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { clamp } from './easing.js';
-import { createRig, dampRigAngles, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
-import { ECI_UP, refUpForFreeOrbit, refUpForObjectLvlh } from './look-rotation.js';
-import { clampFreeOrbitRadiusKm, R_EARTH_A_KM } from './collision.js';
+import { createRig, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
+import { ECI_UP, refUpForFreeOrbit } from './look-rotation.js';
 import { applyNearFar, projectToScreen, writeCameraFromRig } from './camera-output.js';
-import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { CancelledError } from './errors.js';
 import type { FlightEndpoint } from './flight-path.js';
 import { FlightController } from './flight-controller.js';
@@ -13,53 +11,19 @@ import { applyImmediateArrival, buildFlightEndpoints, targetPositionAt } from '.
 import { accumulateManualInput, type ManualInput } from './manual-input.js';
 import { makeDeferred, type Deferred, type FlyOpts } from './flight.js';
 import { INITIAL_CAMERA_STATE, reduceCameraState, type CameraEvent, type CameraState } from './camera-state-machine.js';
+import type { CameraSystem, CameraSystemOpts } from './camera-system-types.js';
+import {
+  FREE_ORBIT_MIN_RADIUS_KM,
+  OBJECT_MIN_RADIUS_KM,
+  updateFreeOrbitRig,
+  updateObjectRig,
+} from './camera-rig-updates.js';
 
 const DT_CLAMP_SEC = 0.1;
-const AZ_HL = 0.09;
-const RADIUS_HL = 0.13;
-const ROLL_HL = 0.25;
 const EXIT_DURATION_SEC = 1.2;
-const FREE_ORBIT_MIN_RADIUS_KM = R_EARTH_A_KM + 120;
-const OBJECT_MIN_RADIUS_KM = PLACEHOLDER_RADIUS_KM * 1.8;
 
 export { CancelledError };
-export type { FlyOpts, ManualInput };
-
-export interface CameraSystemOpts {
-  reducedMotion?: boolean;
-  onCrossFade?: () => void;
-}
-
-export interface CameraSystem {
-  readonly state: Readonly<CameraState>;
-  /** Live distance from the pivot, km. Read by the dev panel: tuning the
-   * flight curve is impossible without seeing the number it shapes. */
-  readonly radiusKm: number;
-  /** Live distance from the camera to the TARGET OBJECT, km — which is
-   * NOT `radiusKm` during a flight. The pivot leads the object by the
-   * predictive retarget (§C.10), so the camera can be metres from the
-   * rendezvous point while the object is still kilometres away. This is
-   * the distance that decides whether anything is visible on screen. */
-  readonly targetDistanceKm: number;
-  /** Where the flight's radius curve sits between geometric and
-   * reciprocal — flight-path.ts's `blendRadiusKm`. Settable mid-flight so
-   * the dev panel can retune a move that is already playing. */
-  approachBlend: number;
-  /** Live, because the OS preference can be toggled mid-session and an
-   * in-app override can be flipped at any time (brief §6.5 note 1). Settable
-   * rather than a constructor option so a change does not tear down and
-   * rebuild the camera, which would throw away where the user is looking. */
-  reducedMotion: boolean;
-  update(dtSec: number, frame: FrameState): void;
-  applyManualInput(input: ManualInput): void;
-  projectToScreen(posKm: Vector3, out: Vector2): boolean;
-  readonly nearFarKm: Readonly<{ nearKm: number; farKm: number }>; // km — the controller applies it
-
-  flyTo(targetIndex: number, opts?: FlyOpts): Promise<void>;
-  flyToEarth(opts?: FlyOpts): Promise<void>;
-  exitToFree(): Promise<void>;
-  dispose(): void;
-}
+export type { CameraSystem, CameraSystemOpts, FlyOpts, ManualInput };
 
 const _tp = new Vector3();
 
@@ -219,15 +183,18 @@ class CameraSystemImpl implements CameraSystem {
 
     switch (this._state.kind) {
       case 'freeOrbit':
-        this.updateFreeOrbit(dt);
+        updateFreeOrbitRig(this.rig, this.targetRig, this.refUp, dt);
         break;
       case 'focusFlight':
       case 'exit':
         this.updateFlight(dt);
         break;
-      case 'object':
-        this.updateObject(dt);
+      case 'object': {
+        const target =
+          this.targetIndex >= 0 ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
+        updateObjectRig(this.rig, this.targetRig, this.refUp, target, dt);
         break;
+      }
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
     this._nearFar = applyNearFar(this.camera, this.rig.radiusKm);
@@ -239,15 +206,6 @@ class CameraSystemImpl implements CameraSystem {
     } else {
       this._targetDistanceKm = 0;
     }
-  }
-
-  private updateFreeOrbit(dt: number): void {
-    this.rig.pivotKm.set(0, 0, 0);
-    this.targetRig.pivotKm.set(0, 0, 0);
-    this.rig.frame.copy(this.targetRig.frame);
-    dampRigAngles(this.rig, this.targetRig, dt, AZ_HL, RADIUS_HL, ROLL_HL);
-    this.rig.radiusKm = clampFreeOrbitRadiusKm(this.rig.radiusKm);
-    refUpForFreeOrbit(this.refUp);
   }
 
   private updateFlight(dt: number): void {
@@ -264,17 +222,6 @@ class CameraSystemImpl implements CameraSystem {
       this.flights.finish();
       this.dispatch({ type: 'flightArrived' });
     }
-  }
-
-  private updateObject(dt: number): void {
-    if (this.targetIndex >= 0) {
-      targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp);
-      this.rig.pivotKm.copy(_tp);
-      this.targetRig.pivotKm.copy(_tp);
-      refUpForObjectLvlh(_tp, this.refUp);
-    }
-    dampRigAngles(this.rig, this.targetRig, dt, AZ_HL, RADIUS_HL, ROLL_HL);
-    this.rig.radiusKm = Math.max(OBJECT_MIN_RADIUS_KM, this.rig.radiusKm);
   }
 
   projectToScreen(posKm: Vector3, out: Vector2): boolean {

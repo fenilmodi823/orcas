@@ -51,10 +51,19 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
   }));
 
   return (
-    <div ref={rootRef} className="object-tether" data-selected={selected ? '' : undefined} style={{ opacity: 0 }}>
-      <span className="object-tether__lead" aria-hidden />
+    // aria-hidden: a visual label only. The selected object is announced by
+    // the dock's live region; while hidden (opacity 0) this chip still sits
+    // in the tree, and was being read out as e.g. "DEBRIS · 0.0 km".
+    <div
+      ref={rootRef}
+      className="object-tether"
+      data-selected={selected ? '' : undefined}
+      style={{ opacity: 0 }}
+      aria-hidden
+    >
+      <span className="object-tether__lead" />
       <div className="object-tether__chip">
-        <span className="object-tether__dot" style={{ background: FILTER_CLASS_VAR[orbitClass] }} aria-hidden />
+        <span className="object-tether__dot" style={{ background: FILTER_CLASS_VAR[orbitClass] }} />
         <span className="object-tether__name">{name}</span>
         <span className="object-tether__meta">
           {orbitClass.toUpperCase()} · {altitudeKm.toFixed(1)} km

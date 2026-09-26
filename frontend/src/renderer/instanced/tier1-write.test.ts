@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Color, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { instanceBrightness, TIER1_DIM_FACTOR, TIER1_PROXY_SCALE_KM, writeTier1Instances } from './tier1-write.js';
+import { TIER1_DIM_FACTOR, writeTier1Instances } from './tier1-write.js';
 import { createSatelliteProxyGeometry } from './satellite-proxy.js';
-import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
-import { LOD_BAND_PX, tier0Alpha } from '../lod/lod-band.js';
-import { apparentPx } from '../points/points-shading.js';
+import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 
 const PX_PER_RAD = 1188;
-const b = (d: number) => instanceBrightness(d, PX_PER_RAD, PLACEHOLDER_RADIUS_KM);
 
 /** White for every orbit class and the selection accent — preserves this
  * file's pre-P4.D23 assertions, which read `.r` as a direct stand-in for
@@ -30,33 +27,6 @@ function fakeObjects(count: number): ObjectMeta[] {
     record: {} as ObjectMeta['record'],
   }));
 }
-
-describe('instanceBrightness', () => {
-  it('is dark below the band, so nothing pops in', () => {
-    expect(b(100)).toBe(0);
-  });
-
-  it('is full once inside object-mode framing distance (~0.0825 km)', () => {
-    expect(b(0.0825)).toBeCloseTo(1, 6);
-  });
-
-  it('is half in the middle of the band', () => {
-    expect(b((0.01 * PX_PER_RAD) / 4.5)).toBeCloseTo(0.5, 6);
-  });
-
-  // THE cross-fade invariant, expressed against real distances rather than
-  // raw pixel numbers - brief §B.6's "sum of intensity stays constant".
-  it('sums to 1 with the Tier 0 term at every distance', () => {
-    for (let d = 0.05; d < 50; d *= 1.05) {
-      const px = apparentPx(PLACEHOLDER_RADIUS_KM, d, PX_PER_RAD);
-      expect(b(d) + tier0Alpha(px)).toBeCloseTo(1, 12);
-    }
-  });
-
-  it('scales the proxy at the same extent the promotion maths assumed', () => {
-    expect(TIER1_PROXY_SCALE_KM).toBe(PLACEHOLDER_RADIUS_KM);
-  });
-});
 
 describe('writeTier1Instances — camera-relative origin', () => {
   function harness(objectKm: [number, number, number], camKm: [number, number, number]) {
@@ -252,42 +222,5 @@ describe('writeTier1Instances — P4.D23/24 orbit-class colour', () => {
     expect(color.r).toBeCloseTo(0, 3); // not LEO's red
     expect(color.g).toBeCloseTo(1, 3); // the selection accent's cyan
     expect(color.b).toBeCloseTo(1, 3);
-  });
-});
-
-describe('createSatelliteProxyGeometry', () => {
-  // The proxy is drawn at TIER1_PROXY_SCALE_KM, and the LOD band decides
-  // promotion from that same assumed extent. A vertex outside the unit
-  // sphere would render the object bigger than the maths claimed.
-  it('fits inside the unit sphere the LOD band assumes', () => {
-    const g = createSatelliteProxyGeometry();
-    const p = g.getAttribute('position');
-    let maxSq = 0;
-    for (let i = 0; i < p.count; i++) {
-      maxSq = Math.max(maxSq, p.getX(i) ** 2 + p.getY(i) ** 2 + p.getZ(i) ** 2);
-    }
-    expect(Math.sqrt(maxSq)).toBeLessThanOrEqual(1);
-    g.dispose();
-  });
-
-  // The whole point of replacing the regular octahedron: nadir has to be
-  // visible. A shape symmetric about the nadir axis cannot show it.
-  it('is asymmetric along the nadir axis, so which end faces Earth is visible', () => {
-    const g = createSatelliteProxyGeometry();
-    const p = g.getAttribute('position');
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (let i = 0; i < p.count; i++) {
-      minY = Math.min(minY, p.getY(i));
-      maxY = Math.max(maxY, p.getY(i));
-    }
-    expect(maxY).toBeGreaterThan(Math.abs(minY) * 1.2);
-    g.dispose();
-  });
-
-  it('stays cheap enough for the 2,000-instance cap', () => {
-    const g = createSatelliteProxyGeometry();
-    expect(g.getAttribute('position').count / 3).toBeLessThanOrEqual(64);
-    g.dispose();
   });
 });

@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { AdditiveBlending, ShaderMaterial, Vector3, type Points } from 'three';
+import { Vector3, type Points } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import { WGS84_A_KM, WGS84_B_KM } from '@orcas/physics';
-import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
+import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { createPointsGeometry, updateFlagsAttribute } from './points-geometry.js';
-import { POINTS_VERTEX_SHADER, PICK_LAYER } from './points-shader-core.js';
+import { PICK_LAYER } from './points-shader-core.js';
+import { createPointsMaterial } from './points-material.js';
 import { usePointsPicking } from './use-points-picking.js';
 import {
   INITIAL_HOVER_TRACKING,
@@ -18,41 +18,8 @@ import {
 } from './points-pick-resolve.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import { writeTethers } from './points-tether.js';
-import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { writePerFrameUniforms } from './points-frame-uniforms.js';
-import { readCyanToken } from '../scene-colors.js';
-import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 import { densityVisibleCount } from './significance-rank.js';
-
-const FRAGMENT_SHADER = /* glsl */ `
-precision mediump float;
-
-varying float vBrightness;
-varying vec3 vTint;
-
-void main() {
-  // Soft radial falloff on gl_PointCoord: a Gaussian-ish core plus a
-  // faint halo (brief §B.3). The 4.0 / 0.12 constants below are chosen
-  // empirically for this task and tuned live in Task 7 — not spec values.
-  vec2 fromCenter = gl_PointCoord - vec2(0.5);
-  float d = length(fromCenter) * 2.0; // 0 at center, 1 at edge
-  float core = exp(-d * d * 4.0);
-  float halo = smoothstep(1.0, 0.0, d) * 0.12;
-  float alpha = clamp(core + halo, 0.0, 1.0) * vBrightness;
-  if (alpha < 0.003) discard;
-  gl_FragColor = vec4(vTint, alpha);
-}
-`;
-
-/** Indexed by the OrbitClass enum (LEO=0..Unknown=4) — the same order the
- * vertex shader's `uOrbitClassColors[int(aOrbitClass)]` lookup assumes. */
-const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
-  OrbitClass.LEO,
-  OrbitClass.MEO,
-  OrbitClass.GEO,
-  OrbitClass.HEO,
-  OrbitClass.Unknown,
-];
 
 export interface TierZeroPointsHandle {
   requestPick(px: number, py: number): void;
@@ -82,9 +49,6 @@ interface TierZeroPointsProps {
   readonly pickHandleRef: MutableRefObject<TierZeroPointsHandle | null>;
 }
 
-/** Reads --orca-cyan from tokens.css rather than hardcoding the hex —
- * Rules.md bans colour literals outside tokens.css; a GLSL uniform can't
- * reference a CSS variable directly, so this is the one-time bridge. */
 /**
  * Tier 0 GPU point renderer (brief §B.3): one `THREE.Points`, one draw
  * call, every object in the catalogue. Positions come from M1.2's
@@ -111,6 +75,8 @@ export function TierZeroPoints({
   const pick = usePointsPicking(pointsRef);
   const hoverTrackingRef = useRef<HoverTracking>(INITIAL_HOVER_TRACKING);
   const projectedRef = useRef(new Vector3());
+  // Looked up twice a frame; a scan of the whole catalogue each time was O(n).
+  const indexByNorad = useMemo(() => new Map(objects.map((o, i) => [o.norad, i])), [objects]);
 
   useEffect(() => {
     pickHandleRef.current = { requestPick: pick.requestPick };
@@ -134,41 +100,7 @@ export function TierZeroPoints({
       densityVisibleCount(objects, initialDensity) - 1,
       useViewStore.getState().showDebris,
     );
-    const material = new ShaderMaterial({
-      vertexShader: POINTS_VERTEX_SHADER,
-      fragmentShader: FRAGMENT_SHADER,
-      transparent: true,
-      depthWrite: false,
-      blending: AdditiveBlending,
-      uniforms: {
-        uPixelsPerRadian: { value: 0 },
-        uMinPointPx: { value: 1.5 }, // chosen empirically, tune in Task 7
-        uDpr: { value: Math.min(window.devicePixelRatio, 2) }, // Rules.md perf ceiling: dpr capped at 2
-        uBaseBrightness: { value: 1.0 },
-        // 0.6, not 0.05: with PLACEHOLDER_RADIUS_KM this small, truePx is
-        // always many orders of magnitude below uMinPointPx for every
-        // object at any real-world distance, so the area-ratio
-        // compensation always crushes brightness to this floor — verified
-        // live in Task 7 (a 0.05 floor rendered as an invisible ~2px,
-        // 5%-alpha additive dot, indistinguishable from the background).
-        // Once real per-object sizes exist, most objects will draw well
-        // above the floor and this value matters far less.
-        uFloorBrightness: { value: 0.6 },
-        uDimFactor: { value: 0.45 }, // P4.D27 supersedes D6's 0.3 — a readable floor, not a blackout
-        uLodLoPx: { value: LOD_BAND_PX.loPx },
-        uLodHiPx: { value: LOD_BAND_PX.hiPx },
-        uFocusActive: { value: 0.0 }, // no selection system until M1.5
-        uSelectedEntityId: { value: -1 }, // never matches a real 0-based index until M1.5 wires real selection
-        // P4.D23/24: read once — orbit-class colour is a per-vertex GPU
-        // lookup, not a per-frame CPU one. Order matches the OrbitClass
-        // enum, which is what the vertex shader's
-        // uOrbitClassColors[int(aOrbitClass)] assumes.
-        uOrbitClassColors: { value: ORBIT_CLASS_ORDER.map((orbitClass) => readOrbitClassColor(orbitClass)) },
-        uSelectedColor: { value: readCyanToken() },
-        uCamPos: { value: new Vector3() },
-        uEarthRadii: { value: new Vector3(WGS84_A_KM, WGS84_A_KM, WGS84_B_KM) },
-      },
-    });
+    const material = createPointsMaterial();
 
     points.geometry = geometry;
     points.material = material;
@@ -247,7 +179,7 @@ export function TierZeroPoints({
     // uSelectedEntityId, and only activate the dim at all once something
     // is selected.
     const selectedNorad = useSelectionStore.getState().selectedNorad;
-    const selectedIndex = selectedNorad === null ? -1 : objects.findIndex((o) => o.norad === selectedNorad);
+    const selectedIndex = selectedNorad === null ? -1 : (indexByNorad.get(selectedNorad) ?? -1);
     material.uniforms.uSelectedEntityId.value = selectedIndex;
     material.uniforms.uFocusActive.value = selectedNorad === null ? 0.0 : 1.0;
 
@@ -257,7 +189,7 @@ export function TierZeroPoints({
     // the flight and the M1.7a review reported not being able to see what
     // it was flying to at all.
     const positions = frameStateRef.current.positions;
-    const hoverIndex = hoveredNorad === null ? -1 : objects.findIndex((o) => o.norad === hoveredNorad);
+    const hoverIndex = hoveredNorad === null ? -1 : (indexByNorad.get(hoveredNorad) ?? -1);
     writeTethers({
       hoverTether: tetherRef.current,
       selectedTether: selectedTetherRef?.current ?? null,
