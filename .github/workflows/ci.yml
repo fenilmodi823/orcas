@@ -60,5 +60,9 @@ jobs:
             echo "::warning::Files over the 250-line convention (see CLAUDE.md):"
             echo "$over"
           fi
+      # The packages' own tsconfigs include their tests, which `tsc -b` from
+      # frontend/ never sees.
+      - run: npm run build -w packages/orcas-physics
+      - run: npm run build -w packages/orcas-scene
       - run: npm run test -w packages/orcas-physics
       - run: npm run test -w frontend

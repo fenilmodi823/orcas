@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { temeToJ2000Matrix, applyMat3 } from '../src/index.js';
+import { temeToJ2000Matrix, applyMat3, type Mat3 } from '../src/index.js';
 
-function trace(m: { m: readonly number[] }): number {
+function trace(m: Mat3): number {
   return m.m[0] + m.m[4] + m.m[8];
 }
 
-function transposeMultiply(m: { m: readonly number[] }): number[] {
+function transposeMultiply(m: Mat3): number[] {
   // M . M^T, should be the identity for a proper rotation matrix.
   const [a, b, c, d, e, f, g, h, i] = m.m;
-  const rows = [
+  const rows: readonly (readonly [number, number, number])[] = [
     [a, b, c],
     [d, e, f],
     [g, h, i],
@@ -16,7 +16,9 @@ function transposeMultiply(m: { m: readonly number[] }): number[] {
   const out: number[] = [];
   for (let r = 0; r < 3; r++) {
     for (let c2 = 0; c2 < 3; c2++) {
-      out.push(rows[r][0] * rows[c2][0] + rows[r][1] * rows[c2][1] + rows[r][2] * rows[c2][2]);
+      const [r0, r1, r2] = rows[r] ?? [NaN, NaN, NaN];
+      const [c0, c1, c3] = rows[c2] ?? [NaN, NaN, NaN];
+      out.push(r0 * c0 + r1 * c1 + r2 * c3);
     }
   }
   return out;
@@ -32,7 +34,7 @@ describe('temeToJ2000Matrix', () => {
     const m = temeToJ2000Matrix(new Date('2026-08-22T00:00:00.000Z'));
     const mmT = transposeMultiply(m);
     const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-    mmT.forEach((v, idx) => expect(v).toBeCloseTo(identity[idx], 10));
+    mmT.forEach((v, idx) => expect(v).toBeCloseTo(identity[idx] ?? NaN, 10));
   });
 
   it('rotation magnitude matches the ~50.29 arcsec/year general precession rate', () => {
