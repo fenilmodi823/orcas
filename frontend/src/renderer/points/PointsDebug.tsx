@@ -12,7 +12,6 @@ import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FilterClass } from '../../state/selection-store.js';
-import { resolveObjectDetail } from './points-selection-resolve.js';
 import { CameraDevPanel } from '../camera/CameraDevPanel.js';
 import { OrbitClassLegend } from '../../ui/OrbitClassLegend.js';
 import { PerfProbe, PerfHud } from './PerfHud.js';
@@ -22,6 +21,8 @@ import type { CatalogSnapshot } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
 import { CrossCheckTable } from './CrossCheckTable.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
+import { useDetailGroups } from '../../ui/use-detail-groups.js';
+import { useSimulationClock } from '../../simulation/use-simulation-clock.js';
 import { LiveScene } from '../live/LiveScene.js';
 import { useLiveScene } from '../live/use-live-scene.js';
 import './PointsDebug.css';
@@ -72,6 +73,8 @@ function PointsDebugPanel({ snapshot, origin }: { snapshot: CatalogSnapshot; ori
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad);
   const { objects, loop, refs, resolvedSelected, selectedObjectMeta } = scene;
   const provenance = useProvenance(snapshot, origin);
+  const simulationTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
+  const detailGroups = useDetailGroups(selectedObjectMeta, simulationTime.getTime(), provenance.nowMs);
   const crossCheck = useCrossCheck(objects, loop);
   // M1.8 §G.8: a hidden perf HUD, read once at boot — no reason for it to
   // react to a URL change after mount.
@@ -98,7 +101,7 @@ function PointsDebugPanel({ snapshot, origin }: { snapshot: CatalogSnapshot; ori
             <TimeDock
               mode="object"
               object={resolvedSelected}
-              detail={resolveObjectDetail(selectedObjectMeta)}
+              groups={detailGroups}
               onBack={() => setSelected(null)}
             />
           </PanelErrorBoundary>

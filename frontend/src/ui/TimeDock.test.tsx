@@ -47,7 +47,7 @@ describe('TimeDock', () => {
       <TimeDock
         mode="object"
         object={object}
-        detail={{ eccentricity: 0.0004, raanDeg: 1, argPericenterDeg: 1, meanAnomalyDeg: 1, epoch: NOW }}
+        groups={[{ id: 'provenance', title: 'Provenance', fields: [{ label: 'Element-set epoch', value: '2009-02-10 16:56:00 UTC' }] }]}
         onBack={onBack}
       />,
     );

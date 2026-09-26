@@ -59,6 +59,7 @@
   bottom: var(--space-4, 1rem);
   transform: translateX(-50%);
   width: min(880px, calc(100vw - 2 * var(--space-4, 1rem)));
+  z-index: 13; /* above the tethers (11-12), as on `/` */
 }
 
 .points-debug__count {

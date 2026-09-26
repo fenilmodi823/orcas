@@ -3,6 +3,7 @@ import { TimeDock } from '../../ui/TimeDock.js';
 import { useSimulationStore } from '../../state/simulation-store.js';
 import { useViewStore } from '../../state/view-store.js';
 import type { FilterClass, SelectableObject } from '../../state/selection-store.js';
+import type { DetailGroup } from '../../ui/object-detail-model.js';
 
 const RANGE_START = new Date('2009-02-10T00:00:00Z');
 const RANGE_END = new Date('2009-02-11T00:00:00Z');
@@ -24,6 +25,48 @@ const DEMO_OBJECT: SelectableObject = {
   velocityKmS: 7.66,
   inclinationDeg: 51.6,
 };
+
+/**
+ * The object-mode detail groups for the gallery. Demo values only, so the
+ * Conjunction group is deliberately absent: the ISS had no conjunction to
+ * show, and the slot staying empty until Phase 5 fills it is itself a state
+ * worth seeing.
+ *
+ * This card used to put D_M 1.84 and "P_c 4.2e-3" on the ISS. Those are the
+ * paper's Table I figures for Cosmos 2251, from simulated covariance the paper
+ * never states and that cannot be reproduced (RA-11, RA-12 §3.4) — and a bare
+ * P_c is itself banned (RA-12 §7). Never let a gallery present them as a live
+ * readout.
+ */
+const DEMO_GROUPS: readonly DetailGroup[] = [
+  {
+    id: 'identity',
+    title: 'Identity',
+    fields: [
+      { label: 'NORAD ID', value: '25544' },
+      { label: 'Int’l designator', value: '1998-067A' },
+      { label: 'Type', value: 'Payload' },
+      { label: 'Orbit class', value: 'LEO' },
+    ],
+  },
+  {
+    id: 'orbit',
+    title: 'Orbit',
+    fields: [
+      { label: 'Inclination', value: 51.6, unit: '°', precision: 2 },
+      { label: 'Eccentricity', value: 0.0004, precision: 5 },
+      { label: 'RAAN', value: 247.46, unit: '°', precision: 2 },
+    ],
+  },
+  {
+    id: 'provenance',
+    title: 'Provenance',
+    fields: [
+      { label: 'Element-set epoch', value: '2009-02-10 16:56:00 UTC' },
+      { label: 'Source', value: 'demo values' },
+    ],
+  },
+];
 
 /**
  * TimeDock (Design.md §6, D7) — the interface. Wired to the real
@@ -63,15 +106,7 @@ export function TimeDockSection() {
         <TimeDock
           mode="object"
           object={DEMO_OBJECT}
-          detail={{
-            eccentricity: 0.0004,
-            raanDeg: 247.46,
-            argPericenterDeg: 130.5,
-            meanAnomalyDeg: 325.0,
-            epoch: new Date('2009-02-10T16:56:00Z'),
-            mahalanobisDistance: 1.84,
-            probabilityOfCollision: 4.2e-3,
-          }}
+          groups={DEMO_GROUPS}
           onBack={() => {}}
         />
       </GlassSurface>

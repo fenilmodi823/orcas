@@ -20,6 +20,9 @@
   bottom: var(--space-8);
   transform: translateX(-50%);
   width: min(880px, calc(100vw - 2 * var(--space-4)));
+  /* Above the scene-anchored tethers (11-12), which otherwise draw across
+     the expanded info panel; below the landing sequence (19+). */
+  z-index: 13;
 }
 
 /* Legally required attribution, styled as a map credit: present, legible on

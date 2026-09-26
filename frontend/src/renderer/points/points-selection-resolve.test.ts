@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
-import { resolveObjectDetail, resolveSelectableObject } from './points-selection-resolve.js';
+import { resolveSelectableObject } from './points-selection-resolve.js';
 
-const EARTH_RADIUS_KM = 6371; // same sphere approximation PropagationDebug.tsx already uses
+const WGS84_EQUATORIAL_RADIUS_KM = 6378.137;
 
 // The exact shape the backend emits — verified against a live
 // GET /api/v1/catalog/snapshot, not invented. The offset suffix, not a
@@ -47,10 +47,10 @@ describe('resolveSelectableObject', () => {
   it('resolves the display shape from real ObjectMeta and live FrameState', () => {
     const objects = [fakeObject()];
     const byNorad = { '25544': 0 };
-    // Position magnitude EARTH_RADIUS_KM + 419 (ISS altitude), velocity magnitude 7.66 km/s.
+    // On the equator, 419 km above the WGS84 ellipsoid (the ISS band); speed 7.66 km/s.
     const altitudeKm = 419.0;
     const frameState = {
-      positions: new Float32Array([EARTH_RADIUS_KM + altitudeKm, 0, 0]),
+      positions: new Float32Array([WGS84_EQUATORIAL_RADIUS_KM + altitudeKm, 0, 0]),
       velocities: new Float32Array([0, 7.66, 0]),
     };
 
@@ -60,7 +60,7 @@ describe('resolveSelectableObject', () => {
     expect(resolved!.name).toBe('ISS (ZARYA)');
     expect(resolved!.noradId).toBe('25544');
     expect(resolved!.orbitClass).toBe('leo');
-    expect(resolved!.altitudeKm).toBeCloseTo(altitudeKm, 5);
+    expect(resolved!.altitudeKm).toBeCloseTo(altitudeKm, 2);
     expect(resolved!.velocityKmS).toBeCloseTo(7.66, 5);
     expect(resolved!.inclinationDeg).toBeCloseTo(51.6, 5);
   });
@@ -76,38 +76,24 @@ describe('resolveSelectableObject', () => {
     const objects = [fakeObject({ type: ObjType.Debris, orbitClass: OrbitClass.GEO })];
     const byNorad = { '25544': 0 };
     const frameState = {
-      positions: new Float32Array([EARTH_RADIUS_KM + 100, 0, 0]),
+      positions: new Float32Array([WGS84_EQUATORIAL_RADIUS_KM + 100, 0, 0]),
       velocities: new Float32Array([0, 1, 0]),
     };
     const resolved = resolveSelectableObject('25544' as never, objects, byNorad, frameState);
     expect(resolved!.orbitClass).toBe('debris');
   });
-});
 
-describe('resolveObjectDetail', () => {
-  it('reads the Keplerian elements directly off the canonical OMM record — no derivation needed', () => {
-    const detail = resolveObjectDetail(fakeObject());
-    expect(detail.eccentricity).toBe(0.0004);
-    expect(detail.raanDeg).toBe(247.46);
-    expect(detail.argPericenterDeg).toBe(130.5);
-    expect(detail.meanAnomalyDeg).toBe(325.0);
-    expect(detail.epoch).toEqual(new Date(REAL_EPOCH));
-  });
+  it('measures altitude from the WGS84 ellipsoid, not a sphere', () => {
+    // |r| = 6371 + 419 on the equator used to read "419 km". The equatorial
+    // radius is 6378.137 km, so the true altitude there is 411.863 km.
+    const frameState = {
+      positions: new Float32Array([6371 + 419, 0, 0]),
+      velocities: new Float32Array([0, 7.66, 0]),
+    };
 
-  // The M1.7a review's defect (d): the whole route was torn down when the
-  // dock expanded, because StatusPill called toISOString() on an Invalid
-  // Date. Re-parsing record.EPOCH produced one for every real record —
-  // '…+00:00' + 'Z' does not parse. Only the offset form discriminates,
-  // which is why the old fixture's offset-less epoch passed.
-  it('yields a valid Date for the offset form the backend actually emits', () => {
-    const detail = resolveObjectDetail(fakeObject());
-    expect(Number.isNaN(detail.epoch.getTime())).toBe(false);
-    expect(() => detail.epoch.toISOString()).not.toThrow();
-  });
+    const resolved = resolveSelectableObject('25544' as never, [fakeObject()], { '25544': 0 }, frameState);
 
-  it('omits Pc/D_M — no conjunction screening exists yet (Phase 5)', () => {
-    const detail = resolveObjectDetail(fakeObject());
-    expect(detail.mahalanobisDistance).toBeUndefined();
-    expect(detail.probabilityOfCollision).toBeUndefined();
+    expect(resolved!.altitudeKm).toBeCloseTo(411.863, 2);
   });
 });
+

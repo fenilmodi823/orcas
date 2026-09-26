@@ -7,7 +7,7 @@ import type { CatalogSnapshot } from '../data/catalog-types.js';
 import { LiveScene } from '../renderer/live/LiveScene.js';
 import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-scene.js';
 import { countByOrbitClass } from '../renderer/points/points-filters.js';
-import { resolveObjectDetail } from '../renderer/points/points-selection-resolve.js';
+import { resolveSelectableObject } from '../renderer/points/points-selection-resolve.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../renderer/sky/star-sky.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
 import { StatusPill } from '../ui/StatusPill.js';
@@ -16,6 +16,7 @@ import { DataProvenance } from '../ui/DataProvenance.js';
 import { DebrisToggle } from '../ui/DebrisToggle.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
+import { useDetailGroups } from '../ui/use-detail-groups.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { useSimulationStore } from '../state/simulation-store.js';
@@ -92,7 +93,7 @@ function LiveSimulation({ snapshot, origin }: { snapshot: CatalogSnapshot; origi
 
 /** Owns the slow display clock, so its re-renders stay inside the dock. */
 function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenance: CatalogProvenance }) {
-  const { objects, loop, resolvedSelected, selectedObjectMeta } = scene;
+  const { objects, loop, selectedObjectMeta } = scene;
   const currentTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
   const playing = useSimulationStore((s) => s.playing);
   const rate = useSimulationStore((s) => s.rate);
@@ -106,13 +107,20 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
 
   const counts = useMemo(() => countByOrbitClass(objects), [objects]);
   const range = useMemo(() => scrubRangeOf(objects), [objects]);
+  const detailGroups = useDetailGroups(selectedObjectMeta, currentTime.getTime(), provenance.nowMs);
+  // `scene.resolvedSelected` is sampled when SimulationView renders, which it
+  // does not do while an object sits selected - so ALT/VEL froze. Re-sample on
+  // this dock's own clock tick instead.
+  const liveSelected =
+    selectedObjectMeta &&
+    resolveSelectableObject(selectedObjectMeta.norad, objects, scene.byNorad, loop.frameStateRef.current);
 
-  if (resolvedSelected && selectedObjectMeta) {
+  if (liveSelected && selectedObjectMeta) {
     return (
       <TimeDock
         mode="object"
-        object={resolvedSelected}
-        detail={resolveObjectDetail(selectedObjectMeta)}
+        object={liveSelected}
+        groups={detailGroups}
         onBack={() => setSelected(null)}
       />
     );

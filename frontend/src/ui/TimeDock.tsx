@@ -5,7 +5,8 @@ import { GlassSurface } from './GlassSurface.js';
 import { TimeTransport } from './TimeTransport.js';
 import { TimeScrubber } from './TimeScrubber.js';
 import { ObjectSummary } from './ObjectSummary.js';
-import { ObjectDetail, type ObjectDetailData } from './ObjectDetail.js';
+import { ObjectDetail } from './ObjectDetail.js';
+import type { DetailGroup } from './object-detail-model.js';
 import { FilterChip } from './FilterChip.js';
 import type { SelectableObject, FilterClass } from '../state/selection-store.js';
 import './TimeDock.css';
@@ -45,7 +46,8 @@ export interface TimeDockTimeProps {
 export interface TimeDockObjectProps {
   mode: 'object';
   object: SelectableObject;
-  detail: ObjectDetailData;
+  /** The info panel's field groups (brief §13.4.2), from `buildDetailGroups`. */
+  groups: readonly DetailGroup[];
   onBack: () => void;
 }
 
@@ -99,7 +101,7 @@ export function TimeDock(props: TimeDockProps) {
                 {props.layers && <div className="time-dock__layers">{props.layers}</div>}
               </>
             ) : (
-              <ObjectDetail detail={props.detail} />
+              <ObjectDetail groups={props.groups} />
             )}
           </motion.div>
         )}
