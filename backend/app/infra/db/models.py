@@ -1,14 +1,14 @@
 """ORM models — see Architecture.md §4 "Data model". `norad_id` is VARCHAR,
 never INTEGER: 6-digit and Alpha-5 catalog numbers already exist (Rules.md).
 
-Only space_object and element_set exist here — the tables step 4's OMM
-ingestion worker needs. conjunction and asset land with the services that
-populate them (screening in a later Phase 1 step, the asset pipeline in P2).
+space_object and element_set feed everything; screening_run and conjunction
+are written by the screening worker (services/screening_service.py). asset
+lands with the P2 asset pipeline.
 """
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infra.db.base import Base
@@ -88,3 +88,68 @@ class ElementSet(Base):
     ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     space_object: Mapped[SpaceObject] = relationship(back_populates="element_sets")
+
+
+class ScreeningRun(Base):
+    """One catalogue screening pass and the settings it ran with, so every
+    conjunction can say how it was found. Only the latest completed run is
+    kept; its conjunctions replace the previous run's.
+    """
+
+    __tablename__ = "screening_run"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    window_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    step_s: Mapped[float] = mapped_column(Float, nullable=False)
+    reporting_distance_km: Mapped[float] = mapped_column(Float, nullable=False)
+    hard_body_radius_km: Mapped[float] = mapped_column(Float, nullable=False)  # combined
+    aspect_ratio: Mapped[float] = mapped_column(Float, nullable=False)
+    objects_screened: Mapped[int] = mapped_column(Integer, nullable=False)
+    objects_skipped: Mapped[int] = mapped_column(Integer, nullable=False)  # no usable Satrec
+    colocated_excluded: Mapped[int] = mapped_column(Integer, nullable=False)  # docked/formation
+    encounters: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    conjunctions: Mapped[list["Conjunction"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class Conjunction(Base):
+    """One close approach from a screening run, with everything RA-12 section 7
+    requires to show it honestly. There is no bare P_c column: public element
+    sets carry no covariance, so the only probability stored is the MAXIMUM
+    over ellipses of `aspect_ratio`, and it is NULL when the 2D model is not
+    valid for the encounter (RA12.D6) — the UI then shows the miss distance
+    and the reason, never a number.
+    """
+
+    __tablename__ = "conjunction"
+    __table_args__ = (
+        Index("ix_conjunction_primary_tca", "primary_object_id", "tca"),
+        Index("ix_conjunction_secondary_tca", "secondary_object_id", "tca"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(
+        ForeignKey("screening_run.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    primary_object_id: Mapped[int] = mapped_column(ForeignKey("space_object.id"), nullable=False)
+    secondary_object_id: Mapped[int] = mapped_column(ForeignKey("space_object.id"), nullable=False)
+    tca: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    miss_distance_km: Mapped[float] = mapped_column(Float, nullable=False)
+    relative_speed_km_s: Mapped[float] = mapped_column(Float, nullable=False)
+    maximum_pc: Mapped[float | None] = mapped_column(Float)  # NULL outside 2D validity
+    pc_method: Mapped[str | None] = mapped_column(String(16))  # closed_form | numerical | contact
+    dilution_sigma_km: Mapped[float] = mapped_column(Float, nullable=False)
+    valid_2d: Mapped[bool] = mapped_column(nullable=False)
+    validity_reason: Mapped[str | None] = mapped_column(Text)
+    encounter_duration_s: Mapped[float] = mapped_column(Float, nullable=False)  # ORCAS's definition
+    primary_epoch: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    secondary_epoch: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    run: Mapped[ScreeningRun] = relationship(back_populates="conjunctions")
+    primary: Mapped[SpaceObject] = relationship(foreign_keys=[primary_object_id])
+    secondary: Mapped[SpaceObject] = relationship(foreign_keys=[secondary_object_id])

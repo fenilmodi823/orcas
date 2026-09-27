@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { satrecFromOmm } from '@orcas/physics';
-import { apsidesKm, buildDetailGroups, periodMinutes, type ConjunctionSummary } from './object-detail-model.js';
+import { apsidesKm, buildDetailGroups, periodMinutes } from './object-detail-model.js';
 import { makeTestCatalog } from '../simulation/test-fixtures.js';
 
 const { objects } = makeTestCatalog(1);
@@ -66,25 +66,8 @@ describe('buildDetailGroups', () => {
     expect(field(groups, 'provenance', 'Age')).toBe('published ahead of now');
   });
 
-  it('has no conjunction group until Phase 5 supplies one', () => {
+  it('leaves the conjunction group to conjunction-detail.ts', () => {
     expect(buildDetailGroups(leo, satrec, EPOCH, EPOCH).map((g) => g.id)).not.toContain('conjunction');
-  });
-
-  it('shows a conjunction only with the family, hard body and method that make the number honest', () => {
-    const conjunction: ConjunctionSummary = {
-      counterpartName: 'COSMOS 2251',
-      missDistanceKm: 0.698,
-      maximumPc: 9.06e-4,
-      aspectRatio: 3,
-      hardBodyRadiusKm: 0.02,
-      method: 'upper bound over 3:1 ellipses (Alfano 2005)',
-    };
-    const groups = buildDetailGroups(leo, satrec, EPOCH, EPOCH, conjunction);
-    const labels = groups.find((g) => g.id === 'conjunction')?.fields.map((f) => f.label);
-
-    // Never a bare "P_c": a maximum, with what it is maximised over.
-    expect(labels).toEqual(['With', 'Miss distance', 'Maximum P_c', 'Assumed ellipse', 'Hard-body radius', 'Method']);
-    expect(field(groups, 'conjunction', 'Assumed ellipse')).toBe('3:1');
   });
 
   // Carried over from the M1.7a review's defect (d): re-parsing record.EPOCH

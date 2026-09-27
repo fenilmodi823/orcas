@@ -32,6 +32,7 @@ export function ObjectDetail({ groups }: ObjectDetailProps) {
               />
             ))}
           </div>
+          {group.note && <p className="object-detail__note">{group.note}</p>}
         </section>
       ))}
     </div>

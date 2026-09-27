@@ -31,7 +31,7 @@ class PropagatedEphemeris:
     points: list[EphemerisPoint]
 
 
-def _omm_record_from_element_set(
+def omm_record_from_element_set(
     element_set: ElementSet, object_name: str, norad_id: str, intl_designator: str
 ) -> OmmRecord:
     """Reverses ingestion_service's write-side mapping — one row back into
@@ -79,7 +79,7 @@ async def propagate_ephemeris(
         raise NoElementSetError(f"no element set ingested for {norad_id}")
 
     satrec = satrec_from_omm(
-        _omm_record_from_element_set(element_set, object_name, norad_id, intl_designator)
+        omm_record_from_element_set(element_set, object_name, norad_id, intl_designator)
     )
 
     points: list[EphemerisPoint] = []

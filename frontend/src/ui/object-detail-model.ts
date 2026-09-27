@@ -23,24 +23,8 @@ export interface DetailGroup {
   readonly id: DetailGroupId;
   readonly title: string;
   readonly fields: readonly DetailField[];
-}
-
-/**
- * The reserved Phase 5 slot (brief §13.4.2). Deliberately has no bare
- * probability field: public element sets carry no covariance, so what ORCAS
- * shows is a *maximum* probability over a stated family of uncertainty
- * ellipses, and it is meaningless without that family, the hard-body radius
- * and the method (RA-12 §7). This shape mirrors the backend's `MaximumPc`, so
- * an unlabelled P_c cannot be constructed here any more than there.
- */
-export interface ConjunctionSummary {
-  readonly counterpartName: string;
-  readonly missDistanceKm: number;
-  readonly maximumPc: number;
-  readonly aspectRatio: number;
-  readonly hardBodyRadiusKm: number;
-  /** One-line method statement, e.g. "upper bound over 3:1 ellipses (Alfano 2005)". */
-  readonly method: string;
+  /** A sentence under the fields — the method statement a number needs. */
+  readonly note?: string;
 }
 
 const TYPE_LABELS: Record<ObjType, string> = {
@@ -102,8 +86,9 @@ function kinematicsAt(satrec: SatRec, object: ObjectMeta, atMs: number): DetailF
 
 /**
  * The info panel's field groups, in the brief's order (§13.4.2): Identity,
- * Kinematics, Orbit, Provenance, Conjunction. A group with nothing to show is
- * dropped, never rendered as blanks. `simulationMs` is the simulated instant
+ * Kinematics, Orbit, Provenance — the Conjunction group comes from
+ * `conjunction-detail.ts`, because it depends on the backend and these do
+ * not. A group with nothing to show is dropped, never rendered as blanks. `simulationMs` is the simulated instant
  * the kinematics are evaluated at; `nowMs` is the wall clock the element-set
  * age is measured against — two different clocks, deliberately.
  */
@@ -112,7 +97,6 @@ export function buildDetailGroups(
   satrec: SatRec | null,
   simulationMs: number,
   nowMs: number,
-  conjunction?: ConjunctionSummary,
 ): DetailGroup[] {
   const { record } = object;
   const { apogeeKm, perigeeKm } = apsidesKm(record.MEAN_MOTION, record.ECCENTRICITY);
@@ -157,21 +141,6 @@ export function buildDetailGroups(
       ],
     },
   ];
-
-  if (conjunction) {
-    groups.push({
-      id: 'conjunction',
-      title: 'Conjunction',
-      fields: [
-        { label: 'With', value: conjunction.counterpartName },
-        { label: 'Miss distance', value: conjunction.missDistanceKm * 1000, unit: 'm', precision: 0 },
-        { label: 'Maximum P_c', value: conjunction.maximumPc.toExponential(2) },
-        { label: 'Assumed ellipse', value: `${conjunction.aspectRatio}:1` },
-        { label: 'Hard-body radius', value: conjunction.hardBodyRadiusKm * 1000, unit: 'm', precision: 0 },
-        { label: 'Method', value: conjunction.method },
-      ],
-    });
-  }
 
   return groups.filter((group) => group.fields.length > 0);
 }

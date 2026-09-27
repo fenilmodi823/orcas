@@ -19,3 +19,11 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3) var(--space-4);
 }
+
+/* The method statement a number needs (RA-12 §7) — read, not scanned. */
+.object-detail__note {
+  margin: var(--space-2) 0 0;
+  color: var(--text-mid);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
