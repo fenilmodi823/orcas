@@ -7,18 +7,18 @@ import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
 import { ObjectLabels, LABEL_SLOT_COUNT } from '../points/ObjectLabels.js';
 import { StarSky } from '../sky/StarSky.js';
+import { EarthSunMoon } from '../earth/EarthSunMoon.js';
 import { isClickNotDrag } from '../points/points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { useContextLoss } from '../use-context-loss.js';
 import { ObjectTether } from '../../ui/ObjectTether.js';
-import { ObjectLabel } from '../../ui/ObjectLabel.js';
+import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { LiveSceneState } from './use-live-scene.js';
 import './LiveScene.css';
 
-const EARTH_RADIUS_KM = 6371;
 // R_GEO — matches the camera rig's default radius so the first frame does not jump.
 const CAMERA_DISTANCE_KM = 42_164;
 
@@ -76,6 +76,8 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const contextLoss = useContextLoss(canvasEl);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
+  const sunLabelRef = useRef<ObjectLabelHandle | null>(null);
+  const moonLabelRef = useRef<ObjectLabelHandle | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
 
@@ -115,6 +117,10 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
         <Canvas
           dpr={[1, 2]}
           camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}
+          // P7.D2: reversed float depth, so a metre-scale near plane and the
+          // Moon at 400,000 km share one depth buffer. three falls back to the
+          // ordinary buffer where EXT_clip_control is missing.
+          gl={{ reversedDepthBuffer: true }}
           onCreated={({ gl }) => setCanvasEl(gl.domElement)}
         >
           {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
@@ -140,12 +146,9 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
               the controller is the load-bearing order M1.7a established. */}
           <OrbitPaths frameStateRef={loop.frameStateRef} objects={objects} byNorad={byNorad} />
           <StarSky />
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[EARTH_RADIUS_KM, 0, EARTH_RADIUS_KM]} intensity={1.2} />
-          <mesh>
-            <sphereGeometry args={[EARTH_RADIUS_KM, 64, 64]} />
-            <meshStandardMaterial color="#0E1626" emissive="#00E5FF" emissiveIntensity={0.05} roughness={0.85} />
-          </mesh>
+          {/* A faint ambient only: the night side stays dark (brief §F.1). */}
+          <ambientLight intensity={0.08} />
+          <EarthSunMoon frameStateRef={loop.frameStateRef} sunLabelRef={sunLabelRef} moonLabelRef={moonLabelRef} />
           <TierZeroPoints
             objects={objects}
             ranks={ranks}
@@ -216,6 +219,8 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           name={k === LABEL_SLOT_COUNT - 1 ? (resolvedSelected?.name ?? '') : (featuredNames[k] ?? '')}
         />
       ))}
+      <ObjectLabel ref={sunLabelRef} name="Sun" />
+      <ObjectLabel ref={moonLabelRef} name="Moon" />
     </div>
   );
 }

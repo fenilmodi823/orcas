@@ -22,4 +22,10 @@ describe('computeNearFarKm', () => {
   it('near is floored at 1 m', () => {
     expect(computeNearFarKm(0.0001, 6800).nearKm).toBe(0.001);
   });
+
+  // M1.11: the Moon is a real body in the scene, up to ~406,700 km away.
+  it('far reaches past the Moon at apogee from any vantage', () => {
+    expect(computeNearFarKm(35629, 42000).farKm).toBeGreaterThan(42000 + 406700 + 1737);
+    expect(computeNearFarKm(0.45, 6871).farKm).toBeGreaterThan(6871 + 406700 + 1737);
+  });
 });

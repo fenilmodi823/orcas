@@ -11,6 +11,11 @@ import { Color } from 'three';
  * source of truth.
  */
 export function readCyanToken(): Color {
-  const hex = getComputedStyle(document.documentElement).getPropertyValue('--orca-cyan').trim();
-  return new Color(hex || '#00E5FF');
+  return readColorToken('--orca-cyan', '#00E5FF');
+}
+
+/** Any colour token as a `three` Color; `fallback` is the token's own value, for JSDOM. */
+export function readColorToken(name: string, fallback: string): Color {
+  const hex = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return new Color(hex || fallback);
 }

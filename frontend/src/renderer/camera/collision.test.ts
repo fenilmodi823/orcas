@@ -3,6 +3,7 @@ import { Vector3 } from 'three';
 import {
   clampFreeOrbitRadiusKm,
   ellipsoidNormalizedDistance,
+  MAX_CAMERA_RADIUS_KM,
   R_EARTH_A_KM,
   requiredExtraSwellGain,
   softRepulsionScale,
@@ -12,6 +13,10 @@ describe('clampFreeOrbitRadiusKm', () => {
   it('never lets freeOrbit closer than R_earth + 120 km', () => {
     expect(clampFreeOrbitRadiusKm(100)).toBeCloseTo(R_EARTH_A_KM + 120, 3);
     expect(clampFreeOrbitRadiusKm(50000)).toBe(50000);
+  });
+
+  it('stops zooming out at the ceiling', () => {
+    expect(clampFreeOrbitRadiusKm(1e11)).toBe(MAX_CAMERA_RADIUS_KM);
   });
 });
 

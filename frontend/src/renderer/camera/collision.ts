@@ -4,13 +4,16 @@ export const R_EARTH_A_KM = 6378.137;
 export const R_EARTH_B_KM = 6356.752;
 
 const FREE_ORBIT_MIN_ALT_KM = 120; // atmosphere shell inner boundary / near-plane clipping
+/** Zoom-out ceiling: ~4x the Moon's distance, so its whole orbit frames with room
+ * to spare. Unbounded, the wheel reached 1e11 km, where float32 falls apart. */
+export const MAX_CAMERA_RADIUS_KM = 1_500_000;
 const FLIGHT_CLEARANCE_ALT_KM = 200;
 const SOFT_REPULSION_BAND_CAP_KM = 300;
 const SOFT_REPULSION_BAND_RATIO = 2;
 
-/** Layer 1 (brief §C.8): in freeOrbit, radius ≥ R_earth + 120 km. */
+/** Layer 1 (brief §C.8): in freeOrbit, R_earth + 120 km ≤ radius ≤ the zoom-out ceiling. */
 export function clampFreeOrbitRadiusKm(radiusKm: number): number {
-  return Math.max(radiusKm, R_EARTH_A_KM + FREE_ORBIT_MIN_ALT_KM);
+  return Math.min(MAX_CAMERA_RADIUS_KM, Math.max(radiusKm, R_EARTH_A_KM + FREE_ORBIT_MIN_ALT_KM));
 }
 
 /**

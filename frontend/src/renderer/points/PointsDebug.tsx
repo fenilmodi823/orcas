@@ -17,6 +17,7 @@ import { OrbitClassLegend } from '../../ui/OrbitClassLegend.js';
 import { PerfProbe, PerfHud } from './PerfHud.js';
 import { Tier1Readout } from './Tier1Readout.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../sky/star-sky.js';
+import { EARTH_IMAGERY_CREDIT } from '../earth/earth-materials.js';
 import type { CatalogSnapshot } from '../../data/catalog-types.js';
 import { useCrossCheck } from './points-cross-check.js';
 import { CrossCheckTable } from './CrossCheckTable.js';
@@ -163,7 +164,9 @@ function PointsDebugPanel({ snapshot, origin }: { snapshot: CatalogSnapshot; ori
 
           {/* ESA's data policy requires the acknowledgement to be visible where
               the data is used, not only in source. */}
-          <p className="points-debug__attribution">{GAIA_ACKNOWLEDGEMENT}</p>
+          <p className="points-debug__attribution">
+            {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT}
+          </p>
         </PanelErrorBoundary>
       </GlassSurface>
     </div>

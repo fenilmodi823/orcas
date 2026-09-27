@@ -29,6 +29,7 @@
   --geo: #ffb020; /* gold — unchanged */
   --heo: #b57bff; /* violet — HEO / highly elliptical / other */
   --debris: #8a93a6; /* neutral grey — unchanged, never red */
+  --moon: #e6dcc6; /* natural bodies only (P4.D30) — warm ivory, never a regime colour */
 
   /* Text */
   --text-hi: #eaf0fa;

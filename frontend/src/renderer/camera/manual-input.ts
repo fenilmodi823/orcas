@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { deriveAzElRadius, rigCameraPosition, type CameraRig } from './camera-rig.js';
-import { softRepulsionScale } from './collision.js';
+import { MAX_CAMERA_RADIUS_KM, softRepulsionScale } from './collision.js';
 
 /** Cosine of the closest approach to the up axis a vertical drag may reach.
  * Matches camera-rig's MAX_ELEVATION_RAD = pi/2 - 0.001: the pole is the
@@ -94,7 +94,9 @@ export function accumulateManualInput(
     const scale = softRepulsionScale(targetRig.radiusKm, minRadiusKm);
     next = targetRig.radiusKm + (next - targetRig.radiusKm) * scale;
   }
-  targetRig.radiusKm = Math.max(minRadiusKm, next);
+  // Clamped here, on the target, not only on the damped rig: otherwise every
+  // wheel tick past the ceiling has to be unwound before zooming in responds.
+  targetRig.radiusKm = Math.min(MAX_CAMERA_RADIUS_KM, Math.max(minRadiusKm, next));
 }
 
 /**
