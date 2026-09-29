@@ -13,6 +13,10 @@ let nextVersion = 1;
 export function buildSnapshot(
   rawRecords: readonly unknown[],
   nowMs: number = Date.now(),
+  /** When the records were fetched. Differs from `nowMs` only for a
+   * historical replay, which validates against the replay instant but was
+   * fetched just now. */
+  fetchedAtMs: number = nowMs,
 ): CatalogSnapshot {
   const objects: ObjectMeta[] = [];
   const rejected: RejectedRecord[] = [];
@@ -38,7 +42,7 @@ export function buildSnapshot(
 
   return Object.freeze({
     version: nextVersion++,
-    fetchedAtMs: nowMs,
+    fetchedAtMs,
     objects: Object.freeze(objects),
     byNorad: Object.freeze(byNorad),
     rejected: Object.freeze(rejected),

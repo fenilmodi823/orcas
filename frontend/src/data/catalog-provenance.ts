@@ -110,6 +110,7 @@ const ORIGIN_LABELS: Readonly<Record<CatalogOrigin, string>> = {
   live: 'live from the backend',
   cached: 'last cached snapshot — the backend was unreachable',
   bundled: 'bundled sample fixtures — no live or cached data available',
+  replay: 'historical replay — the element sets that existed at the replay moment, not today’s',
   unavailable: 'no catalogue data',
 };
 

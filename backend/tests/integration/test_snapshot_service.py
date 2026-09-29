@@ -114,3 +114,42 @@ async def test_write_snapshot_round_trips_through_gzip(tmp_path) -> None:  # typ
     # dev database. The aggregation logic itself is unit-tested directly
     # in test_snapshot_service_sources.py.
     assert "celestrak" in meta["source"].split("+")
+
+
+def _fixture_ids(result) -> dict:  # type: ignore[no-untyped-def]
+    return {o["NORAD_CAT_ID"]: o for o in result.objects if o["NORAD_CAT_ID"] in TEST_NORAD_IDS}
+
+
+@pytest.mark.asyncio
+async def test_build_snapshot_as_of_picks_the_newest_set_at_or_before_at() -> None:
+    # Replay (P5): the catalogue as it stood at noon on Jan 1 — object 987001's
+    # Jan 2 set did not exist yet, so its Jan 1 set is the one a screener had.
+    async with get_session() as session:
+        result = await build_snapshot(session, at=datetime(2026, 1, 1, 12, tzinfo=UTC))
+
+    by_id = _fixture_ids(result)
+    assert by_id["987001"]["EPOCH"] == datetime(2026, 1, 1, tzinfo=UTC).isoformat()
+    assert "987002" in by_id
+
+
+@pytest.mark.asyncio
+async def test_build_snapshot_as_of_omits_objects_with_no_history_yet() -> None:
+    async with get_session() as session:
+        result = await build_snapshot(session, at=datetime(2025, 12, 31, tzinfo=UTC))
+
+    assert _fixture_ids(result) == {}
+
+
+@pytest.mark.asyncio
+async def test_build_snapshot_as_of_omits_objects_already_decayed() -> None:
+    async with get_session() as session:
+        stmt = select(SpaceObject).where(SpaceObject.norad_id == "987002")
+        obj = (await session.execute(stmt)).scalar_one()
+        obj.decay_date = datetime(2026, 1, 1, 6, tzinfo=UTC)
+
+    async with get_session() as session:
+        replayed = await build_snapshot(session, at=datetime(2026, 1, 1, 12, tzinfo=UTC))
+        before_decay = await build_snapshot(session, at=datetime(2026, 1, 1, 3, tzinfo=UTC))
+
+    assert "987002" not in _fixture_ids(replayed)
+    assert "987002" in _fixture_ids(before_decay)

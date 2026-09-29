@@ -16,6 +16,7 @@ import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
 import { DataProvenance } from '../ui/DataProvenance.js';
 import { DebrisToggle } from '../ui/DebrisToggle.js';
 import { HeatmapToggle } from '../ui/HeatmapToggle.js';
+import { ReplayControl, type ReplayHandle } from '../ui/ReplayControl.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
 import { useDetailGroups } from '../ui/use-detail-groups.js';
@@ -41,7 +42,8 @@ const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debri
  * is exactly one renderer.
  */
 export function SimulationView() {
-  const { snapshot, origin, loading, error } = useCatalog();
+  const { snapshot, origin, loading, error, replayAtMs, replayError, startReplay, endReplay } = useCatalog();
+  const replay: ReplayHandle = { atMs: replayAtMs, error: replayError, start: startReplay, end: endReplay };
 
   if (!snapshot || snapshot.objects.length === 0) {
     // useCatalog falls back to cache and then to bundled fixtures, so this is
@@ -53,11 +55,19 @@ export function SimulationView() {
       </p>
     );
   }
-  return <LiveSimulation snapshot={snapshot} origin={origin} />;
+  // Keyed on the replay instant: a replay is a different catalogue, and the
+  // scene's buffers are sized to its catalogue at mount, so it remounts.
+  return <LiveSimulation key={replayAtMs ?? 'live'} snapshot={snapshot} origin={origin} replay={replay} />;
 }
 
-function LiveSimulation({ snapshot, origin }: { snapshot: CatalogSnapshot; origin: CatalogOrigin }) {
-  const scene = useLiveScene(snapshot.objects, snapshot.byNorad);
+interface LiveSimulationProps {
+  readonly snapshot: CatalogSnapshot;
+  readonly origin: CatalogOrigin;
+  readonly replay: ReplayHandle;
+}
+
+function LiveSimulation({ snapshot, origin, replay }: LiveSimulationProps) {
+  const scene = useLiveScene(snapshot.objects, snapshot.byNorad, replay.atMs ?? undefined);
   const provenance = useProvenance(snapshot, origin);
 
   return (
@@ -80,7 +90,7 @@ function LiveSimulation({ snapshot, origin }: { snapshot: CatalogSnapshot; origi
       </PanelErrorBoundary>
       <div className="simulation__dock">
         <PanelErrorBoundary label="Time dock">
-          <SimulationDock scene={scene} provenance={provenance} />
+          <SimulationDock scene={scene} provenance={provenance} replay={replay} />
         </PanelErrorBoundary>
       </div>
       {/* Map-credit style: small, persistent, out of the way. RA-14 §2.3 wants
@@ -95,7 +105,13 @@ function LiveSimulation({ snapshot, origin }: { snapshot: CatalogSnapshot; origi
 }
 
 /** Owns the slow display clock, so its re-renders stay inside the dock. */
-function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenance: CatalogProvenance }) {
+interface SimulationDockProps {
+  readonly scene: LiveSceneState;
+  readonly provenance: CatalogProvenance;
+  readonly replay: ReplayHandle;
+}
+
+function SimulationDock({ scene, provenance, replay }: SimulationDockProps) {
   const { objects, loop, selectedObjectMeta } = scene;
   const currentTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
   const playing = useSimulationStore((s) => s.playing);
@@ -156,6 +172,9 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
       reversed={reversed}
       onToggleDirection={toggleDirection}
       onJumpToNow={() => {
+        // During a replay, NOW means the present catalogue, not today's time
+        // propagated from the replay's old element sets.
+        if (replay.atMs !== null) return replay.end();
         useSimulationStore.getState().jumpToNow();
         scrubTo(Date.now());
       }}
@@ -166,6 +185,7 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
           <DensitySlider />
           <DebrisToggle count={counts.debris} />
           <HeatmapToggle />
+          <ReplayControl replay={replay} />
           <DataProvenance provenance={provenance} />
         </>
       }

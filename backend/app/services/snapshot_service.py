@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.types import OmmRecord
@@ -58,8 +58,15 @@ def _aggregate_sources(sources: set[str]) -> str:
     return "+".join(sorted(sources)) if sources else "celestrak"
 
 
-async def build_snapshot(session: AsyncSession) -> SnapshotResult:
+async def build_snapshot(session: AsyncSession, at: datetime | None = None) -> SnapshotResult:
     """Latest element_set per object, joined to identity.
+
+    With `at` (timezone-aware UTC), the catalogue as it stood at that
+    moment — historical replay (Phase 5): each object's newest element set
+    whose epoch is at or before `at`, leaving out objects with no history
+    yet and objects whose SATCAT decay date had already passed. element_set
+    is append-only, so this is exact for anything ingested; history is only
+    as deep as ingestion.
 
     Postgres-only (DISTINCT ON) — consistent with Architecture.md's "why
     PostgreSQL and not SQLite" (this project never targets another engine).
@@ -70,6 +77,10 @@ async def build_snapshot(session: AsyncSession) -> SnapshotResult:
         .distinct(ElementSet.object_id)
         .order_by(ElementSet.object_id, ElementSet.epoch.desc())
     )
+    if at is not None:
+        stmt = stmt.where(ElementSet.epoch <= at).where(
+            or_(SpaceObject.decay_date.is_(None), SpaceObject.decay_date > at)
+        )
     rows = (await session.execute(stmt)).all()
 
     objects: list[SnapshotObject] = []

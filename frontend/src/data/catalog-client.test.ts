@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CatalogFetchError, fetchCatalogMeta, fetchCatalogSnapshot } from './catalog-client.js';
+import { CatalogFetchError, fetchCatalogMeta, fetchCatalogReplay, fetchCatalogSnapshot } from './catalog-client.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -60,5 +60,26 @@ describe('fetchCatalogMeta', () => {
   it('throws CatalogFetchError on a non-OK response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }));
     await expect(fetchCatalogMeta()).rejects.toBeInstanceOf(CatalogFetchError);
+  });
+});
+
+describe('fetchCatalogReplay', () => {
+  it('asks for the catalogue at the given instant, in UTC', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+    vi.stubGlobal('fetch', fetchMock);
+    await fetchCatalogReplay(Date.UTC(2026, 8, 20, 12));
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('/api/v1/catalog/replay?at=2026-09-20T12%3A00%3A00.000Z');
+  });
+
+  it("carries the backend's reason when there is no history that far back", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({ detail: 'no element sets stored - the earliest is 2026-08-01' }),
+      }),
+    );
+    await expect(fetchCatalogReplay(0)).rejects.toThrow(/earliest is 2026-08-01/);
   });
 });

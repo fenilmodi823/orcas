@@ -45,6 +45,39 @@ export async function fetchCatalogSnapshot(): Promise<readonly unknown[]> {
   return body;
 }
 
+function detailOf(body: unknown): string | null {
+  return typeof body === 'object' && body !== null && 'detail' in body && typeof body.detail === 'string'
+    ? body.detail
+    : null;
+}
+
+/**
+ * The catalogue as it stood at `atMs` — historical replay (Phase 5): each
+ * object's newest element set at or before that instant, built by the
+ * backend from element_set history. Same record format as the snapshot. On
+ * failure the backend's own reason (e.g. how far back history goes) becomes
+ * the error message, so the UI can say it rather than a bare status code.
+ */
+export async function fetchCatalogReplay(atMs: number): Promise<readonly unknown[]> {
+  const at = encodeURIComponent(new Date(atMs).toISOString());
+  let res: Response;
+  try {
+    res = await fetch(`${apiBaseUrl()}/api/v1/catalog/replay?at=${at}`);
+  } catch (err) {
+    throw new CatalogFetchError('network request for /catalog/replay failed', err);
+  }
+  if (!res.ok) {
+    // An unreadable error body falls back to the status line, not to silence.
+    const detail = await res.json().then(detailOf, () => null);
+    throw new CatalogFetchError(detail ?? `GET /catalog/replay -> ${res.status}`);
+  }
+  const body: unknown = await res.json();
+  if (!Array.isArray(body)) {
+    throw new CatalogFetchError('replay response was not a JSON array');
+  }
+  return body;
+}
+
 interface RawCatalogMeta {
   readonly object_count: number;
   readonly newest_epoch: string | null;

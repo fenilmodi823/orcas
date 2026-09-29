@@ -1,0 +1,66 @@
+.replay-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.replay-control__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text-lo);
+  font: var(--t-small);
+}
+
+.replay-control__input {
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius-sm);
+  background: var(--glass-fill);
+  color: var(--text-hi);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  padding: var(--space-1) var(--space-2);
+  color-scheme: dark;
+}
+
+.replay-control__button {
+  border: none;
+  background: transparent;
+  color: var(--orca-cyan);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  padding: var(--space-1) 0;
+}
+
+.replay-control__button:disabled {
+  color: var(--text-lo);
+  cursor: default;
+}
+
+.replay-control__input:focus-visible,
+.replay-control__button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.replay-control__status {
+  margin: 0;
+  color: var(--text-mid);
+  font: var(--t-small);
+}
+
+.replay-control__time {
+  color: var(--text-hi);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.replay-control__error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--caution);
+  font: var(--t-small);
+}

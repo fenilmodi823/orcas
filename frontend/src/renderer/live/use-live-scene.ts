@@ -48,10 +48,15 @@ export interface LiveSceneState {
  * change reaches the next frame without re-rendering the scene, which is the
  * "never update React state every frame" rule applied in reverse.
  */
-export function useLiveScene(objects: readonly ObjectMeta[], byNorad: Readonly<Record<string, number>>): LiveSceneState {
+export function useLiveScene(
+  objects: readonly ObjectMeta[],
+  byNorad: Readonly<Record<string, number>>,
+  /** Where the simulation clock starts: now, or a replay's instant. */
+  startAtMs?: number,
+): LiveSceneState {
   const playingRef = useRef(useSimulationStore.getState().playing);
   const rateRef = useRef(effectiveRate(useSimulationStore.getState()));
-  const [startEpochMs] = useState(() => Date.now());
+  const [startEpochMs] = useState(() => startAtMs ?? Date.now());
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
 
   useEffect(

@@ -3,6 +3,8 @@ one object's identity plus its latest element_set. No physics of its own —
 see Rules.md layering.
 """
 
+from datetime import datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,3 +47,8 @@ async def get_latest_element_set(session: AsyncSession, object_id: int) -> Eleme
         .limit(1)
     )
     return (await session.execute(stmt)).scalar_one_or_none()
+
+
+async def earliest_epoch(session: AsyncSession) -> datetime | None:
+    """The oldest element-set epoch stored — how far back replay can go."""
+    return (await session.execute(select(func.min(ElementSet.epoch)))).scalar_one()

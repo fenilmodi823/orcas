@@ -2,8 +2,11 @@ import { render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCatalog } from './use-catalog.js';
 
-const { fetchCatalogSnapshot } = vi.hoisted(() => ({ fetchCatalogSnapshot: vi.fn() }));
-vi.mock('./catalog-client.js', () => ({ fetchCatalogSnapshot }));
+const { fetchCatalogSnapshot, fetchCatalogReplay } = vi.hoisted(() => ({
+  fetchCatalogSnapshot: vi.fn(),
+  fetchCatalogReplay: vi.fn(),
+}));
+vi.mock('./catalog-client.js', () => ({ fetchCatalogSnapshot, fetchCatalogReplay }));
 
 const { loadPersistedSnapshot, persistSnapshot } = vi.hoisted(() => ({
   loadPersistedSnapshot: vi.fn(),
