@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { MutableRefObject, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
+import type { Points } from 'three';
 import { TierZeroPoints } from '../points/TierZeroPoints.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
@@ -8,6 +9,7 @@ import { GroundTracks } from '../paths/GroundTracks.js';
 import { ObjectLabels, LABEL_SLOT_COUNT } from '../points/ObjectLabels.js';
 import { StarSky } from '../sky/StarSky.js';
 import { EarthSunMoon } from '../earth/EarthSunMoon.js';
+import { DensityHeatmap } from '../density/DensityHeatmap.js';
 import { isClickNotDrag } from '../points/points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { useContextLoss } from '../use-context-loss.js';
@@ -78,6 +80,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const sunLabelRef = useRef<ObjectLabelHandle | null>(null);
   const moonLabelRef = useRef<ObjectLabelHandle | null>(null);
+  const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
 
@@ -156,7 +159,9 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
             tetherRef={tetherRef}
             selectedTetherRef={selectedTetherRef}
             pickHandleRef={pointsHandleRef}
+            pointsObjectRef={tierZeroObjectRef}
           />
+          <DensityHeatmap pointsObjectRef={tierZeroObjectRef} />
           <Tier1Objects
             frameStateRef={loop.frameStateRef}
             objects={objects}

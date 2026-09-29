@@ -1,0 +1,15 @@
+.export-ephemeris {
+  margin: 0 var(--space-4) var(--space-3);
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--orca-cyan);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+.export-ephemeris:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

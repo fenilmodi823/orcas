@@ -49,6 +49,8 @@ export interface TimeDockObjectProps {
   /** The info panel's field groups (brief §13.4.2), from `buildDetailGroups`. */
   groups: readonly DetailGroup[];
   onBack: () => void;
+  /** Controls shown under the detail grid, e.g. the ephemeris export. */
+  actions?: ReactNode;
 }
 
 export type TimeDockProps = TimeDockTimeProps | TimeDockObjectProps;
@@ -101,7 +103,10 @@ export function TimeDock(props: TimeDockProps) {
                 {props.layers && <div className="time-dock__layers">{props.layers}</div>}
               </>
             ) : (
-              <ObjectDetail groups={props.groups} />
+              <>
+                <ObjectDetail groups={props.groups} />
+                {props.actions}
+              </>
             )}
           </motion.div>
         )}

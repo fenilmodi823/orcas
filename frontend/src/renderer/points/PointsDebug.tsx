@@ -8,6 +8,7 @@ import { TimeDock } from '../../ui/TimeDock.js';
 import { DataProvenance } from '../../ui/DataProvenance.js';
 import { useProvenance } from '../../data/use-provenance.js';
 import { DebrisToggle } from '../../ui/DebrisToggle.js';
+import { HeatmapToggle } from '../../ui/HeatmapToggle.js';
 import { DensitySlider } from '../../ui/DensitySlider.js';
 import { useViewStore } from '../../state/view-store.js';
 import { useSelectionStore } from '../../state/selection-store.js';
@@ -138,6 +139,7 @@ function PointsDebugPanel({ snapshot, origin }: { snapshot: CatalogSnapshot; ori
           />
           <DensitySlider />
           <DebrisToggle count={counts.debris} />
+          <HeatmapToggle />
           {perfEnabled && <PerfHud {...perfRefs} />}
 
           <div className="points-debug__filters">

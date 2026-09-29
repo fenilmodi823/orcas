@@ -47,6 +47,9 @@ interface TierZeroPointsProps {
    * file, so it sidesteps the broken path entirely rather than fighting it.
    */
   readonly pickHandleRef: MutableRefObject<TierZeroPointsHandle | null>;
+  /** The live THREE.Points, for layers that draw the same geometry again
+   * (the density heatmap). Assigned once its geometry exists. */
+  readonly pointsObjectRef?: MutableRefObject<Points | null>;
 }
 
 /**
@@ -69,6 +72,7 @@ export function TierZeroPoints({
   tetherRef,
   selectedTetherRef,
   pickHandleRef,
+  pointsObjectRef,
 }: TierZeroPointsProps) {
   const pointsRef = useRef<Points>(null);
   const { size, camera } = useThree();
@@ -104,8 +108,10 @@ export function TierZeroPoints({
 
     points.geometry = geometry;
     points.material = material;
+    if (pointsObjectRef) pointsObjectRef.current = points;
 
     return () => {
+      if (pointsObjectRef) pointsObjectRef.current = null;
       geometry.dispose();
       material.dispose();
     };

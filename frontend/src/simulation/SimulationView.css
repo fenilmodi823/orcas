@@ -29,8 +29,9 @@
    inspection, and never competing with the scene. */
 .simulation__credit {
   position: absolute;
-  left: var(--space-4);
-  right: var(--space-4);
+  /* Symmetric insets keep the centred credit clear of the legend's column. */
+  left: clamp(var(--space-4), 10vw, 11rem);
+  right: clamp(var(--space-4), 10vw, 11rem);
   bottom: var(--space-2);
   margin: 0;
   color: var(--text-lo);

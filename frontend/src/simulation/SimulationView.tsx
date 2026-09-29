@@ -15,9 +15,11 @@ import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
 import { DataProvenance } from '../ui/DataProvenance.js';
 import { DebrisToggle } from '../ui/DebrisToggle.js';
+import { HeatmapToggle } from '../ui/HeatmapToggle.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
 import { useDetailGroups } from '../ui/use-detail-groups.js';
+import { ExportEphemerisButton } from '../ui/ExportEphemerisButton.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { useSimulationStore } from '../state/simulation-store.js';
@@ -122,6 +124,7 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
         mode="object"
         object={liveSelected}
         groups={detailGroups}
+        actions={<ExportEphemerisButton object={selectedObjectMeta} startMs={currentTime.getTime()} />}
         onBack={() => setSelected(null)}
       />
     );
@@ -162,6 +165,7 @@ function SimulationDock({ scene, provenance }: { scene: LiveSceneState; provenan
         <>
           <DensitySlider />
           <DebrisToggle count={counts.debris} />
+          <HeatmapToggle />
           <DataProvenance provenance={provenance} />
         </>
       }

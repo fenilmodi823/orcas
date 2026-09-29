@@ -19,6 +19,10 @@ interface ViewState {
    * `ObjType.Debris` objects, never payloads or rocket bodies. Session
    * state only, like every other view toggle here. */
   showDebris: boolean;
+  /** Phase 5 crowding heatmap: where catalogued objects crowd on screen.
+   * Default off; a layer over the scene, never a change to what is
+   * propagated. Not the `density` slider, which sets how many are shown. */
+  showHeatmap: boolean;
   /** The OS's `prefers-reduced-motion` value, mirrored into the store so the
    * camera state machine and the renderer read one source (brief §6.5).
    * Updated live — users toggle it mid-session. */
@@ -34,6 +38,7 @@ interface ViewState {
   closeSearch: () => void;
   setDensity: (density: number) => void;
   toggleDebris: () => void;
+  toggleHeatmap: () => void;
   togglePanel: () => void;
   toggleOrbitClassLegend: () => void;
 }
@@ -44,6 +49,7 @@ export const useViewStore = create<ViewState>((set) => ({
   searchOpen: false,
   density: 100,
   showDebris: false,
+  showHeatmap: false,
   panelCollapsed: false,
   orbitClassLegendDismissed: false,
   osPrefersReducedMotion: false,
@@ -64,6 +70,7 @@ export const useViewStore = create<ViewState>((set) => ({
   closeSearch: () => set({ searchOpen: false }),
   setDensity: (density) => set({ density }),
   toggleDebris: () => set((state) => ({ showDebris: !state.showDebris })),
+  toggleHeatmap: () => set((state) => ({ showHeatmap: !state.showHeatmap })),
   togglePanel: () => set((state) => ({ panelCollapsed: !state.panelCollapsed })),
   toggleOrbitClassLegend: () => set((state) => ({ orbitClassLegendDismissed: !state.orbitClassLegendDismissed })),
 }));
