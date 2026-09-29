@@ -26,16 +26,16 @@ This repository is **under active reconstruction** and is honest about what is a
 
 | Component | Status |
 | --- | --- |
-| **Backend** (`backend/`) | ✅ **Complete and tested.** Propagation, covariance, conjunction, OMM ingestion, REST API, 100% coverage on `domain/` + `services/`. An object classifier exists as code but is retired from the product — no route calls it. |
-| **Data layer** | 🟡 **Half done.** Ingestion, retention, snapshot generation and the `/catalog` endpoints work. The 3D asset pipeline is not started. |
+| **Backend** (`backend/`) | ✅ **Complete and tested.** Propagation, covariance, conjunction, catalogue-wide conjunction screening, OMM ingestion, REST API, 99% coverage on `domain/` + `services/`. An object classifier exists as code but is retired from the product — no route calls it. |
+| **Data layer** | 🟡 **Mostly done.** Ingestion (CelesTrak, Space-Track, SATCAT), retention, snapshot generation, historical replay and the `/catalog` endpoints work. Ingestion and screening are run by hand, not scheduled. The 3D asset pipeline is not started. |
 | **Design system** (`frontend/src/ui/`) | ✅ **Complete.** Tokens, glass material, 12 components, live at the `/design` route. |
-| **Simulation frontend** | 🟡 **In progress.** The renderer is being built milestone by milestone on **debug routes**. The root route `/` is still a placeholder scene. |
+| **Simulation frontend** | ✅ **Live on `/`.** The whole catalogue, search, reversible time, an object info panel with its screened close approaches, the live Earth, Sun and Moon, Earth's shadow, a crowding heatmap, CSV ephemeris export and historical replay. Still to come: the Kessler swarm, 3D models, and the Solar System scale. |
 
-**The polished single-page app that earlier versions of this README described does not exist.** An
-earlier prototype (`frontend-3d`) was deleted in a 2026-08-14 restructure because its "physics" was
-`angle += speed` — it never imported an SGP4 implementation at all. Nothing was salvaged from it,
-and the features it advertised (Kessler swarm, density heatmaps, CSV export) are **not currently
-implemented**. They are ideas, not deliverables, and appear as such in the roadmap below.
+**An earlier prototype (`frontend-3d`) was deleted in a 2026-08-14 restructure** because its
+"physics" was `angle += speed` — it never imported an SGP4 implementation at all. Nothing was
+salvaged from it. Two of the features it advertised, the density heatmap and CSV export, have since
+been rebuilt from scratch on real SGP4 output. The third, the **Kessler swarm, is not built**: it
+waits until NASA's Standard Breakup Model can be transcribed from its source.
 
 This project **runs locally only.** It is not deployed and has no hosted instance.
 
@@ -71,7 +71,7 @@ cp .env.example .env
 docker compose up
 ```
 
-Then open **<http://localhost:5173/points>**.
+Then open **<http://localhost:5173/>**.
 
 That one command must produce a working system. If a second step is ever required, the setup is
 considered broken. Four services come up: `postgres`, `backend` (:8000), `worker`, and `frontend`
@@ -88,20 +88,32 @@ docker compose run --rm worker uv run python -m app.workers.tasks.ingest_gp --on
 docker compose run --rm worker uv run python -m app.workers.tasks.bake_snapshot --once
 ```
 
+The full catalogue, including debris, comes from Space-Track and needs a free account
+(`SPACE_TRACK_USERNAME` and `SPACE_TRACK_PASSWORD` in `.env`). Run the steps in this order, because
+the screen is only as fresh as the element sets it reads:
+
+```bash
+docker compose run --rm worker uv run python -m app.workers.tasks.ingest_spacetrack_gp --once
+docker compose run --rm worker uv run python -m app.workers.tasks.ingest_satcat --once
+docker compose run --rm worker uv run python -m app.workers.tasks.bake_snapshot --once
+docker compose run --rm worker uv run python -m app.workers.tasks.screen_conjunctions --once
+```
+
+The screen covers the next 24 hours at a 10 s step and takes about half an hour on the full
+catalogue (measured: 35 min 24 s for 32,407 objects, single-threaded).
+
 ---
 
 ## What you can actually look at
 
-The real work lives on debug routes. Each corresponds to one completed milestone.
-
 | Route | What it shows |
 | --- | --- |
-| **`/points`** | ⭐ **Start here.** The whole catalogue as GPU points in a single draw call, Earth-occlusion fade, orbit-class filtering, hover tethers, click-to-select, and the full camera system — click an object to fly to it, `Esc` to return, drag to orbit, wheel to zoom. Includes a camera dev panel and time transport. |
+| **`/`** | ⭐ **The application.** The whole catalogue as GPU points, orbit-class filtering, search, and the camera system — click an object to fly to it, `Esc` to return, drag to orbit, wheel to zoom. The time dock plays, reverses and scrubs time, and its layers panel holds the density slider, the crowding heatmap and historical replay. A selected object's panel shows its orbit, its data provenance, its screened close approaches with maximum P_c, and a CSV ephemeris export. |
+| `/points` | The debug route. It runs the same scene as `/`, plus a camera dev panel; `?perf=1` adds a frame-time HUD. |
 | `/keyframes` | The simulation core — keyframe segments and Hermite interpolation between them. |
 | `/propagation` | Raw SGP4 propagation readouts, for checking the physics directly. |
 | `/catalog` | Catalogue loading, validation and the IndexedDB cache. |
 | `/design` | The design system — tokens, glass surfaces and all 12 components over a live 3D backdrop. |
-| `/` | ⚠️ Still the **placeholder** scene (Earth, starfield and the landing sequence). The real renderer moves here once the subsystem is integrated. |
 
 Backend endpoints:
 
@@ -112,7 +124,9 @@ Backend endpoints:
 | `GET /api/v1/objects/{id}` | One object with its latest element set |
 | `GET /api/v1/objects/{id}/ephemeris` | Propagated ephemeris, capped at 5,000 points |
 | `GET /api/v1/catalog/snapshot` | The full gzip client bundle |
+| `GET /api/v1/catalog/replay?at=` | The catalogue as it stood at a past moment: the newest element set per object at or before `at` |
 | `GET /api/v1/catalog/meta` | Object count, newest epoch, generation time |
+| `GET /api/v1/conjunctions?norad_id=` | Close approaches from the latest screening run, each with its maximum P_c |
 
 Interactive API documentation: <http://localhost:8000/docs>.
 
@@ -134,8 +148,23 @@ P_c     = 1/(2π√|C_B|) ∬_A exp(−½ rᵀ C_B⁻¹ r) dx dy
 The alert threshold is `P_c > 1.0 × 10⁻⁴`. The P_c integral is evaluated by direct 2D numerical
 quadrature (`scipy.integrate.dblquad`), not an approximation — this is batch analysis, not a
 real-time computation, so there's no reason to trade accuracy for speed. It's validated against
-NASA CARA's own `Pc2D_Foster` reference tool on 12 of 12 published test cases. Broad-phase
-screening (to avoid evaluating every object pair) is designed but not yet built.
+NASA CARA's own `Pc2D_Foster` reference tool on 12 of 12 published test cases.
+
+**Public element sets carry no covariance, and SGP4 produces none.** So for catalogue objects ORCAS
+never shows a P_c built on an invented covariance. It shows the **maximum** P_c over a stated family
+of uncertainties instead — the method CelesTrak's SOCRATES uses — with the hard-body radius (20 m)
+and the ellipse's aspect ratio (3:1) on screen:
+
+```text
+P_max = AR · HBR² / (e · d²)            maximum P_c for miss distance d, aspect ratio AR
+```
+
+**Catalogue screening** (`backend/app/domain/screening.py`) propagates every object with SGP4, finds
+close pairs with a k-d tree search whose radius provably catches every encounter under 5 km, and
+refines each one to its time of closest approach. Given only a two-hour window and no named pair, it
+rediscovers the 2009 Iridium 33 / Cosmos 2251 encounter from the pre-event element sets (698.0 m,
+11.647 km/s). Docked vehicles sharing one element set are excluded and counted. Every stored
+encounter carries both element-set epochs, so the age of its inputs is always visible.
 
 **Every physics function states its units and reference frame.** This is a convention the codebase
 enforces, not an aspiration:
@@ -182,7 +211,7 @@ backend lacked this and was unstable as a result. Its other faults, and how they
 | No layering | `api → services → domain`, with `infra` at the edge |
 | Configuration scattered | One `Settings` object (pydantic-settings) |
 | `allow_origins=["*"]` | An explicit allowlist |
-| No tests | 97 tests, 100% coverage on `domain/` and `services/` |
+| No tests | 195 tests, 99% coverage on `domain/` and `services/` |
 
 ### Frontend
 
@@ -227,14 +256,15 @@ Every failure degrades to something honest, never to a broken screen.
 orcas/
 ├─ backend/                    🛰️ FastAPI backend (Python 3.12)
 │  ├─ app/
-│  │  ├─ api/v1/               objects.py · catalog.py · router.py
+│  │  ├─ api/v1/               objects.py · catalog.py · conjunctions.py · router.py
 │  │  ├─ domain/               ⭐ propagation · coordinates · covariance
-│  │  │                           conjunction · classification · tle · types
+│  │  │                           conjunction · screening · classification · tle · types
 │  │  ├─ services/             catalog · propagation · conjunction · classification
 │  │  │                           ingestion · retention · snapshot
 │  │  ├─ infra/                db/ · cache/ · celestrak/ · ml/
 │  │  ├─ schemas/              Pydantic request and response models
-│  │  └─ workers/tasks/        ingest_gp.py · bake_snapshot.py · retention.py
+│  │  └─ workers/tasks/        ingest_gp · ingest_spacetrack_gp · ingest_satcat
+│  │                              bake_snapshot · screen_conjunctions · retention
 │  ├─ alembic/                 migrations — never create_all()
 │  └─ tests/                   unit/ · integration/ · golden/
 ├─ frontend/                   🛰️ React 19 + React Three Fiber + Vite
@@ -372,12 +402,12 @@ component is a bug.
 ## Testing
 
 ```bash
-docker compose run --rm backend uv run pytest      # 93 passed, 4 xfailed
-docker compose run --rm frontend npm run test      # 317 tests
+docker compose run --rm backend uv run pytest      # 195 passed, 4 xfailed
+docker compose run --rm frontend npm run test      # 651 passed, 1 skipped
 ```
 
 CI runs both suites on every push. Coverage on `domain/` and `services/` is enforced at 70% or above
-and currently sits at 100%.
+and currently sits at 99%.
 
 The suite includes a **golden-file test** reconstructing the 2009 Iridium 33 / Cosmos 2251 event from
 real Space-Track element sets. It is deliberately split in three: real kinematics with no tuning,
@@ -505,16 +535,18 @@ Built and merged:
 - [x] Earth-occlusion fade and orbit-class filtering
 - [x] GPU picking, hover and selection with asynchronous readback
 - [x] Camera system — fly-to, object mode, predictive targeting, reduced-motion support
+- [x] Tier 1 instanced objects, level-of-detail bands, orbit paths and ground tracks
+- [x] Frame-time instrumentation and device tiering
+- [x] The real renderer on the root route, with search, reversible time and an object info panel
+- [x] The live Earth, Sun and Moon on the simulation clock, checked against JPL DE421
+- [x] Catalogue-wide conjunction screening with a labelled maximum P_c
+- [x] Earth's shadow on satellites, a crowding heatmap, CSV ephemeris export and historical replay
 
 Not yet built:
 
-- [ ] Tier 1 instanced models, LOD cross-fade, orbit paths and trails
-- [ ] Performance hardening and device tiering
-- [ ] Integration — moving the real renderer onto the root route
+- [ ] The Kessler debris swarm (waiting on NASA's Standard Breakup Model, from the source)
+- [ ] Scheduled ingestion and screening (both run by hand today)
 - [ ] The 3D asset pipeline (glTF/meshopt/KTX2, licensed models)
-- [ ] Live conjunction screening in the browser
-- [ ] Historical replay, debris-swarm and density-heatmap visualisations
-- [ ] Time-series data export
 - [ ] Solar System and galactic scales
 
 ---
