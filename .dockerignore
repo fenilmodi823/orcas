@@ -16,5 +16,5 @@ dist/
 .env
 .env.*
 !.env.example
-ORCAS Vault/
+ORCAS Vault
 docs/

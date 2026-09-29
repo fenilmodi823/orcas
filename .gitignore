@@ -7,7 +7,8 @@
 data/*
 !data/sample/
 legacy/
-ORCAS Vault/
+# Local symlink to private notes. Never commit it (no trailing slash: git sees a link as a file)
+ORCAS Vault
 
 # Python
 .venv/
