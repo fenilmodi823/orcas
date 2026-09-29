@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Color, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { TIER1_DIM_FACTOR, writeTier1Instances } from './tier1-write.js';
+import { TIER1_DIM_FACTOR, TIER1_ECLIPSE_FLOOR, writeTier1Instances } from './tier1-write.js';
 import { createSatelliteProxyGeometry } from './satellite-proxy.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
 import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
@@ -222,5 +222,50 @@ describe('writeTier1Instances — P4.D23/24 orbit-class colour', () => {
     expect(color.r).toBeCloseTo(0, 3); // not LEO's red
     expect(color.g).toBeCloseTo(1, 3); // the selection accent's cyan
     expect(color.b).toBeCloseTo(1, 3);
+  });
+});
+
+describe('writeTier1Instances — Earth shadow', () => {
+  function red(objectKm: [number, number, number], sunKm?: [number, number, number]): number {
+    const mesh = new InstancedMesh(createSatelliteProxyGeometry(), new MeshStandardMaterial(), 4);
+    const frame = {
+      positions: new Float32Array(objectKm),
+      velocities: new Float32Array([0, 7.6, 0]),
+      epochMs: 0,
+      count: 1,
+      generation: 0,
+      flags: new Uint8Array(1),
+    } as unknown as Parameters<typeof writeTier1Instances>[0]['frame'];
+    writeTier1Instances({
+      mesh,
+      frame,
+      members: new Uint32Array([0]),
+      memberCount: 1,
+      // 50 m away: the body fills the view, so Tier 1 carries all of the intensity.
+      camPosKm: new Vector3(objectKm[0], objectKm[1] + 0.05, objectKm[2]),
+      pixelsPerRadian: PX_PER_RAD,
+      objects: fakeObjects(1),
+      orbitClassColors: WHITE_ORBIT_CLASS_COLORS,
+      selectedColor: WHITE_SELECTED_COLOR,
+      band: LOD_BAND_PX,
+      sunJ2000Km: sunKm ? new Vector3(...sunKm) : undefined,
+    });
+    const colour = new Color();
+    mesh.getColorAt(0, colour);
+    return colour.r;
+  }
+  const SUN: [number, number, number] = [149_597_870.7, 0, 0];
+
+  it('leaves a sunlit body at full brightness', () => {
+    expect(red([7000, 0, 0], SUN)).toBeCloseTo(1, 6);
+  });
+
+  it('dims a body in the umbra to the legibility floor, never to black', () => {
+    expect(red([-7000, 0, 0], SUN)).toBeCloseTo(TIER1_ECLIPSE_FLOOR, 6);
+    expect(TIER1_ECLIPSE_FLOOR).toBeGreaterThan(0);
+  });
+
+  it('changes nothing when no Sun position is supplied', () => {
+    expect(red([-7000, 0, 0])).toBeCloseTo(1, 6);
   });
 });

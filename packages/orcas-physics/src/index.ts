@@ -6,3 +6,4 @@ export * from './frames.js';
 export * from './ecliptic.js';
 export * from './sun.js';
 export * from './moon.js';
+export * from './eclipse.js';

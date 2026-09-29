@@ -1,4 +1,5 @@
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { sunlitFraction } from '@orcas/physics';
 import type { InstancedMesh } from 'three';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
@@ -39,6 +40,16 @@ const _color = new Color();
  * active. */
 export const TIER1_DIM_FACTOR = 0.45;
 
+/**
+ * Earth's shadow on Tier 1 bodies: colour is scaled by
+ * `FLOOR + (1 - FLOOR) * sunlitFraction`. The floor is a legibility choice,
+ * NOT modelled earthshine — a body in the umbra is drawn dim rather than
+ * vanishing against a black sky, the same reasoning as P4.D27's dim floor.
+ * Tier 0 markers are deliberately left undimmed: they mark objects, they are
+ * not lit surfaces (P4.D23).
+ */
+export const TIER1_ECLIPSE_FLOOR = 0.25;
+
 export interface Tier1WriteArgs {
   readonly mesh: InstancedMesh;
   readonly frame: FrameState;
@@ -60,6 +71,9 @@ export interface Tier1WriteArgs {
    * `uFocusActive`), so the same P4.D27 dim floor is applied here in
    * plain per-instance colour arithmetic instead. */
   readonly selectedIndex?: number;
+  /** Geocentric Sun position at the frame's epoch, km, J2000 (the frame the
+   * positions are in). Omitted: no eclipse shading. */
+  readonly sunJ2000Km?: Vector3;
 }
 
 /**
@@ -102,6 +116,7 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
     orbitClassColors,
     selectedColor,
     band,
+    sunJ2000Km,
   } = args;
   const selectedIndex = args.selectedIndex ?? -1;
   mesh.position.copy(camPosKm);
@@ -111,6 +126,8 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
     // Nadir is a direction from Earth's centre, so the pose is derived from
     // the ABSOLUTE position — before the camera offset is taken out.
     lvlhQuaternion(_pos, _quat);
+    // Shadow is also a function of the absolute position.
+    const lit = sunJ2000Km ? sunlitFraction(_pos, sunJ2000Km) : 1;
     _pos.sub(camPosKm);
     _scale.setScalar(TIER1_PROXY_SCALE_KM);
     _matrix.compose(_pos, _quat, _scale);
@@ -121,7 +138,8 @@ export function writeTier1Instances(args: Tier1WriteArgs): number {
     const isSelected = i === selectedIndex;
     const dim = selectedIndex === -1 || isSelected ? 1 : TIER1_DIM_FACTOR;
     const baseColor = isSelected ? selectedColor : orbitClassColors[objects[i].orbitClass];
-    _color.copy(baseColor).multiplyScalar(brightness * dim);
+    const shade = TIER1_ECLIPSE_FLOOR + (1 - TIER1_ECLIPSE_FLOOR) * lit;
+    _color.copy(baseColor).multiplyScalar(brightness * dim * shade);
     mesh.setColorAt(slot, _color);
   }
   mesh.instanceMatrix.needsUpdate = true;

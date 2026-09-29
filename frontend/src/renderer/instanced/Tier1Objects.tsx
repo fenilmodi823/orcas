@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import { InstancedMesh, PerspectiveCamera } from 'three';
+import { InstancedMesh, PerspectiveCamera, Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { sunPositionJ2000Km } from '@orcas/physics';
 import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
@@ -79,6 +80,9 @@ export function Tier1Objects({
   // A ref, not a memo: it is mutated inside useFrame, which the React
   // compiler rightly refuses for a memoised value.
   const bandRef = useRef({ loPx: LOD_BAND_PX.loPx, hiPx: LOD_BAND_PX.hiPx });
+  // The Sun for eclipse shading, recomputed only when the simulated clock
+  // moves more than a minute (the Sun moves ~1° a day, so 60 s is ~0.0007°).
+  const sunRef = useRef({ epochMs: Number.NaN, km: new Vector3() });
   // Selection and hover reach the frame loop through refs, kept current by a
   // vanilla subscribe outside React's render cycle — the same pattern
   // use-camera-controller.tsx uses, and the reason this component never
@@ -134,6 +138,13 @@ export function Tier1Objects({
       members,
     );
 
+    const sun = sunRef.current;
+    if (!(Math.abs(frame.epochMs - sun.epochMs) < 60_000)) {
+      const s = sunPositionJ2000Km(new Date(frame.epochMs));
+      sun.km.set(s.x, s.y, s.z);
+      sun.epochMs = frame.epochMs;
+    }
+
     mesh.count = writeTier1Instances({
       mesh,
       frame,
@@ -146,6 +157,7 @@ export function Tier1Objects({
       selectedColor,
       band,
       selectedIndex: selectedIndexRef.current,
+      sunJ2000Km: sun.km,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
     if (membersRef) membersRef.current = members;
