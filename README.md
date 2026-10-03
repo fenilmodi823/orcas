@@ -78,8 +78,7 @@ considered broken. Four services come up: `postgres`, `backend` (:8000), `worker
 (:5173). There is no Redis — caching is in-process behind a `CacheService` interface.
 
 The repository ships **21 synthetic sample objects** plus real 2009 Iridium/Cosmos element sets, so
-the stack works offline with no API keys. `NASA_API_KEY` in `.env` is optional and unused by the
-core simulation.
+the stack works offline with no API keys.
 
 To pull the live CelesTrak catalogue instead:
 

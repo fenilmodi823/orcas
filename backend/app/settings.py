@@ -15,8 +15,6 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
-    nasa_api_key: str = ""
-
     # Space-Track account (RA14.D2) — the full-catalogue source CelesTrak
     # doesn't have (debris via gp's decay_date/null-val predicate). Unused
     # until the Space-Track ingestion path is built; credentials live only
