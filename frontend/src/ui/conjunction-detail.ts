@@ -9,6 +9,9 @@ export type ConjunctionView =
   | { readonly kind: 'report'; readonly report: ConjunctionReport };
 
 const NOT_A_WARNING = 'A labelled screening result, not an operational warning.';
+/** Fenil, A.8 (2026-10-03): a close miss is not a warning by itself. */
+const TWO_MEASUREMENTS =
+  'Miss distance and maximum P_c are different measurements: the distance is geometry, the probability is an upper bound that depends on the assumed ellipse and hard-body radius above.';
 
 function group(fields: DetailField[], note?: string): DetailGroup {
   return { id: 'conjunction', title: 'Conjunction', fields, note };
@@ -62,5 +65,5 @@ export function buildConjunctionGroup(view: ConjunctionView, selfNorad: string, 
   const fields = approachFields(shown, selfNorad, items.length);
   if (!next) fields[0] = { label: 'Last screened approach', value: formatEpochUtc(shown.tcaMs) };
   const validity = shown.valid2d ? '' : ` No maximum P_c: ${shown.validityReason ?? 'outside the 2D model'}.`;
-  return group(fields, `${shown.method}${validity} Screened ${window}. ${NOT_A_WARNING}`);
+  return group(fields, `${shown.method}${validity} ${TWO_MEASUREMENTS} Screened ${window}. ${NOT_A_WARNING}`);
 }

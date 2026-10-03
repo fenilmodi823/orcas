@@ -61,6 +61,8 @@ describe('buildConjunctionGroup', () => {
     expect(value(g, 'Approaches in window')).toBe(3);
     expect(g.note).toMatch(/Alfano 2005/);
     expect(g.note).toMatch(/not an operational warning/);
+    // A.8: a close miss is not a warning; the two numbers measure different things.
+    expect(g.note).toMatch(/Miss distance and maximum P_c are different measurements/);
     expect(g.fields.some((f) => f.label === 'P_c' || f.label === 'Probability')).toBe(false);
   });
 
