@@ -19,6 +19,7 @@ import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { LiveSceneState } from './use-live-scene.js';
+import { keepRenderOrder } from './render-order.js';
 import './LiveScene.css';
 
 // R_GEO — matches the camera rig's default radius so the first frame does not jump.
@@ -126,7 +127,10 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           // Moon at 400,000 km share one depth buffer. three falls back to the
           // ordinary buffer where EXT_clip_control is missing.
           gl={{ reversedDepthBuffer: true }}
-          onCreated={({ gl }) => setCanvasEl(gl.domElement)}
+          onCreated={({ gl }) => {
+            keepRenderOrder(gl);
+            setCanvasEl(gl.domElement);
+          }}
         >
           {/* ⚠️ ORDER IS LOAD-BEARING. R3F runs useFrame callbacks in mount
               order, so CameraController must come FIRST: everything below
