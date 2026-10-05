@@ -94,7 +94,8 @@ export function TimeDockSection() {
           conjunctionMarkers={CONJUNCTION_MARKERS}
           filters={FILTER_OPTIONS.map((option) => ({ ...option, active: activeFilters.has(option.orbitClass) }))}
           onTogglePlay={simulation.togglePlaying}
-          onCycleRate={simulation.cycleRate}
+          onStepRate={simulation.stepRate}
+          onSetTime={(ms) => simulation.setCurrentTime(new Date(ms))}
           onJumpToNow={simulation.jumpToNow}
           onScrub={simulation.setCurrentTime}
           onToggleFilter={toggleFilter}

@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import { computeRanks, densityVisibleCount } from './significance-rank.js';
 
+// The featured set is keyed by international designator (featured-norads.ts).
+const DESIGNATORS: Record<string, string> = { 'ISS (ZARYA)': '1998-067A', HST: '1990-037B' };
+
 function fakeObject(name: string, orbitClass: OrbitClass, type: ObjType, meanMotion: number): ObjectMeta {
   return {
     norad: name as ObjectMeta['norad'],
     name,
-    objectId: name,
+    objectId: DESIGNATORS[name] ?? name,
     type,
     orbitClass,
     isActive: true,

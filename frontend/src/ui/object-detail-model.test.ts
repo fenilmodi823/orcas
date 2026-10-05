@@ -66,6 +66,20 @@ describe('buildDetailGroups', () => {
     expect(field(groups, 'provenance', 'Age')).toBe('published ahead of now');
   });
 
+  it('says whether the simulated time is inside the element set’s coverage, and gives the window when not', () => {
+    // LEO: trusted 3 days before its epoch to 5 days after (simulation/coverage.ts).
+    const inside = buildDetailGroups(leo, satrec, EPOCH, EPOCH);
+    expect(field(inside, 'provenance', 'Coverage')).toBe('Inside its trusted window');
+
+    const sixDaysOn = EPOCH + 6 * 86_400_000;
+    const outside = buildDetailGroups(leo, satrec, sixDaysOn, EPOCH);
+    expect(field(outside, 'provenance', 'Coverage')).toBe('Outside — extrapolated');
+    expect(outside.find((g) => g.id === 'provenance')?.note).toBe(
+      'This element set is trusted from 2025-12-29 00:00:00 UTC to 2026-01-06 00:00:00 UTC. ' +
+        'Positions outside that window are SGP4 extrapolation, not a forecast.',
+    );
+  });
+
   it('leaves the conjunction group to conjunction-detail.ts', () => {
     expect(buildDetailGroups(leo, satrec, EPOCH, EPOCH).map((g) => g.id)).not.toContain('conjunction');
   });

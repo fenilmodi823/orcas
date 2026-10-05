@@ -2,6 +2,7 @@ import { eciToGeodeticDeg, gmstRad, propagate, WGS84_A_KM, type satrecFromOmm } 
 import { ObjType, OrbitClass } from '../data/catalog-types.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
 import { formatAge, formatEpochUtc } from '../data/catalog-provenance.js';
+import { coverageOf } from '../simulation/coverage.js';
 
 /** Derived from the physics package rather than imported from satellite.js,
  * which `@orcas/physics` exists to wrap. */
@@ -101,6 +102,10 @@ export function buildDetailGroups(
   const { record } = object;
   const { apogeeKm, perigeeKm } = apsidesKm(record.MEAN_MOTION, record.ECCENTRICITY);
   const ahead = object.epochMs > nowMs;
+  // NASA Eyes hides an object outside its data; ORCAS's scene does not yet
+  // (S1 follow-up), so the panel says it, with the window (Rules.md §7).
+  const coverage = coverageOf(object);
+  const covered = simulationMs >= coverage.startMs && simulationMs <= coverage.endMs;
 
   const groups: DetailGroup[] = [
     {
@@ -138,7 +143,12 @@ export function buildDetailGroups(
         { label: 'Element-set epoch', value: formatEpochUtc(object.epochMs) },
         { label: 'Age', value: ahead ? 'published ahead of now' : formatAge(nowMs - object.epochMs) },
         { label: 'Source', value: object.source },
+        { label: 'Coverage', value: covered ? 'Inside its trusted window' : 'Outside — extrapolated' },
       ],
+      note: covered
+        ? undefined
+        : `This element set is trusted from ${formatEpochUtc(coverage.startMs)} to ${formatEpochUtc(coverage.endMs)}. ` +
+          'Positions outside that window are SGP4 extrapolation, not a forecast.',
     },
   ];
 

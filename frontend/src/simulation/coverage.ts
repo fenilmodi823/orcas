@@ -1,5 +1,6 @@
 import { OrbitClass } from '../data/catalog-types.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
+import { formatEpochUtc } from '../data/catalog-provenance.js';
 
 const DAY_MS = 86_400_000;
 
@@ -59,4 +60,21 @@ export function isOutsideCoverage(object: ObjectMeta, epochMs: number): boolean 
 /** Clamp a requested time into a range — the scrubber's end-stops. */
 export function clampToRange(epochMs: number, range: TimeRange): number {
   return Math.min(range.endMs, Math.max(range.startMs, epochMs));
+}
+
+/**
+ * Which end of the data, if any, `epochMs` has gone past, and where to stop.
+ * NASA Eyes stops its clock at its bounds and says so ("CANNOT EXCEED TIME
+ * MAXIMUM", Reference - NASA Eyes §4.1); the dock does the same here.
+ */
+export function rangeLimit(epochMs: number, range: TimeRange): { side: 'start' | 'end'; boundMs: number } | null {
+  if (epochMs > range.endMs) return { side: 'end', boundMs: range.endMs };
+  if (epochMs < range.startMs) return { side: 'start', boundMs: range.startMs };
+  return null;
+}
+
+/** What the dock says when it stops there: the time, in UTC, and the reason. */
+export function rangeLimitNotice(limit: { side: 'start' | 'end'; boundMs: number }): string {
+  const direction = limit.side === 'end' ? 'a later' : 'an earlier';
+  return `Stopped at ${formatEpochUtc(limit.boundMs)}: no element set covers ${direction} time.`;
 }

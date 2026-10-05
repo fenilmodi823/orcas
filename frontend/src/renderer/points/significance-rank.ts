@@ -1,5 +1,5 @@
 import { ObjType, OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
-import { FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
+import { isFeatured } from '../paths/featured-norads.js';
 
 /**
  * Cheapest signal available pre-SATCAT (`memory.md` Next actions #3): an
@@ -46,8 +46,8 @@ export function computeRanks(objects: readonly ObjectMeta[]): Uint16Array {
   for (let i = 0; i < n; i++) indices[i] = i;
 
   indices.sort((a, b) => {
-    const featuredA = FEATURED_OBJECT_NAMES.has(objects[a].name) ? 0 : 1;
-    const featuredB = FEATURED_OBJECT_NAMES.has(objects[b].name) ? 0 : 1;
+    const featuredA = isFeatured(objects[a]) ? 0 : 1;
+    const featuredB = isFeatured(objects[b]) ? 0 : 1;
     if (featuredA !== featuredB) return featuredA - featuredB;
 
     const classA = classWeight(objects[a]);
@@ -77,7 +77,7 @@ export function computeRanks(objects: readonly ObjectMeta[]): Uint16Array {
  */
 export function densityVisibleCount(objects: readonly ObjectMeta[], densityPercent: number): number {
   let featuredCount = 0;
-  for (const object of objects) if (FEATURED_OBJECT_NAMES.has(object.name)) featuredCount++;
+  for (const object of objects) if (isFeatured(object)) featuredCount++;
   const scaled = Math.ceil((densityPercent / 100) * objects.length);
   return Math.max(featuredCount, scaled);
 }

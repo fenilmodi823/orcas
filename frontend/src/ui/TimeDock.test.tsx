@@ -17,7 +17,9 @@ describe('TimeDock', () => {
         rangeEnd={new Date('2009-02-11T00:00:00Z')}
         filters={[{ orbitClass: 'leo', label: 'LEO', count: 612, active: false }]}
         onTogglePlay={vi.fn()}
-        onCycleRate={vi.fn()}
+        onStepRate={vi.fn()}
+        onSetTime={vi.fn()}
+        notice="Stopped at 2009-02-11 00:00:00 UTC: no element set covers a later time."
         onJumpToNow={vi.fn()}
         onScrub={vi.fn()}
         onToggleFilter={vi.fn()}
@@ -25,6 +27,8 @@ describe('TimeDock', () => {
     );
 
     expect(screen.getByLabelText('Scrub simulation time')).toBeTruthy();
+    // Why the clock stopped, said where the clock is (S1, NASA Eyes).
+    expect(screen.getByRole('status').textContent).toMatch(/no element set covers a later time/);
     expect(screen.queryByText('LEO')).toBeNull();
 
     fireEvent.click(screen.getByLabelText('Expand'));

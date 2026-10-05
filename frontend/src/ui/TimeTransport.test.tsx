@@ -12,7 +12,8 @@ describe('TimeTransport', () => {
         currentTime={new Date('2009-02-10T16:56:00Z')}
         expanded={false}
         onTogglePlay={onTogglePlay}
-        onCycleRate={vi.fn()}
+        onStepRate={vi.fn()}
+        onSetTime={vi.fn()}
         onJumpToNow={vi.fn()}
         onToggleExpanded={vi.fn()}
       />,
@@ -20,12 +21,13 @@ describe('TimeTransport', () => {
 
     fireEvent.click(screen.getByLabelText('Play'));
     expect(onTogglePlay).toHaveBeenCalledOnce();
-    // Dated: after scrubbing days away a bare time of day reads as today.
-    expect(screen.getByText('2009-02-10 16:56:00Z')).toBeTruthy();
+    // Dated (a bare time of day after a jump reads as today) and in UTC,
+    // written out (A.11).
+    expect(screen.getByText('2009-02-10 16:56:00 UTC')).toBeTruthy();
   });
 
-  it('cycles the rate and jumps to now on click', () => {
-    const onCycleRate = vi.fn();
+  it('steps the rate with ◀◀ and ▶▶, labelled as NASA Eyes labels it, and jumps to now', () => {
+    const onStepRate = vi.fn();
     const onJumpToNow = vi.fn();
     render(
       <TimeTransport
@@ -34,42 +36,37 @@ describe('TimeTransport', () => {
         currentTime={new Date()}
         expanded
         onTogglePlay={vi.fn()}
-        onCycleRate={onCycleRate}
+        onStepRate={onStepRate}
+        onSetTime={vi.fn()}
         onJumpToNow={onJumpToNow}
         onToggleExpanded={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByText('10×'));
+    expect(screen.getByText('10 SECS/S')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Faster' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Slower' }));
     fireEvent.click(screen.getByText('NOW'));
 
-    expect(onCycleRate).toHaveBeenCalledOnce();
+    expect(onStepRate.mock.calls).toEqual([[1], [-1]]);
     expect(onJumpToNow).toHaveBeenCalledOnce();
     expect(screen.getByLabelText('Collapse').getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('offers a direction toggle and signs the rate while reversed', () => {
-    const onToggleDirection = vi.fn();
-    render(
-      <TimeTransport
-        playing
-        rate={10}
-        currentTime={new Date('2009-02-10T16:56:00Z')}
-        expanded={false}
-        reversed
-        onTogglePlay={vi.fn()}
-        onCycleRate={vi.fn()}
-        onJumpToNow={vi.fn()}
-        onToggleExpanded={vi.fn()}
-        onToggleDirection={onToggleDirection}
-      />,
-    );
-
-    expect(screen.getByText('−10×')).toBeTruthy();
-    const toggle = screen.getByRole('button', { name: 'Run time forwards' });
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    fireEvent.click(toggle);
-    expect(onToggleDirection).toHaveBeenCalledOnce();
+  it('names real time, and signs a reverse rate', () => {
+    const props = {
+      playing: true,
+      currentTime: new Date('2009-02-10T16:56:00Z'),
+      expanded: false,
+      onTogglePlay: vi.fn(),
+      onStepRate: vi.fn(),
+      onSetTime: vi.fn(),
+      onJumpToNow: vi.fn(),
+      onToggleExpanded: vi.fn(),
+    };
+    const { rerender } = render(<TimeTransport {...props} rate={1} />);
+    expect(screen.getByText('REAL RATE')).toBeTruthy();
+    rerender(<TimeTransport {...props} rate={-21_600} />);
+    expect(screen.getByText('−6 HRS/S')).toBeTruthy();
   });
 });
-

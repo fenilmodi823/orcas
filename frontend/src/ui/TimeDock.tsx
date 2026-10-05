@@ -24,6 +24,7 @@ export interface FilterOption {
 export interface TimeDockTimeProps {
   mode: 'time';
   playing: boolean;
+  /** Signed: simulated seconds per real second (TimeTransport). */
   rate: number;
   currentTime: Date;
   rangeStart: Date;
@@ -31,7 +32,10 @@ export interface TimeDockTimeProps {
   conjunctionMarkers?: readonly Date[];
   filters: readonly FilterOption[];
   onTogglePlay: () => void;
-  onCycleRate: () => void;
+  onStepRate: (direction: 1 | -1) => void;
+  onSetTime: (epochMs: number) => void;
+  /** Why the clock just stopped (the edge of the data), shown above it. */
+  notice?: string | null;
   onJumpToNow: () => void;
   onScrub: (time: Date) => void;
   onToggleFilter: (orbitClass: FilterClass) => void;
@@ -39,8 +43,6 @@ export interface TimeDockTimeProps {
    * filters when the dock is expanded — Design.md §7: "filters and layers by
    * expanding the dock upward". Summoned, never on screen at rest. */
   layers?: ReactNode;
-  reversed?: boolean;
-  onToggleDirection?: () => void;
 }
 
 export interface TimeDockObjectProps {
@@ -114,17 +116,21 @@ export function TimeDock(props: TimeDockProps) {
 
       {props.mode === 'time' ? (
         <>
+          {props.notice && (
+            <p className="time-dock__notice" role="status">
+              {props.notice}
+            </p>
+          )}
           <TimeTransport
             playing={props.playing}
             rate={props.rate}
             currentTime={props.currentTime}
             expanded={expanded}
             onTogglePlay={props.onTogglePlay}
-            onCycleRate={props.onCycleRate}
+            onStepRate={props.onStepRate}
+            onSetTime={props.onSetTime}
             onJumpToNow={props.onJumpToNow}
             onToggleExpanded={() => setExpanded((value) => !value)}
-            reversed={props.reversed}
-            onToggleDirection={props.onToggleDirection}
           />
           <TimeScrubber
             currentTime={props.currentTime}

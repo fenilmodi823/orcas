@@ -1,0 +1,106 @@
+/* The panel fills its anchor (SimulationView.css places it); the body scrolls. */
+.object-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.object-panel__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-edge);
+}
+
+.object-panel__badge {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+
+.object-panel__identity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.object-panel__name {
+  margin: 0;
+  font: var(--t-h3);
+  color: var(--text-hi);
+  overflow-wrap: anywhere;
+}
+
+.object-panel__class {
+  font: var(--t-tel-label);
+  letter-spacing: 0.14em;
+  /* --text-lo fails 4.5:1 at this size on glass (Design.md §9). */
+  color: var(--text-mid);
+}
+
+.object-panel__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.object-panel__close:hover {
+  color: var(--text-hi);
+}
+
+.object-panel__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.object-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Wheel-scrolling the panel must not zoom the scene behind it. */
+  overscroll-behavior: contain;
+  padding-top: var(--space-4);
+}
+
+.object-panel__summary {
+  display: flex;
+  gap: var(--space-6);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+/* Two columns, not the dock's three: the panel is narrower, and epochs and
+   designators are long. */
+.object-panel .object-detail__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Epochs and designators are long; at the 20px readout size an epoch broke
+   over three lines. Same mono, same tabular figures, one step smaller. */
+.object-panel .object-detail .telemetry-readout__value {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.object-panel__pending {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-4);
+  color: var(--text-mid);
+  font: var(--t-small);
+}
+
+.object-panel__actions {
+  padding: 0 var(--space-4) var(--space-4);
+}

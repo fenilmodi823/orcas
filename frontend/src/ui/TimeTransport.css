@@ -23,13 +23,11 @@
 }
 
 .time-transport__icon:focus-visible,
-.time-transport__now:focus-visible,
-.time-transport__rate:focus-visible {
+.time-transport__now:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 
-.time-transport__rate,
 .time-transport__now {
   border: none;
   background: transparent;
@@ -43,22 +41,18 @@
   transition: color var(--motion-quick) var(--ease-quick);
 }
 
-.time-transport__rate:hover,
 .time-transport__now:hover {
   color: var(--orca-cyan);
 }
 
-.time-transport__clock {
-  flex: 1;
+/* A readout between ◀◀ and ▶▶, not a control. Fixed width, so the buttons
+   either side never move as the label changes length ("REAL RATE",
+   "−10 MTHS/S"). */
+.time-transport__rate {
+  min-width: 11ch;
+  font: var(--t-tel-label);
+  letter-spacing: 0.1em;
   text-align: center;
-  font: var(--t-caption);
-  font-family: var(--font-mono);
+  color: var(--text-mid);
   font-variant-numeric: tabular-nums;
-  color: var(--text-hi);
-}
-
-/* Direction toggle while time runs backwards: coloured, not just a different
-   icon state, so reverse playback is legible at a glance. */
-.time-transport__icon[data-active] {
-  color: var(--orca-cyan);
 }

@@ -7,7 +7,29 @@
   display: flex;
   align-items: center;
   will-change: transform, opacity;
-  transition: opacity var(--motion-instant) var(--ease-out);
+  /* NASA Eyes' label fades: quick in, slow out (Reference - NASA Eyes §4.2). */
+  transition: opacity var(--motion-label-in) var(--ease-out);
+}
+
+.object-label[data-fading-out] {
+  transition-duration: var(--motion-label-out);
+}
+
+/* A label is a control only while it can be seen. */
+.object-label__hit {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.object-label[data-hidden] .object-label__hit {
+  pointer-events: none;
 }
 
 .object-label__marker {
@@ -28,4 +50,24 @@
   font: 13px/1 var(--font-ui);
   color: var(--text-mid);
   white-space: nowrap;
+}
+
+/* NASA Eyes' tiers read through opacity (0.75 / 0.35 / 1 on hover). ORCAS
+   tiers by token instead: 0.35 white fails the 4.5:1 rule (Design.md §9),
+   and these labels are controls. */
+.object-label[data-tier='primary'] .object-label__name {
+  color: var(--text-hi);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.object-label[data-emphasised] .object-label__name,
+.object-label__hit:hover .object-label__name {
+  color: var(--text-hi);
+}
+
+.object-label[data-emphasised] .object-label__marker,
+.object-label__hit:hover .object-label__marker {
+  border-color: var(--orca-cyan);
 }

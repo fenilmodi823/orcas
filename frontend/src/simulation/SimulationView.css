@@ -6,6 +6,7 @@
   position: relative;
   width: 100vw;
   height: 100vh;
+  --object-panel-width: 340px;
 }
 
 .simulation__pill {
@@ -52,4 +53,27 @@
 
 .simulation__status[data-error] {
   color: var(--critical);
+}
+
+/* The selected object's panel, full height on the left under the logo (B.15,
+   NASA Eyes' layout). The logo ends at 52px (LandingSequence.css). */
+.simulation__panel {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-4);
+  bottom: var(--space-4);
+  width: min(var(--object-panel-width), calc(100vw - 2 * var(--space-4)));
+  z-index: 13;
+}
+
+/* With the panel open, the dock and the credit centre in the scene that is
+   left, as NASA Eyes re-centres its time controls. Snapped, not animated:
+   animating left/width is banned (Rules.md §2). */
+.simulation[data-object-panel] .simulation__dock {
+  left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
+  width: min(880px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
+}
+
+.simulation[data-object-panel] .simulation__credit {
+  left: calc(var(--object-panel-width) + 2 * var(--space-4));
 }

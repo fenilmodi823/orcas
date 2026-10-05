@@ -39,6 +39,10 @@ export function resolveSelectableObject(
     y: frameState.positions[index * 3 + 1],
     z: frameState.positions[index * 3 + 2],
   };
+  // A slot the loop has never written is all zeros (createFrameState), and
+  // nothing in orbit sits at the Earth's centre. Report "no position yet"
+  // rather than the -6356.8 km that zeros turn into.
+  if (positionKm.x === 0 && positionKm.y === 0 && positionKm.z === 0) return null;
   const velocityKmS = {
     x: frameState.velocities[index * 3],
     y: frameState.velocities[index * 3 + 1],

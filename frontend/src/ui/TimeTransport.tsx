@@ -1,42 +1,37 @@
-import { ChevronDown, ChevronUp, Pause, Play, Rewind } from 'lucide-react';
+import { ChevronDown, ChevronUp, FastForward, Pause, Play, Rewind } from 'lucide-react';
+import { formatRate } from '../time/rate-ladder.js';
+import { TimeClock } from './TimeClock.js';
 import './TimeTransport.css';
 
 export interface TimeTransportProps {
   playing: boolean;
+  /** Signed: simulated seconds per real second, negative running backwards. */
   rate: number;
   currentTime: Date;
   expanded: boolean;
   onTogglePlay: () => void;
-  onCycleRate: () => void;
+  /** ▶▶ (+1) and ◀◀ (−1): one step along NASA Eyes' rate ladder. */
+  onStepRate: (direction: 1 | -1) => void;
+  /** A typed time from the clock (UTC, ms). */
+  onSetTime: (epochMs: number) => void;
   onJumpToNow: () => void;
   onToggleExpanded: () => void;
-  /** Time runs backwards. With `onToggleDirection`, shows a direction toggle
-   * and signs the rate label ("−10×"). */
-  reversed?: boolean;
-  onToggleDirection?: () => void;
 }
 
-/** Always with the date. Scrubbing moves the clock by days, and a bare time of
- * day after a jump of a week reads as *today* — the same trap as an undated
- * data epoch. NASA Eyes' own clock carries the date for this reason
- * (Rules.md §10 defers UX to it). */
-function formatUtcClock(date: Date): string {
-  const iso = date.toISOString();
-  return `${iso.slice(0, 10)} ${iso.slice(11, 19)}Z`;
-}
-
-/** The persistent transport row — always visible, mode="time" (Design.md §6, D7). */
+/** The persistent transport row — always visible, mode="time" (Design.md §6, D7).
+ * Pause on its own, then ◀◀ [rate] ▶▶ — NASA Eyes' controls (Reference §4.1):
+ * a ladder from real time to 3 years per second, and one ◀◀ press from real
+ * time runs time backwards at 1 s/s. */
 export function TimeTransport({
   playing,
   rate,
   currentTime,
   expanded,
   onTogglePlay,
-  onCycleRate,
+  onStepRate,
+  onSetTime,
   onJumpToNow,
   onToggleExpanded,
-  reversed = false,
-  onToggleDirection,
 }: TimeTransportProps) {
   return (
     <div className="time-transport">
@@ -48,23 +43,16 @@ export function TimeTransport({
       >
         {playing ? <Pause aria-hidden size={16} /> : <Play aria-hidden size={16} />}
       </button>
-      {onToggleDirection && (
-        <button
-          type="button"
-          className="time-transport__icon"
-          data-active={reversed ? '' : undefined}
-          onClick={onToggleDirection}
-          aria-label={reversed ? 'Run time forwards' : 'Run time backwards'}
-          aria-pressed={reversed}
-        >
-          <Rewind aria-hidden size={16} />
-        </button>
-      )}
-      <button type="button" className="time-transport__rate" onClick={onCycleRate}>
-        {reversed ? '−' : ''}
-        {rate}×
+      <button type="button" className="time-transport__icon" onClick={() => onStepRate(-1)} aria-label="Slower">
+        <Rewind aria-hidden size={16} />
       </button>
-      <span className="time-transport__clock">{formatUtcClock(currentTime)}</span>
+      <span className="time-transport__rate" aria-live="polite">
+        {formatRate(rate)}
+      </span>
+      <button type="button" className="time-transport__icon" onClick={() => onStepRate(1)} aria-label="Faster">
+        <FastForward aria-hidden size={16} />
+      </button>
+      <TimeClock time={currentTime} onSetTime={onSetTime} />
       <button type="button" className="time-transport__now" onClick={onJumpToNow}>
         NOW
       </button>

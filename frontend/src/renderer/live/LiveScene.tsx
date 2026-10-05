@@ -57,7 +57,7 @@ function toCanvasPixels(event: { clientX: number; clientY: number }, canvas: HTM
  * without this component knowing about them.
  */
 export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; canvasChildren?: ReactNode }) {
-  const { objects, byNorad, loop, ranks, featuredNames, resolvedHovered, resolvedSelected } = scene;
+  const { objects, byNorad, loop, ranks, featuredNames, featuredNorads, resolvedHovered, resolvedSelected } = scene;
   // Each ref gets its own binding rather than being read off a bag during
   // render: passing `viewportRef` to a `ref=` attribute teaches the compiler
   // the bag holds refs, and it then treats every `refs.x` read as a render-
@@ -83,6 +83,8 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
+  const setHover = useSelectionStore((state) => state.setHover);
+  const selectedNorad = useSelectionStore((state) => state.selectedNorad);
 
   function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const canvas = event.currentTarget.querySelector('canvas');
@@ -212,19 +214,28 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
         orbitClass={resolvedHovered?.orbitClass ?? 'debris'}
         altitudeKm={resolvedHovered?.altitudeKm ?? 0}
       />
-      {Array.from({ length: LABEL_SLOT_COUNT }, (_, k) => (
-        <ObjectLabel
-          key={k}
-          ref={(l) => {
-            labelRefs.current[k] = l;
-          }}
-          // Featured slots (0..featuredNames.length-1) get their real
-          // name; the last slot is the dynamic "current selection, if
-          // not already featured" one — see ObjectLabels.tsx.
-          name={k === LABEL_SLOT_COUNT - 1 ? (resolvedSelected?.name ?? '') : (featuredNames[k] ?? '')}
-        />
-      ))}
-      <ObjectLabel ref={sunLabelRef} name="Sun" />
+      {Array.from({ length: LABEL_SLOT_COUNT }, (_, k) => {
+        // Featured slots (0..featuredNames.length-1) get their real name; the
+        // last slot is the dynamic "current selection, if not already
+        // featured" one — see ObjectLabels.tsx.
+        const isSelectionSlot = k === LABEL_SLOT_COUNT - 1;
+        const norad = isSelectionSlot ? selectedNorad : (featuredNorads[k] ?? null);
+        return (
+          <ObjectLabel
+            key={k}
+            ref={(l) => {
+              labelRefs.current[k] = l;
+            }}
+            name={isSelectionSlot ? (resolvedSelected?.name ?? '') : (featuredNames[k] ?? '')}
+            emphasised={norad !== null && norad === selectedNorad}
+            // "Click any label" flies there (Reference - NASA Eyes §4.4);
+            // hovering it is hovering the object.
+            onSelect={norad === null ? undefined : () => setSelected(norad)}
+            onHover={norad === null ? undefined : (hovered) => setHover(hovered ? norad : null)}
+          />
+        );
+      })}
+      <ObjectLabel ref={sunLabelRef} name="Sun" tier="primary" />
       <ObjectLabel ref={moonLabelRef} name="Moon" />
     </div>
   );

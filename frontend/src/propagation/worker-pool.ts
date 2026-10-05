@@ -1,5 +1,5 @@
 import type { SatRec } from 'satellite.js';
-import { buildSegment, type PropagationSegment } from './segment-builder.js';
+import { buildSegmentsSkippingFailures, type PropagationSegment } from './segment-builder.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
 
 export interface SegmentRequest {
@@ -53,11 +53,9 @@ export function createPropagationPool(runners: readonly SegmentRunner[]): Propag
       for (const shardResult of shardResults) {
         for (const segment of shardResult) byNorad.set(segment.noradId, segment);
       }
-      return objects.map((object) => {
-        const segment = byNorad.get(object.norad);
-        if (!segment) throw new Error(`No segment produced for ${object.norad}`);
-        return segment;
-      });
+      // An object a runner skipped (SGP4 could not propagate it) is absent:
+      // the rest of the catalogue still gets its segments.
+      return objects.flatMap((object) => byNorad.get(object.norad) ?? []);
     },
     terminate() {
       // No-op here: closing real Workers happens in
@@ -68,12 +66,14 @@ export function createPropagationPool(runners: readonly SegmentRunner[]): Propag
 
 /** Runs shards synchronously in the calling thread via segment-builder.ts. */
 export function createInProcessRunner(satrecs: ReadonlyMap<string, SatRec>): SegmentRunner {
-  return async (shard) =>
-    shard.objects.map((object) => {
+  return async (shard) => {
+    const items = shard.objects.map((object) => {
       const satrec = satrecs.get(object.norad);
       if (!satrec) throw new Error(`No SatRec provided for ${object.norad}`);
-      return buildSegment(satrec, object.norad, new Date(shard.t0Ms), new Date(shard.t1Ms));
+      return { satrec, noradId: object.norad };
     });
+    return buildSegmentsSkippingFailures(items, new Date(shard.t0Ms), new Date(shard.t1Ms));
+  };
 }
 
 /** Runs shards in a real Web Worker via postMessage. */

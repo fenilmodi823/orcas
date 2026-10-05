@@ -77,6 +77,19 @@ describe('createPropagationPool', () => {
     expect(result4).toEqual(result1);
   });
 
+  it('builds every other object when one cannot be propagated — one failure must not freeze the catalogue', async () => {
+    // Seen live 2026-10-03: one object SGP4 could not propagate at a jumped-to
+    // time failed the whole rebuild, and all 32,407 objects kept stale positions.
+    const broken = { ...omm('909999'), ECCENTRICITY: 0.999999 }; // deliberately invalid
+    const objects = [...OBJECTS, objectMeta('909999', broken)];
+    const satrecs = new Map([...SATRECS, ['909999', satrecFromOmm(broken)]]);
+    const pool = createPropagationPool([createInProcessRunner(satrecs), createInProcessRunner(satrecs)]);
+
+    const result = await pool.buildSegments(objects, T0_MS, T1_MS);
+
+    expect(result.map((s) => s.noradId)).toEqual(NORADS); // the broken one is simply absent
+  });
+
   it('throws if constructed with zero runners', () => {
     expect(() => createPropagationPool([])).toThrow();
   });

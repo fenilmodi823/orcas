@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { useSimulationLoop, type SimulationLoopHandle } from '../../simulation/use-simulation-loop.js';
 import { computeRanks } from '../points/significance-rank.js';
-import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
+import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
 import { resolveSelectableObject } from '../points/points-selection-resolve.js';
 import { useSelectionStore, type SelectableObject } from '../../state/selection-store.js';
 import { effectiveRate, useSimulationStore } from '../../state/simulation-store.js';
 import type { TierZeroPointsHandle } from '../points/TierZeroPoints.js';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
-import type { ObjectMeta } from '../../data/catalog-types.js';
+import type { NoradId, ObjectMeta } from '../../data/catalog-types.js';
 
 /** Refs the scene writes each frame. Readouts poll them; nothing re-renders. */
 export interface LiveSceneRefs {
@@ -32,6 +32,8 @@ export interface LiveSceneState {
   readonly loop: SimulationLoopHandle;
   readonly ranks: ReturnType<typeof computeRanks>;
   readonly featuredNames: readonly string[];
+  /** Same order as `featuredNames` — what a label click selects. */
+  readonly featuredNorads: readonly NoradId[];
   readonly refs: LiveSceneRefs;
   readonly resolvedHovered: SelectableObject | null;
   readonly resolvedSelected: SelectableObject | null;
@@ -75,12 +77,16 @@ export function useLiveScene(
   // Same resolved featured list ObjectLabels.tsx computes internally for
   // its own slot indices — deterministic given the same objects array, so
   // the two independent computations always agree on order.
-  const featuredNames = useMemo(() => {
-    const buf = new Uint32Array(FEATURED_OBJECT_NAMES.size);
+  const { featuredNames, featuredNorads } = useMemo(() => {
+    const buf = new Uint32Array(FEATURED_OBJECT_IDS.size);
     const n = featuredIndices(objects, buf);
     const names: string[] = [];
-    for (let i = 0; i < n; i++) names.push(objects[buf[i]].name);
-    return names;
+    const norads: NoradId[] = [];
+    for (let i = 0; i < n; i++) {
+      names.push(objects[buf[i]].name);
+      norads.push(objects[buf[i]].norad);
+    }
+    return { featuredNames: names, featuredNorads: norads };
   }, [objects]);
 
   const refs: LiveSceneRefs = {
@@ -107,6 +113,7 @@ export function useLiveScene(
     loop,
     ranks,
     featuredNames,
+    featuredNorads,
     refs,
     resolvedHovered: hoveredNorad === null ? null : resolveSelectableObject(hoveredNorad, objects, byNorad, frame),
     resolvedSelected: selectedNorad === null ? null : resolveSelectableObject(selectedNorad, objects, byNorad, frame),

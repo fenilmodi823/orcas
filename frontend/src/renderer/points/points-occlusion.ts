@@ -25,8 +25,9 @@ function divide(v: Vec3, r: Vec3): Vec3 {
  * Direct TypeScript port of the brief's own §F.5 vertex-shader occlusion
  * formula — this is the literal spec the GLSL in TierZeroPoints.tsx also
  * implements, not independent verification on its own. Returns the
- * brightness multiplier: 1.0 fully visible, 0.06 the brief's deliberate
- * residual for a fully-occluded object, continuous in between.
+ * brightness multiplier: 1.0 fully visible, 0 fully occluded, continuous in
+ * between. The brief's 0.06 residual is gone: NASA Eyes draws nothing a body
+ * hides (B.14, 2026-10-03).
  */
 export function computeOcclusionFade(cameraKm: Vec3, objectKm: Vec3, earthRadiiKm: Vec3): number {
   const c = divide(cameraKm, earthRadiiKm);
@@ -41,7 +42,7 @@ export function computeOcclusionFade(cameraKm: Vec3, objectKm: Vec3, earthRadiiK
     return s * s * (3 - 2 * s);
   };
 
-  return 0.06 + (1.0 - 0.06) * smoothstep(0.995, 1.02, closest);
+  return smoothstep(0.995, 1.02, closest);
 }
 
 /**

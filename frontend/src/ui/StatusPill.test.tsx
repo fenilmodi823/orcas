@@ -7,7 +7,7 @@ describe('StatusPill', () => {
     render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} />);
 
     expect(screen.getByText('epoch')).toBeTruthy();
-    expect(screen.getByText('16:56:00Z')).toBeTruthy();
+    expect(screen.getByText('16:56:00 UTC')).toBeTruthy();
   });
 
   it('switches to the stale label and drops the live-pulse state when data is old', () => {
@@ -22,12 +22,12 @@ describe('StatusPill', () => {
     // stale data as live.
     render(<StatusPill epoch={new Date('2026-09-17T14:50:11Z')} nowMs={Date.parse('2026-09-20T09:00:00Z')} />);
 
-    expect(screen.getByText('2026-09-17 14:50:11Z')).toBeTruthy();
+    expect(screen.getByText('2026-09-17 14:50:11 UTC')).toBeTruthy();
   });
 
   it('keeps the compact time-only form when the epoch is today', () => {
     render(<StatusPill epoch={new Date('2026-09-20T06:22:00Z')} nowMs={Date.parse('2026-09-20T09:00:00Z')} />);
 
-    expect(screen.getByText('06:22:00Z')).toBeTruthy();
+    expect(screen.getByText('06:22:00 UTC')).toBeTruthy();
   });
 });

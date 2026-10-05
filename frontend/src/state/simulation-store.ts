@@ -1,21 +1,29 @@
 import { create } from 'zustand';
-
-export const RATE_STEPS = [1, 10, 100, 1000, 10000] as const;
+import { stepRate } from '../time/rate-ladder.js';
 
 interface SimulationState {
   currentTime: Date;
   rate: number;
   playing: boolean;
-  /** Time runs backwards. Kept apart from `rate` so the rate steps stay the
-   * familiar 1× … 10000× and direction is one toggle, as in NASA Eyes. */
+  /** Time runs backwards; `rate` is the magnitude (simulated s per real s). */
   reversed: boolean;
   play: () => void;
   pause: () => void;
   togglePlaying: () => void;
-  cycleRate: () => void;
+  /** Anchored to now: true at start and after NOW, cleared by any hand on
+   * the time or rate — NASA Eyes' LIVE (Reference §4.1). It is intent, not
+   * clock lag: a throttled tab lets the clock fall behind without anyone
+   * moving time. */
+  live: boolean;
+  /** A scrub or a typed time: the clock is no longer anchored to now. */
+  leaveLive: () => void;
+  /** One ▶▶ (+1) or ◀◀ (−1) press along NASA Eyes' signed ladder. */
+  stepRate: (direction: 1 | -1) => void;
+  /** Why the clock just stopped at the edge of the data, or null. */
+  edgeNotice: string | null;
+  setEdgeNotice: (notice: string | null) => void;
   setCurrentTime: (time: Date) => void;
   jumpToNow: () => void;
-  toggleDirection: () => void;
 }
 
 /** The signed rate the simulation loop consumes: negative runs time backwards. */
@@ -34,17 +42,19 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   rate: 1,
   playing: true,
   reversed: false,
+  edgeNotice: null,
+  live: true,
+  leaveLive: () => set({ live: false }),
+  setEdgeNotice: (edgeNotice) => set({ edgeNotice }),
   play: () => set({ playing: true }),
-  pause: () => set({ playing: false }),
-  togglePlaying: () => set((state) => ({ playing: !state.playing })),
-  cycleRate: () =>
+  pause: () => set({ playing: false, live: false }),
+  togglePlaying: () => set((state) => ({ playing: !state.playing, live: state.playing ? false : state.live })),
+  stepRate: (direction) =>
     set((state) => {
-      const index = RATE_STEPS.indexOf(state.rate as (typeof RATE_STEPS)[number]);
-      const next = RATE_STEPS[(index + 1) % RATE_STEPS.length] ?? RATE_STEPS[0];
-      return { rate: next };
+      const next = stepRate(effectiveRate(state), direction);
+      return { rate: Math.abs(next), reversed: next < 0, live: false };
     }),
   setCurrentTime: (currentTime) => set({ currentTime }),
   // Back to the present means back to real time: forwards, at 1x.
-  jumpToNow: () => set({ currentTime: new Date(), rate: 1, reversed: false }),
-  toggleDirection: () => set((state) => ({ reversed: !state.reversed })),
+  jumpToNow: () => set({ currentTime: new Date(), rate: 1, reversed: false, live: true }),
 }));

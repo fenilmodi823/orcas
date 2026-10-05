@@ -56,6 +56,35 @@ export function buildSegment(satrec: SatRec, noradId: string, t0: Date, t1: Date
   }
 }
 
+/**
+ * Build segments for many objects, skipping any SGP4 cannot propagate over
+ * [t0, t1] — a decaying object, a malformed element set. One such object used
+ * to fail the whole rebuild, and every object in the catalogue then kept its
+ * stale position (seen live 2026-10-03). A skipped object simply has no
+ * segment: `evaluateFrame` marks it Stale. The skipped ids are logged once per
+ * call, with the time, so the gap is never silent.
+ */
+export function buildSegmentsSkippingFailures(
+  items: readonly { readonly satrec: SatRec; readonly noradId: string }[],
+  t0: Date,
+  t1: Date,
+): PropagationSegment[] {
+  const segments: PropagationSegment[] = [];
+  const skipped: string[] = [];
+  for (const { satrec, noradId } of items) {
+    try {
+      segments.push(buildSegment(satrec, noradId, t0, t1));
+    } catch (error) {
+      if (!(error instanceof SegmentBuildFailedError)) throw error;
+      skipped.push(noradId);
+    }
+  }
+  if (skipped.length > 0) {
+    console.warn(`Segment build skipped ${skipped.length} object(s) SGP4 could not propagate at ${t0.toISOString()}: ${skipped.join(', ')}`);
+  }
+  return segments;
+}
+
 /** Sample a built segment at an instant inside [t0Ms, t1Ms] (clamped). */
 export function sampleSegment(segment: PropagationSegment, atMs: number): HermiteEndpoint {
   const hSeconds = (segment.t1Ms - segment.t0Ms) / 1000;

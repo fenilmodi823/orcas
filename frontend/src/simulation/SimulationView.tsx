@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
 import { formatCreditLine, type CatalogProvenance } from '../data/catalog-provenance.js';
-import type { CatalogSnapshot } from '../data/catalog-types.js';
+import type { CatalogSnapshot, NoradId } from '../data/catalog-types.js';
 import { LiveScene } from '../renderer/live/LiveScene.js';
 import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-scene.js';
 import { countByOrbitClass } from '../renderer/points/points-filters.js';
-import { resolveSelectableObject } from '../renderer/points/points-selection-resolve.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../renderer/sky/star-sky.js';
 import { EARTH_IMAGERY_CREDIT } from '../renderer/earth/earth-materials.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
@@ -19,18 +19,23 @@ import { HeatmapToggle } from '../ui/HeatmapToggle.js';
 import { ReplayControl, type ReplayHandle } from '../ui/ReplayControl.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
-import { useDetailGroups } from '../ui/use-detail-groups.js';
-import { ExportEphemerisButton } from '../ui/ExportEphemerisButton.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
-import { useSimulationStore } from '../state/simulation-store.js';
+import { useReducedMotion } from '../state/use-reduced-motion.js';
+import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationSearch } from './SimulationSearch.js';
+import { SimulationObjectPanel } from './SimulationObjectPanel.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
+import { useEdgeStop } from './use-edge-stop.js';
+import { parseViewState } from './view-url.js';
+import { useApplyInitialView, useWriteViewUrl } from './use-view-url.js';
 import './SimulationView.css';
 
 const FILTER_LABELS: Record<FilterClass, string> = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', debris: 'Debris' };
 const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debris'];
+/** Design.md §5: panels spring, stiffness 220 / damping 26. */
+const PANEL_SPRING = { type: 'spring', stiffness: 220, damping: 26 } as const;
 
 /**
  * `/` — the product (M1.9). Design.md §7: at rest the scene owns the screen,
@@ -44,6 +49,15 @@ const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debri
 export function SimulationView() {
   const { snapshot, origin, loading, error, replayAtMs, replayError, startReplay, endReplay } = useCatalog();
   const replay: ReplayHandle = { atMs: replayAtMs, error: replayError, start: startReplay, end: endReplay };
+  // The link the page opened with (time, rate, selection — S1), applied once:
+  // a replay remounts the scene and must not re-apply it.
+  const [initialView] = useState(() => parseViewState(new URLSearchParams(window.location.search)));
+  const viewTakenRef = useRef(false);
+  const takeInitialView = useCallback(() => {
+    if (viewTakenRef.current) return null;
+    viewTakenRef.current = true;
+    return initialView;
+  }, [initialView]);
 
   if (!snapshot || snapshot.objects.length === 0) {
     // useCatalog falls back to cache and then to bundled fixtures, so this is
@@ -57,22 +71,51 @@ export function SimulationView() {
   }
   // Keyed on the replay instant: a replay is a different catalogue, and the
   // scene's buffers are sized to its catalogue at mount, so it remounts.
-  return <LiveSimulation key={replayAtMs ?? 'live'} snapshot={snapshot} origin={origin} replay={replay} />;
+  return (
+    <LiveSimulation
+      key={replayAtMs ?? 'live'}
+      snapshot={snapshot}
+      origin={origin}
+      replay={replay}
+      takeInitialView={takeInitialView}
+    />
+  );
 }
 
 interface LiveSimulationProps {
   readonly snapshot: CatalogSnapshot;
   readonly origin: CatalogOrigin;
   readonly replay: ReplayHandle;
+  readonly takeInitialView: () => ReturnType<typeof parseViewState> | null;
 }
 
-function LiveSimulation({ snapshot, origin, replay }: LiveSimulationProps) {
+function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimulationProps) {
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad, replay.atMs ?? undefined);
   const provenance = useProvenance(snapshot, origin);
+  const reducedMotion = useReducedMotion();
+  const selected = scene.selectedObjectMeta;
+  // Reduced motion fades the panel in place rather than sliding it (P4.D21).
+  const panelOffset = reducedMotion ? { opacity: 0 } : { opacity: 0, x: -16 };
 
   return (
-    <div className="simulation">
+    <div className="simulation" data-object-panel={selected ? '' : undefined}>
       <LiveScene scene={scene} />
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            key="object-panel"
+            className="simulation__panel"
+            initial={panelOffset}
+            animate={{ opacity: 1, x: 0 }}
+            exit={panelOffset}
+            transition={PANEL_SPRING}
+          >
+            <PanelErrorBoundary label="Object panel">
+              <SimulationObjectPanel scene={scene} meta={selected} provenance={provenance} />
+            </PanelErrorBoundary>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <PanelErrorBoundary label="Epoch">
         <div className="simulation__pill">
           <StatusPill
@@ -90,7 +133,7 @@ function LiveSimulation({ snapshot, origin, replay }: LiveSimulationProps) {
       </PanelErrorBoundary>
       <div className="simulation__dock">
         <PanelErrorBoundary label="Time dock">
-          <SimulationDock scene={scene} provenance={provenance} replay={replay} />
+          <SimulationDock scene={scene} provenance={provenance} replay={replay} takeInitialView={takeInitialView} />
         </PanelErrorBoundary>
       </div>
       {/* Map-credit style: small, persistent, out of the way. RA-14 §2.3 wants
@@ -109,43 +152,23 @@ interface SimulationDockProps {
   readonly scene: LiveSceneState;
   readonly provenance: CatalogProvenance;
   readonly replay: ReplayHandle;
+  readonly takeInitialView: () => ReturnType<typeof parseViewState> | null;
 }
 
-function SimulationDock({ scene, provenance, replay }: SimulationDockProps) {
-  const { objects, loop, selectedObjectMeta } = scene;
+function SimulationDock({ scene, provenance, replay, takeInitialView }: SimulationDockProps) {
+  const { objects, loop } = scene;
   const currentTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
   const playing = useSimulationStore((s) => s.playing);
-  const rate = useSimulationStore((s) => s.rate);
+  const rate = useSimulationStore((s) => effectiveRate(s));
   const togglePlaying = useSimulationStore((s) => s.togglePlaying);
-  const cycleRate = useSimulationStore((s) => s.cycleRate);
-  const reversed = useSimulationStore((s) => s.reversed);
-  const toggleDirection = useSimulationStore((s) => s.toggleDirection);
+  const stepRate = useSimulationStore((s) => s.stepRate);
   const activeFilters = useViewStore((s) => s.activeFilters);
   const toggleFilter = useViewStore((s) => s.toggleFilter);
-  const setSelected = useSelectionStore((s) => s.setSelected);
 
   const counts = useMemo(() => countByOrbitClass(objects), [objects]);
   const range = useMemo(() => scrubRangeOf(objects), [objects]);
-  const detailGroups = useDetailGroups(selectedObjectMeta, currentTime.getTime(), provenance.nowMs);
-  // `scene.resolvedSelected` is sampled when SimulationView renders, which it
-  // does not do while an object sits selected - so ALT/VEL froze. Re-sample on
-  // this dock's own clock tick instead.
-  const liveSelected =
-    selectedObjectMeta &&
-    resolveSelectableObject(selectedObjectMeta.norad, objects, scene.byNorad, loop.frameStateRef.current);
-
-  if (liveSelected && selectedObjectMeta) {
-    return (
-      <TimeDock
-        mode="object"
-        object={liveSelected}
-        groups={detailGroups}
-        actions={<ExportEphemerisButton object={selectedObjectMeta} startMs={currentTime.getTime()} />}
-        onBack={() => setSelected(null)}
-      />
-    );
-  }
-
+  // The dock stays the clock while an object is selected; the object lives in
+  // the left panel (B.15), as in NASA Eyes.
   const filters: FilterOption[] = FILTER_ORDER.map((orbitClass) => ({
     orbitClass,
     label: FILTER_LABELS[orbitClass],
@@ -156,7 +179,24 @@ function SimulationDock({ scene, provenance, replay }: SimulationDockProps) {
   // (brief §E.5): past them there is genuinely no data.
   const rangeStart = new Date(range?.startMs ?? currentTime.getTime());
   const rangeEnd = new Date(range?.endMs ?? currentTime.getTime());
-  const scrubTo = (epochMs: number) => loop.scrubTo(range ? clampToRange(epochMs, range) : epochMs);
+  const scrubTo = useCallback(
+    (epochMs: number) => loop.scrubTo(range ? clampToRange(epochMs, range) : epochMs),
+    [loop, range],
+  );
+  // Stop at the edge of the data and say so; typed times jump and pause (S1).
+  const edge = useEdgeStop(currentTime.getTime(), playing, range, scrubTo);
+  // The view lives in the address bar, as in NASA Eyes (S1).
+  const selectedNorad = useSelectionStore((s) => s.selectedNorad);
+  const setSelected = useSelectionStore((s) => s.setSelected);
+  const select = useCallback(
+    (norad: string) => {
+      if (scene.byNorad[norad] !== undefined) setSelected(norad as NoradId);
+    },
+    [scene.byNorad, setSelected],
+  );
+  useApplyInitialView(takeInitialView, { select, jumpTo: edge.jumpTo });
+  const live = useSimulationStore((s) => s.live);
+  useWriteViewUrl({ epochMs: currentTime.getTime(), rate, playing, live, selected: selectedNorad });
 
   return (
     <TimeDock
@@ -168,9 +208,9 @@ function SimulationDock({ scene, provenance, replay }: SimulationDockProps) {
       rangeEnd={rangeEnd}
       filters={filters}
       onTogglePlay={togglePlaying}
-      onCycleRate={cycleRate}
-      reversed={reversed}
-      onToggleDirection={toggleDirection}
+      onStepRate={stepRate}
+      onSetTime={edge.jumpTo}
+      notice={edge.notice}
       onJumpToNow={() => {
         // During a replay, NOW means the present catalogue, not today's time
         // propagated from the replay's old element sets.
@@ -178,7 +218,10 @@ function SimulationDock({ scene, provenance, replay }: SimulationDockProps) {
         useSimulationStore.getState().jumpToNow();
         scrubTo(Date.now());
       }}
-      onScrub={(time) => scrubTo(time.getTime())}
+      onScrub={(time) => {
+        useSimulationStore.getState().leaveLive();
+        scrubTo(time.getTime());
+      }}
       onToggleFilter={toggleFilter}
       layers={
         <>

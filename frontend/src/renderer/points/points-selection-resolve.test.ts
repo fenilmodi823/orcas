@@ -83,6 +83,14 @@ describe('resolveSelectableObject', () => {
     expect(resolved!.orbitClass).toBe('debris');
   });
 
+  it('returns null while the object has no computed position yet', () => {
+    // A FrameState slot the loop has never written is all zeros, and the
+    // Earth's centre read as an altitude is -6356.8 km (seen live on a cold
+    // start, 2026-10-03). Nothing in orbit sits at the origin.
+    const frameState = { positions: new Float32Array(3), velocities: new Float32Array(3) };
+    expect(resolveSelectableObject('25544' as never, [fakeObject()], { '25544': 0 }, frameState)).toBeNull();
+  });
+
   it('measures altitude from the WGS84 ellipsoid, not a sphere', () => {
     // |r| = 6371 + 419 on the equator used to read "419 km". The equatorial
     // radius is 6378.137 km, so the true altitude there is 411.863 km.

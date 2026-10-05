@@ -34,15 +34,15 @@ describe('computeOcclusionFade vs isOccludedByEarthRaySphere — independent cro
       const farFade = computeOcclusionFade(camera, farObject, EARTH_RADII);
       const farRaySphere = isOccludedByEarthRaySphere(camera, farObject, MEAN_RADIUS_KM);
       expect(farRaySphere).toBe(true);
-      expect(farFade).toBeCloseTo(0.06, 2); // the brief's deliberate residual
+      expect(farFade).toBeCloseTo(0, 2); // hidden, as NASA Eyes hides it (B.14)
     }
   });
 
-  it('never fades below the deliberate 6% residual, however deep behind Earth the object is', () => {
+  it('hides an object deep behind the Earth completely — no ghost (B.14, superseding §F.5)', () => {
     const camera = { x: 60_000, y: 0, z: 0 };
     const deeplyOccluded = { x: -60_000, y: 0, z: 0 }; // straight behind, far side
     const fade = computeOcclusionFade(camera, deeplyOccluded, EARTH_RADII);
-    expect(fade).toBeGreaterThanOrEqual(0.06);
+    expect(fade).toBe(0);
   });
 
   it('never exceeds full brightness for a clearly visible object', () => {

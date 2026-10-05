@@ -3,16 +3,24 @@ import type { MutableRefObject } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { satrecFromOmm } from '@orcas/physics';
-import type { SatRec } from 'satellite.js';
 import type { Line2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { readOrbitClassColor } from './path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
-import { featuredIndices, FEATURED_OBJECT_NAMES } from './featured-norads.js';
+import { featuredIndices, FEATURED_OBJECT_IDS } from './featured-norads.js';
 import { sampleOrbitPath, DEFAULT_PATH_SAMPLES } from './orbit-path.js';
 import { writePathBuffers } from './path-geometry.js';
+import {
+  BOOTSTRAP_COLORS,
+  BOOTSTRAP_POINTS,
+  FEATURED_LINE_WIDTH_PX,
+  SELECTION_LINE_WIDTH_PX,
+  featuredLineWidthPx,
+  makeSlot,
+  type PathSlot,
+} from './path-slot.js';
 import { subtractCameraOffset } from '../camera-relative.js';
 
 interface Props {
@@ -27,62 +35,6 @@ interface Props {
  * centred on the object. */
 const RESAMPLE_INTERVAL_MS = 5_000;
 const RESAMPLE_EPOCH_DRIFT_MS = 60_000;
-
-/**
- * Bootstraps the LineGeometry with itemSize-4 (RGBA) colours; the real
- * geometry is pushed in imperatively on the first resample.
- *
- * ⚠️ Alpha 0 is what hides this, not a `visible` prop: drei's `<Line>`
- * spreads every prop it doesn't recognise onto *both* the mesh and its
- * material (see its source), so a `visible={false}` passed here would
- * set `material.visible = false` once at mount — a value `pushGeometry`
- * below has no reason to ever touch — and the line would stay invisible
- * forever, resampled or not. Found live-verifying M1.7b: zero draw calls
- * ever fired despite correct geometry and `line.visible === true`.
- */
-const BOOTSTRAP_POINTS: [number, number, number][] = [
-  [0, 0, 0],
-  [0, 0, 0.001],
-];
-const BOOTSTRAP_COLORS: [number, number, number, number][] = [
-  [1, 1, 1, 0],
-  [1, 1, 1, 0],
-];
-
-interface PathSlot {
-  index: number; // catalogue index
-  noradId: string;
-  satrec: SatRec;
-  rgb: { r: number; g: number; b: number }; // read once from the tokens
-  sample: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — sampleOrbitPath's out
-  positions: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — absolute km, written at resample
-  cameraRelative: Float32Array; // DEFAULT_PATH_SAMPLES * 3 — `positions` minus the camera, refreshed every frame
-  colors: Float32Array; // DEFAULT_PATH_SAMPLES * 4 — LineGeometry.setColors(_, 4)
-  lastWallMs: number;
-  lastEpochMs: number;
-  drawn: boolean;
-}
-
-function makeSlot(
-  index: number,
-  noradId: string,
-  satrec: SatRec,
-  rgb: { r: number; g: number; b: number },
-): PathSlot {
-  return {
-    index,
-    noradId,
-    satrec,
-    rgb,
-    sample: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
-    positions: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
-    cameraRelative: new Float32Array(DEFAULT_PATH_SAMPLES * 3),
-    colors: new Float32Array(DEFAULT_PATH_SAMPLES * 4),
-    lastWallMs: 0,
-    lastEpochMs: 0,
-    drawn: false,
-  };
-}
 
 /**
  * Permanent orbit paths for the featured set, plus one for the current
@@ -121,7 +73,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
   }, []);
 
   const featuredSlots = useMemo<PathSlot[]>(() => {
-    const buf = new Uint32Array(FEATURED_OBJECT_NAMES.size);
+    const buf = new Uint32Array(FEATURED_OBJECT_IDS.size);
     const n = featuredIndices(objects, buf);
     const slots: PathSlot[] = [];
     for (let k = 0; k < n; k++) {
@@ -138,9 +90,11 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
   const selectionLineRef = useRef<Line2 | null>(null);
 
   const selectedNoradRef = useRef<string | null>(null);
+  const hoveredNoradRef = useRef<string | null>(null);
   useEffect(() => {
-    const read = (s: { selectedNorad: string | null }) => {
+    const read = (s: { selectedNorad: string | null; hoveredNorad: string | null }) => {
       selectedNoradRef.current = s.selectedNorad;
+      hoveredNoradRef.current = s.hoveredNorad;
     };
     read(useSelectionStore.getState());
     return useSelectionStore.subscribe(read);
@@ -201,7 +155,10 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
       const slot = featuredSlots[k];
       const line = featuredLineRefs.current[k] ?? null;
       resampleIfDue(slot, line, wallMs, epochMs);
-      if (line && slot.drawn) applyCameraRelative(line, slot, camX, camY, camZ);
+      if (!line || !slot.drawn) continue;
+      applyCameraRelative(line, slot, camX, camY, camZ);
+      // Hovering the object or its label thickens its path (S1, NASA Eyes).
+      line.material.linewidth = featuredLineWidthPx(slot.noradId === hoveredNoradRef.current);
     }
 
     const norad = selectedNoradRef.current;
@@ -231,7 +188,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
           }}
           points={BOOTSTRAP_POINTS}
           vertexColors={BOOTSTRAP_COLORS}
-          lineWidth={1.5}
+          lineWidth={FEATURED_LINE_WIDTH_PX}
         />
       ))}
       <Line
@@ -240,7 +197,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
         }}
         points={BOOTSTRAP_POINTS}
         vertexColors={BOOTSTRAP_COLORS}
-        lineWidth={2}
+        lineWidth={SELECTION_LINE_WIDTH_PX}
       />
     </group>
   );

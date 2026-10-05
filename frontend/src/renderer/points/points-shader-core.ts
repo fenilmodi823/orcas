@@ -62,13 +62,14 @@ void main() {
 
   // Earth occlusion (brief §F.5): segment from camera to this object versus
   // the Earth ellipsoid, in ellipsoid-normalised space so one sphere test
-  // is exact. Analytic, per-vertex, zero CPU cost.
+  // is exact. Analytic, per-vertex, zero CPU cost. Fully hidden behind the
+  // Earth, no residual ghost (B.14 — NASA Eyes draws nothing a body hides).
   vec3 c = uCamPos / uEarthRadii;
   vec3 p = position / uEarthRadii;
   vec3 d = p - c;
   float t = clamp(dot(-c, d) / dot(d, d), 0.0, 1.0);
   float closest = length(c + t * d);
-  float occlusionFade = mix(0.06, 1.0, smoothstep(0.995, 1.02, closest));
+  float occlusionFade = smoothstep(0.995, 1.02, closest);
 
   // 1. apparent size, with a floor that does NOT flatten brightness.
   float truePx = aRadius * uPixelsPerRadian / dist;

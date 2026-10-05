@@ -1,0 +1,59 @@
+.time-clock {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 4px 8px;
+  font: var(--t-caption);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-hi);
+}
+
+button.time-clock {
+  cursor: text;
+}
+
+button.time-clock:hover {
+  color: var(--orca-cyan);
+}
+
+button.time-clock:focus-visible,
+.time-clock__input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.time-clock__input {
+  width: 21ch;
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 2px 6px;
+  font: inherit;
+  color: inherit;
+}
+
+.time-clock__input[aria-invalid='true'] {
+  border-color: var(--critical);
+}
+
+.time-clock__zone {
+  color: var(--text-mid);
+}
+
+/* Above the row, so the dock's height never jumps. */
+.time-clock__error {
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: var(--t-caption);
+  color: var(--text-hi);
+}

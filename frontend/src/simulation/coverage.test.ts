@@ -7,6 +7,8 @@ import {
   coverageOf,
   isOutsideCoverage,
   scrubRangeOf,
+  rangeLimit,
+  rangeLimitNotice,
 } from './coverage.js';
 import { ObjType, OrbitClass } from '../data/catalog-types.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
@@ -91,5 +93,30 @@ describe('clampToRange', () => {
     expect(clampToRange(50, range)).toBe(100);
     expect(clampToRange(250, range)).toBe(200);
     expect(clampToRange(150, range)).toBe(150);
+  });
+});
+
+describe('rangeLimit (S1: stop at the edge of the data and say so, as NASA Eyes does)', () => {
+  const range = { startMs: 1_000, endMs: 9_000 };
+
+  it('is null inside the range, ends included', () => {
+    expect(rangeLimit(1_000, range)).toBeNull();
+    expect(rangeLimit(5_000, range)).toBeNull();
+    expect(rangeLimit(9_000, range)).toBeNull();
+  });
+
+  it('names the end that was crossed and the time to stop at', () => {
+    expect(rangeLimit(9_500, range)).toEqual({ side: 'end', boundMs: 9_000 });
+    expect(rangeLimit(500, range)).toEqual({ side: 'start', boundMs: 1_000 });
+  });
+});
+
+describe('rangeLimitNotice', () => {
+  it('says where the clock stopped and why, in UTC', () => {
+    const endMs = Date.UTC(2026, 9, 12, 22, 25, 48);
+    expect(rangeLimitNotice({ side: 'end', boundMs: endMs })).toBe(
+      'Stopped at 2026-10-12 22:25:48 UTC: no element set covers a later time.',
+    );
+    expect(rangeLimitNotice({ side: 'start', boundMs: endMs })).toMatch(/covers an earlier time\.$/);
   });
 });

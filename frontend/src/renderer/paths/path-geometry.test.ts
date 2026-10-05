@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { writePathBuffers } from './path-geometry.js';
+import { TRAIL_FLOOR, writePathBuffers } from './path-geometry.js';
 
 function ring(n: number): Float32Array {
   // n points on a circle of radius 7000 in the XY plane
@@ -39,23 +39,31 @@ describe('writePathBuffers', () => {
     }
   });
 
-  it('is fully transparent at the trailing half-orbit point, brightest from "now" onward', () => {
+  // NASA Eyes' trail (Reference - NASA Eyes §4.3): brightest at the object,
+  // fading back along the path it came from, faintest just ahead of it.
+  it('is brightest at "now" and faintest just ahead of the object, at the floor', () => {
     const n = 181;
     const { colors } = run(n);
     const mid = (n - 1) / 2;
-    expect(colors[0 * 4 + 3]).toBeCloseTo(0, 3); // the trailing half-orbit point
-    expect(colors[mid * 4 + 3]).toBeCloseTo(1, 3); // "now"
-    expect(colors[(n - 1) * 4 + 3]).toBeCloseTo(1, 3); // the leading half-orbit point
-    // rising from the trailing point toward "now"
-    expect(colors[10 * 4 + 3]).toBeGreaterThan(colors[0 * 4 + 3]);
-    expect(colors[(mid - 10) * 4 + 3]).toBeGreaterThan(colors[10 * 4 + 3]);
+    expect(colors[mid * 4 + 3]).toBeCloseTo(1, 6);
+    expect(colors[(mid + 1) * 4 + 3]).toBeCloseTo(TRAIL_FLOOR, 1);
+    for (let i = 0; i < n; i++) expect(colors[i * 4 + 3]).toBeGreaterThanOrEqual(TRAIL_FLOOR - 1e-6);
   });
 
-  it('is flat at full brightness for the entire predicted-future half', () => {
+  it('fades steadily going back in time, round the whole orbit', () => {
     const n = 181;
     const { colors } = run(n);
     const mid = (n - 1) / 2;
-    for (let i = mid; i < n; i++) expect(colors[i * 4 + 3]).toBeCloseTo(1, 6);
+    const a = (i: number) => colors[i * 4 + 3];
+    // Behind "now", back to the trailing half-orbit point...
+    expect(a(mid - 10)).toBeLessThan(a(mid));
+    expect(a(0)).toBeLessThan(a(mid - 10));
+    // ...which is the same place as the leading half-orbit point, so the
+    // ring has no seam there...
+    expect(a(n - 1)).toBeCloseTo(a(0), 6);
+    // ...and on round to just ahead of the object, the oldest part of the trail.
+    expect(a(mid + 10)).toBeLessThan(a(n - 1));
+    expect(a(mid + 1)).toBeLessThan(a(mid + 10));
   });
 
   it('throws if a target buffer is too small', () => {

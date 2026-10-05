@@ -5,8 +5,8 @@ import { Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
-import { computeLabelOpacities, type LabelCandidate } from './object-label-layout.js';
+import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
+import { computeLabelOpacities, labelOnScreen, type LabelCandidate } from './object-label-layout.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 
 /** Hard cap on simultaneously-visible non-exempt labels (P4.D28). */
@@ -18,7 +18,7 @@ const LABEL_CAP = 12;
  * frame, so it needs none of Trails.tsx's pool-reconciliation machinery. */
 /** Exported so PointsDebug.tsx renders exactly this many DOM `<ObjectLabel>`
  * elements — one per slot this component writes into. */
-export const LABEL_SLOT_COUNT = FEATURED_OBJECT_NAMES.size + 1;
+export const LABEL_SLOT_COUNT = FEATURED_OBJECT_IDS.size + 1;
 const SLOT_COUNT = LABEL_SLOT_COUNT;
 const SELECTION_SLOT = SLOT_COUNT - 1;
 /** Placeholder rank for an empty slot — always loses the cap ordering
@@ -61,7 +61,7 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
   const { camera, size } = useThree();
 
   const featuredBuf = useMemo(() => {
-    const buf = new Uint32Array(FEATURED_OBJECT_NAMES.size);
+    const buf = new Uint32Array(FEATURED_OBJECT_IDS.size);
     const n = featuredIndices(objects, buf);
     return { buf, n };
   }, [objects]);
@@ -77,6 +77,7 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
   }, [featuredBuf]);
 
   const scratch = useMemo(() => new Vector3(), []);
+  const world = useMemo(() => new Vector3(), []);
   // useRef, not useMemo: these entries are mutated in place every frame
   // inside useFrame below, and the React Compiler's hooks-immutability
   // rule forbids mutating a memoised value after render (see Trails.tsx's
@@ -113,11 +114,13 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
         candidate.rank = EMPTY_RANK;
         continue;
       }
-      scratch.set(positions[idx * 3], positions[idx * 3 + 1], positions[idx * 3 + 2]).project(camera);
-      // z > 1 is behind the camera — same test points-tether.ts's
-      // writeTetherPosition makes, for the same reason (a target behind
-      // you otherwise draws mirrored across the screen).
-      candidate.visible = scratch.z <= 1;
+      world.set(positions[idx * 3], positions[idx * 3 + 1], positions[idx * 3 + 2]);
+      scratch.copy(world).project(camera);
+      // Behind the camera (z > 1, else it draws mirrored across the screen)
+      // or behind the Earth: no label (B.14 — NASA Eyes labels nothing a
+      // body hides). An object with no position yet sits at the origin,
+      // inside the Earth, so it is hidden too.
+      candidate.visible = labelOnScreen(scratch.z, camera.position, world);
       candidate.xPx = (scratch.x * 0.5 + 0.5) * widthPx;
       candidate.yPx = (1 - (scratch.y * 0.5 + 0.5)) * heightPx;
       candidate.rank = ranks[idx];

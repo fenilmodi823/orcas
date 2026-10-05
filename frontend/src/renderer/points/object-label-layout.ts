@@ -6,6 +6,19 @@
  * running scene; `ObjectLabels.tsx` supplies the live screen positions.
  */
 
+import type { Vector3 } from 'three';
+import { earthBlocks } from '../earth/body-screen.js';
+
+/**
+ * Whether a label belongs on screen at all: in front of the camera
+ * (`projectedZ`, NDC, ≤ 1) and not behind the Earth from where the camera
+ * stands. NASA Eyes draws nothing behind a body and fades its label out
+ * (B.14, Reference - NASA Eyes §4.2). Positions in km, scene frame.
+ */
+export function labelOnScreen(projectedZ: number, cameraKm: Vector3, objectKm: Vector3): boolean {
+  return projectedZ <= 1 && !earthBlocks(cameraKm, objectKm);
+}
+
 /** Well inside object-mode framing (`tier1-write.ts`'s own reference point
  * for "fully framed on one object" is ~0.0825 km) — labels fade toward 0
  * as the camera approaches this, since the camera is now focused on one
@@ -41,9 +54,9 @@ export interface LabelCandidate {
 export interface ComputeLabelOpacitiesArgs {
   readonly candidates: readonly LabelCandidate[];
   /** Index into `candidates` that is the current selection, or -1 for
-   * none. Exempt from the distance fade AND the rank cap (brief: "the
-   * selected object's label is exempt from the cap and the fade") —
-   * still forced to 0 if it isn't actually on screen. */
+   * none. Exempt from the rank cap and crowding; since S1 it follows the
+   * distance fade like every other label (NASA Eyes hides the focused
+   * object's own label close up) — and 0 if it isn't on screen. */
   readonly selectedSlot: number;
   readonly camRadiusKm: number;
   /** Hard cap on simultaneously-visible non-exempt labels. */
@@ -70,7 +83,10 @@ export function computeLabelOpacities(args: ComputeLabelOpacitiesArgs): Float32A
 
   for (let i = 0; i < n; i++) {
     if (i === selectedSlot) {
-      opacity[i] = candidates[i].visible ? 1 : 0;
+      // Exempt from the cap and from crowding, not from the distance fade:
+      // close up the object fills the view and its tether names it, so its
+      // own label hides, as in NASA Eyes (Reference §4.2).
+      opacity[i] = candidates[i].visible ? distanceFactor : 0;
       continue;
     }
     if (!candidates[i].visible || !kept.has(i)) {

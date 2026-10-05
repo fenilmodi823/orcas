@@ -5,14 +5,15 @@ export interface StatusPillProps {
   stale?: boolean;
   /** When given, the date is shown as well whenever the epoch is not on the
    * same UTC day. A time of day alone reads as *today*, so a three-day-old
-   * epoch shown as "14:50:11Z" presents stale data as live. Passed in rather
+   * epoch shown as "14:50:11 UTC" presents stale data as live. Passed in rather
    * than read from the clock here, which keeps rendering pure. */
   nowMs?: number;
 }
 
 function formatUtc(date: Date, nowMs?: number): string {
   const iso = date.toISOString();
-  const time = `${iso.slice(11, 19)}Z`;
+  // The zone written out, as on every time in ORCAS (A.11).
+  const time = `${iso.slice(11, 19)} UTC`;
   if (nowMs === undefined || iso.slice(0, 10) === new Date(nowMs).toISOString().slice(0, 10)) return time;
   return `${iso.slice(0, 10)} ${time}`;
 }

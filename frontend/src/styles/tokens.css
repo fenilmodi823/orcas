@@ -110,6 +110,8 @@
   --motion-panel: 320ms; /* pair with --ease-spring, e.g. Framer Motion */
   --motion-camera: 900ms cubic-bezier(0.65, 0, 0.35, 1);
   --motion-scale: 1600ms;
+  --motion-label-in: 250ms; /* NASA Eyes' label fade-in (Reference - NASA Eyes §4.2) */
+  --motion-label-out: 750ms; /* ...and its slower fade-out */
 
   /* Easing curves — standalone, for consumers (e.g. Framer Motion) that need
      a raw timing function rather than the combined shorthand above. */

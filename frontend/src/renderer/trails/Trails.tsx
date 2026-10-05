@@ -9,7 +9,7 @@ import { Flag } from '../../simulation/flags.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import { featuredIndices, FEATURED_OBJECT_NAMES } from '../paths/featured-norads.js';
+import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
 import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
 import {
@@ -119,7 +119,7 @@ export function Trails({
   }, []);
 
   const featuredBuf = useMemo(() => {
-    const buf = new Uint32Array(FEATURED_OBJECT_NAMES.size);
+    const buf = new Uint32Array(FEATURED_OBJECT_IDS.size);
     const n = featuredIndices(objects, buf);
     return { buf, n };
   }, [objects]);
