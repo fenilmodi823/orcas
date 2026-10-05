@@ -24,6 +24,13 @@ describe('clampFreeOrbitRadiusKm', () => {
   it('lets the camera stand back past Sun–Earth L2', () => {
     expect(clampFreeOrbitRadiusKm(1.9e6)).toBe(1.9e6);
   });
+
+  // S4 (B.21): one continuous space out to ~100 AU, past Neptune's 30 AU.
+  it('lets the camera stand back to 100 AU, and no further', () => {
+    const auKm = 149_597_870.7;
+    expect(clampFreeOrbitRadiusKm(40 * auKm)).toBe(40 * auKm);
+    expect(MAX_CAMERA_RADIUS_KM).toBe(100 * auKm);
+  });
 });
 
 describe('ellipsoidNormalizedDistance — Earth is 21 km flatter at the poles', () => {

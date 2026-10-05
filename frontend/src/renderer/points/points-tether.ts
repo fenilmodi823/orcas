@@ -1,5 +1,10 @@
 import type { Camera, Vector3 } from 'three';
+import { eciToGeodeticDeg } from '@orcas/physics';
 import type { ObjectTetherHandle } from '../../ui/ObjectTether.js';
+import { hasPosition } from '../../simulation/frame-state.js';
+
+// Altitude is independent of GMST; see points-selection-resolve.ts.
+const GMST_IRRELEVANT_FOR_ALTITUDE = 0;
 
 /**
  * Project one object's LIVE position to screen space and write it straight
@@ -23,12 +28,17 @@ export function writeTetherPosition(
   scratch: Vector3,
 ): boolean {
   if (!tether) return false;
-  if (index < 0) {
+  // No position yet (a cold start) would pin the chip to the Earth's centre.
+  if (index < 0 || !hasPosition({ positions }, index)) {
     tether.setVisible(false);
     return false;
   }
 
-  scratch.set(positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]).project(camera);
+  scratch.set(positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]);
+  // Written here, every frame, because the chip's props are only refreshed
+  // when the scene re-renders, which a sitting selection never triggers.
+  tether.setAltitude(eciToGeodeticDeg(scratch, GMST_IRRELEVANT_FOR_ALTITUDE).altitudeKm);
+  scratch.project(camera);
   // z > 1 is behind the camera — the same test CameraSystem.projectToScreen
   // makes. Without it a target behind you is drawn mirrored across the
   // screen, which reads as a second object.

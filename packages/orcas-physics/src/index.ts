@@ -8,3 +8,4 @@ export * from './sun.js';
 export * from './moon.js';
 export * from './eclipse.js';
 export * from './lagrange.js';
+export * from './kepler.js';

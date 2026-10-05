@@ -28,4 +28,11 @@ describe('computeNearFarKm', () => {
     expect(computeNearFarKm(35629, 42000).farKm).toBeGreaterThan(42000 + 406700 + 1737);
     expect(computeNearFarKm(0.45, 6871).farKm).toBeGreaterThan(6871 + 406700 + 1737);
   });
+
+  // S4: the planets are drawn, Neptune up to ~31.3 AU from the Earth.
+  it('far reaches past Neptune on the far side of the Sun, from any vantage', () => {
+    const neptuneFarKm = 31.3 * 149_597_870.7;
+    expect(computeNearFarKm(35629, 42000).farKm).toBeGreaterThan(42000 + neptuneFarKm);
+    expect(computeNearFarKm(7e9, 1.5e10).farKm).toBeGreaterThan(1.5e10 + neptuneFarKm);
+  });
 });

@@ -176,7 +176,8 @@ export function TierZeroPoints({
         ? null
         : resolveEntityIndexToNorad(poll.hit.entityIndex, objects);
     hoverTrackingRef.current = advanceHover(resolved, hoverTrackingRef.current);
-    const hoveredNorad = hoverTrackingRef.current.debounce.value;
+    // Faded out (S4): nothing can be hovered, and the wheel moves no pointer to clear it.
+    const hoveredNorad = points.visible ? hoverTrackingRef.current.debounce.value : null;
     if (hoveredNorad !== useSelectionStore.getState().hoveredNorad) {
       useSelectionStore.getState().setHover(hoveredNorad);
     }
@@ -200,7 +201,7 @@ export function TierZeroPoints({
       hoverTether: tetherRef.current,
       selectedTether: selectedTetherRef?.current ?? null,
       hoverIndex,
-      selectedIndex,
+      selectedIndex: points.visible ? selectedIndex : -1, // the tethers fade with the satellites
       positions,
       camera,
       widthPx: size.width,

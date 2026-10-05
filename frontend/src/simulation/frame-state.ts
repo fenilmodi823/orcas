@@ -48,6 +48,14 @@ export function createFrameState(count: number): FrameState {
   return state;
 }
 
+/** Whether the loop has written this object's slot yet. A slot it never
+ * wrote is all zeros (createFrameState), and nothing in orbit sits at the
+ * Earth's centre. */
+export function hasPosition(frame: Pick<FrameState, 'positions'>, index: number): boolean {
+  const p = frame.positions;
+  return p[index * 3] !== 0 || p[index * 3 + 1] !== 0 || p[index * 3 + 2] !== 0;
+}
+
 /**
  * Evaluate every object's position/velocity at `epochMs` and write the
  * result into `frameState`'s existing buffers — zero allocation. An

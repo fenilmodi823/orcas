@@ -3,6 +3,7 @@ import type { MutableRefObject } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { satrecFromOmm } from '@orcas/physics';
+import type { Group } from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
@@ -22,6 +23,8 @@ import {
   type PathSlot,
 } from './path-slot.js';
 import { subtractCameraOffset } from '../camera-relative.js';
+import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
+import { patchLineMaterial } from '../live/line-trim.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -86,6 +89,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     return slots;
   }, [objects]);
 
+  const groupRef = useRef<Group>(null);
   const featuredLineRefs = useRef<(Line2 | null)[]>([]);
   const selectionLineRef = useRef<Line2 | null>(null);
 
@@ -102,6 +106,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
   const selectedSlotRef = useRef<PathSlot | null>(null);
 
   function pushGeometry(line: Line2, slot: PathSlot): void {
+    patchLineMaterial(line.material); // the reversed-depth near trim; a no-op after the first time
     line.geometry.setPositions(slot.positions);
     line.geometry.setColors(slot.colors, 4);
     line.geometry.instanceCount = DEFAULT_PATH_SAMPLES - 1;
@@ -147,6 +152,10 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     const wallMs = performance.now();
     const epochMs = frameStateRef.current.epochMs;
     if (epochMs <= 0) return; // the sim clock has not ticked yet
+    // S4 (B.21): the paths fade with the satellites as the shell shrinks onto the Earth's pixel.
+    const fade = layerFade(SATELLITE_LAYER_RADIUS_KM, camera.position.length());
+    if (groupRef.current) groupRef.current.visible = fade > 0;
+    if (fade === 0) return;
     const camX = camera.position.x;
     const camY = camera.position.y;
     const camZ = camera.position.z;
@@ -159,6 +168,7 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
       applyCameraRelative(line, slot, camX, camY, camZ);
       // Hovering the object or its label thickens its path (S1, NASA Eyes).
       line.material.linewidth = featuredLineWidthPx(slot.noradId === hoveredNoradRef.current);
+      line.material.opacity = fade;
     }
 
     const norad = selectedNoradRef.current;
@@ -174,12 +184,15 @@ export function OrbitPaths({ frameStateRef, objects, byNorad }: Props): React.Re
     }
     if (selectedSlotRef.current) {
       resampleIfDue(selectedSlotRef.current, line, wallMs, epochMs);
-      if (line && selectedSlotRef.current.drawn) applyCameraRelative(line, selectedSlotRef.current, camX, camY, camZ);
+      if (line && selectedSlotRef.current.drawn) {
+        applyCameraRelative(line, selectedSlotRef.current, camX, camY, camZ);
+        line.material.opacity = fade;
+      }
     }
   });
 
   return (
-    <group>
+    <group ref={groupRef}>
       {featuredSlots.map((slot, k) => (
         <Line
           key={slot.noradId}

@@ -63,6 +63,7 @@ export function createPointsMaterial(): ShaderMaterial {
       // above the floor and this value matters far less.
       uFloorBrightness: { value: 0.6 },
       uDimFactor: { value: 0.45 }, // P4.D27 supersedes D6's 0.3 — a readable floor, not a blackout
+      uLayerFade: { value: 1.0 },
       uLodLoPx: { value: LOD_BAND_PX.loPx },
       uLodHiPx: { value: LOD_BAND_PX.hiPx },
       uFocusActive: { value: 0.0 },

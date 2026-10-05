@@ -1,6 +1,7 @@
 import { PerspectiveCamera, ShaderMaterial } from 'three';
 import type { BufferAttribute, Camera, InterleavedBufferAttribute, Points } from 'three';
 import { useCameraTunables } from '../camera/camera-tunables.js';
+import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
 
 /**
  * The whole of Tier 0's per-frame GPU-side work in one place: re-flag the
@@ -28,6 +29,11 @@ export function writePerFrameUniforms(
     material.uniforms.uPixelsPerRadian.value = viewportHeightPx / verticalFovRad;
   }
   material.uniforms.uCamPos.value.copy(camera.position);
+  // S4 (B.21): the shell fades as it shrinks onto the Earth's pixel. Invisible
+  // once gone, which also takes it out of the pick pass.
+  const fade = layerFade(SATELLITE_LAYER_RADIUS_KM, camera.position.length());
+  material.uniforms.uLayerFade.value = fade;
+  points.visible = fade > 0;
 
   // The LOD band is a dev-panel tunable (M1.7a Task 11). Tier 1 reads the
   // same two values from the same store in the same frame, so the two

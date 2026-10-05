@@ -1,6 +1,6 @@
 import { DirectionalLight, Group, Matrix4, Mesh, SphereGeometry, Vector3, type Camera } from 'three';
 import { Line2, LineGeometry, LineMaterial } from 'three-stdlib';
-import { MOON_RADIUS_KM, moonPositionJ2000Km, sunDirectionJ2000, WGS84_A_KM } from '@orcas/physics';
+import { MOON_RADIUS_KM, moonPositionJ2000Km, WGS84_A_KM } from '@orcas/physics';
 import { readColorToken } from '../scene-colors.js';
 import { earthOrientationMatrix } from './earth-orientation.js';
 import {
@@ -12,15 +12,13 @@ import {
 } from './earth-materials.js';
 import { createSunSprite, sunSpriteSize } from './sun-sprite.js';
 import { MOON_TRAIL_SAMPLES, writeMoonTrail } from './moon-trail.js';
-import { bodyScreenPosition, type BodyScreenPosition } from './body-screen.js';
-import { LAGRANGE_LABELS, writeLagrangeLabels } from './lagrange-labels.js';
+import { layerFade, MOON_LAYER_RADIUS_KM, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
+import { patchLineMaterial } from '../live/line-trim.js';
 
 /** Resample the Moon's trail once the clock has moved this far. The Moon covers
  * ~0.09° (~600 km) in 10 simulated minutes, so the trail never visibly lags it. */
 const TRAIL_RESAMPLE_MS = 10 * 60_000;
 const MOON_TRAIL_WIDTH_PX = 2.5; // thicker than a satellite path (1.5 / 2 px) — item 13
-/** Where the Sun's label is projected from: a point this far along its direction. */
-const SUN_LABEL_DISTANCE_KM = 1e8;
 
 const _poleToZ = new Matrix4().makeRotationX(Math.PI / 2);
 const _moonScale = new Matrix4().makeScale(MOON_RADIUS_KM, MOON_RADIUS_KM, MOON_RADIUS_KM);
@@ -51,15 +49,14 @@ export interface Viewport {
 
 export interface EarthSunMoonSystem {
   readonly group: Group;
-  /** Screen positions for the Sun, Moon and Lagrange-point labels, written by `update`. */
-  readonly labels: {
-    readonly sun: BodyScreenPosition;
-    readonly moon: BodyScreenPosition;
-    /** In `LAGRANGE_LABELS` order. */
-    readonly lagrange: readonly BodyScreenPosition[];
-  };
-  /** Advance everything to `epochMs` (the SIMULATION clock). Call after the camera is final. */
-  update(epochMs: number, camera: Camera, fovDeg: number, viewport: Viewport): void;
+  /** The Moon's centre as of the last `update`: km, J2000. */
+  readonly moonKm: Vector3;
+  /**
+   * Advance everything to `epochMs` (the SIMULATION clock). Call after the
+   * camera is final. `sunKm` is the Sun's true geocentric position (km): it
+   * places the Sun's disc and lights the Earth and the Moon.
+   */
+  update(epochMs: number, camera: Camera, fovDeg: number, viewport: Viewport, sunKm: Vector3): void;
   loadTextures(anisotropy: number): void;
   dispose(): void;
 }
@@ -87,6 +84,7 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
 
   const trailGeometry = new LineGeometry();
   const trailMaterial = new LineMaterial({ vertexColors: true, transparent: true, linewidth: MOON_TRAIL_WIDTH_PX });
+  patchLineMaterial(trailMaterial);
   const trail = new Line2(trailGeometry, trailMaterial);
   trail.frustumCulled = false;
   trail.visible = false; // until the first sample
@@ -100,22 +98,15 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
 
   const sunDir = new Vector3();
   const moonPosition = new Vector3();
-  const sunLabelPoint = new Vector3();
-  const labels = {
-    sun: { xPx: 0, yPx: 0, visible: false },
-    moon: { xPx: 0, yPx: 0, visible: false },
-    lagrange: LAGRANGE_LABELS.map(() => ({ xPx: 0, yPx: 0, visible: false })),
-  };
-  const bodyLabels = [labels.sun, labels.moon];
   let disposeTextures = () => {};
 
   return {
     group,
-    labels,
+    moonKm: moonPosition,
     loadTextures(anisotropy) {
       disposeTextures = loadSceneTextures(surface, moonMaterial, anisotropy);
     },
-    update(epochMs, camera, fovDeg, viewport) {
+    update(epochMs, camera, fovDeg, viewport, sunKm) {
       const at = new Date(epochMs);
       const widthPx = viewport.cssWidth * viewport.dpr;
       const heightPx = viewport.cssHeight * viewport.dpr;
@@ -123,14 +114,13 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
       earthOrientationMatrix(at, earth.matrix);
       earth.matrixWorldNeedsUpdate = true;
 
-      const s = sunDirectionJ2000(at);
-      sunDir.set(s.x, s.y, s.z);
+      sunDir.copy(sunKm).normalize();
       surface.uniforms.uSunDir.value.copy(sunDir);
       atmosphereMaterial.uniforms.uSunDir.value.copy(sunDir);
       atmosphereMaterial.uniforms.uCamPos.value.copy(camera.position);
       light.position.copy(sunDir); // shines from its position toward its target, the origin
-      sun.material.uniforms.uSunDir.value.copy(sunDir);
-      const sprite = sunSpriteSize(fovDeg, heightPx);
+      sun.position.copy(sunKm);
+      const sprite = sunSpriteSize(sun.position.distanceTo(camera.position), fovDeg, heightPx);
       sun.material.uniforms.uSpritePx.value = sprite.spritePx;
       sun.material.uniforms.uDiscFraction.value = sprite.discFraction;
 
@@ -139,20 +129,19 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
       moonMatrix(moonPosition, moon.matrix);
       moon.matrixWorldNeedsUpdate = true;
 
+      // Earth-scale layers fade as they shrink onto the Earth's pixel (B.21).
+      const camDistKm = camera.position.length();
+      atmosphere.visible = layerFade(SATELLITE_LAYER_RADIUS_KM, camDistKm) > 0;
+      trailMaterial.opacity = layerFade(MOON_LAYER_RADIUS_KM, camDistKm);
       trailMaterial.resolution.set(widthPx, heightPx);
       if (!(Math.abs(epochMs - trailSampledAtMs) < TRAIL_RESAMPLE_MS)) {
         writeMoonTrail(epochMs, moonRgb, trailPositions, trailColours);
         trailGeometry.setPositions(trailPositions);
         trailGeometry.setColors(trailColours, 4);
         trail.computeLineDistances();
-        trail.visible = true;
         trailSampledAtMs = epochMs;
       }
-
-      sunLabelPoint.copy(camera.position).addScaledVector(sunDir, SUN_LABEL_DISTANCE_KM);
-      bodyScreenPosition(sunLabelPoint, camera, viewport.cssWidth, viewport.cssHeight, labels.sun);
-      bodyScreenPosition(moonPosition, camera, viewport.cssWidth, viewport.cssHeight, labels.moon);
-      writeLagrangeLabels(at, camera, viewport.cssWidth, viewport.cssHeight, moonPosition, bodyLabels, labels.lagrange);
+      trail.visible = trailMaterial.opacity > 0; // the block above has always sampled it by now
     },
     dispose() {
       disposeTextures();

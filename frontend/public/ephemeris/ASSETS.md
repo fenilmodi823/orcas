@@ -22,4 +22,5 @@ about −2.7 s). Measured over 1899–1902 for a 72 s error, that moves Mercury 
 from the Earth, the Sun 3.1″, Venus 3.8″, Mars 2.4″ and the outer planets under 1″. All of this
 is far inside the Solar regime's 1 arcminute budget (`Cosmic-Scales-Brief` §3.4).
 
-**Credit.** When the planets are drawn (S4), the scene's credit line names JPL DE421 as the source.
+**Credit.** On `/` the credit line names the source (S4): "Sun and planets: JPL DE421, interpolated to within 1″;
+Jupiter to Neptune at their system barycentres." The `/points` debug route does not yet.

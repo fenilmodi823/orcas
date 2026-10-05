@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import type { PerspectiveCamera } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import type { FrameState } from '../../simulation/frame-state.js';
+import { hasPosition, type FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
 import { dragToManualInput, wheelToManualInput } from './manual-input.js';
@@ -40,6 +40,10 @@ export function useCameraController({
   const reducedMotion = useReducedMotion();
   const sysRef = useRef<CameraSystem | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  // A selection made before the loop has a position for it (a cold start,
+  // or a link opened with `object=`). Flying then would aim at the Earth's
+  // centre, so the flight waits here until the slot is written.
+  const pendingTargetRef = useRef(-1);
   // dev-panel tunables read via a ref so the mount-effect listeners always
   // see the current value without re-subscribing.
   const tunablesRef = useRef(useCameraTunables.getState());
@@ -62,16 +66,23 @@ export function useCameraController({
     sys.update(0, frameStateRef.current);
 
     // selection → camera. Vanilla subscribe, outside React's render cycle.
-    const unsub = useSelectionStore.subscribe((state, prev) => {
-      if (state.selectedNorad === prev.selectedNorad) return;
-      const p =
-        state.selectedNorad === null
-          ? sys.flyToEarth()
-          : byNorad[state.selectedNorad] === undefined
-            ? Promise.resolve()
-            : sys.flyTo(byNorad[state.selectedNorad]);
+    const follow = (norad: string | null) => {
+      pendingTargetRef.current = -1;
+      const index = norad === null ? undefined : byNorad[norad];
+      if (index !== undefined && !hasPosition(frameStateRef.current, index)) {
+        pendingTargetRef.current = index;
+        return;
+      }
+      const p = norad === null ? sys.flyToEarth() : index === undefined ? Promise.resolve() : sys.flyTo(index);
       p.catch(() => undefined); // CancelledError when superseded — expected
+    };
+    const unsub = useSelectionStore.subscribe((state, prev) => {
+      if (state.selectedNorad !== prev.selectedNorad) follow(state.selectedNorad);
     });
+    // A link's `object=` is applied by the dock's effect, outside the Canvas,
+    // before R3F mounts this and subscribes; follow it now or it never flies.
+    const initial = useSelectionStore.getState().selectedNorad;
+    if (initial !== null) follow(initial);
 
     // "Reset view & tunables" → actually reset the view. The selection
     // subscription above short-circuits on an unchanged id, so when nothing
@@ -144,6 +155,11 @@ export function useCameraController({
   useFrame((_, dt) => {
     const sys = sysRef.current;
     if (!sys) return;
+    const pending = pendingTargetRef.current;
+    if (pending >= 0 && hasPosition(frameStateRef.current, pending)) {
+      pendingTargetRef.current = -1;
+      sys.flyTo(pending).catch(() => undefined);
+    }
     sys.approachBlend = tunablesRef.current.approachBlend;
     sys.update(dt, frameStateRef.current);
     // Publish flight state for pick suppression. The store only writes on a

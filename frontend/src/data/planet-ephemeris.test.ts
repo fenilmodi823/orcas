@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/de421-planets.json' with { type: 'json' };
 import {
   bodyPositionKm,
+  bodyStateKm,
   EPHEMERIS_BODIES,
   parsePlanetEphemeris,
   PlanetEphemerisFormatError,
@@ -53,6 +54,22 @@ describe('the baked DE421 planets (S3)', () => {
   it('has no position outside the span it was baked over', () => {
     expect(bodyPositionKm(ephemeris, EARTH, Date.parse('1899-07-01T00:00:00Z'))).toBeNull();
     expect(bodyPositionKm(ephemeris, EARTH, Date.parse('2053-11-01T00:00:00Z'))).toBeNull();
+  });
+
+  it("gives each body's velocity as the derivative of its position (S4's orbit lines)", () => {
+    const utcMs = Date.parse('2026-10-05T12:34:56Z');
+    for (const body of EPHEMERIS_BODIES) {
+      const state = bodyStateKm(ephemeris, body.naifId, utcMs);
+      const before = bodyPositionKm(ephemeris, body.naifId, utcMs - 60_000);
+      const after = bodyPositionKm(ephemeris, body.naifId, utcMs + 60_000);
+      expect(state && before && after).toBeTruthy();
+      const fd = { x: (after!.x - before!.x) / 120, y: (after!.y - before!.y) / 120, z: (after!.z - before!.z) / 120 };
+      const v = state!.velocity;
+      // km/s; float32 keyframes limit the finite difference, not the velocity.
+      expect(Math.hypot(v.x - fd.x, v.y - fd.y, v.z - fd.z)).toBeLessThan(1e-3);
+      expect(state!.position).toEqual(bodyPositionKm(ephemeris, body.naifId, utcMs));
+    }
+    expect(bodyStateKm(ephemeris, EARTH, Date.parse('2053-11-01T00:00:00Z'))).toBeNull();
   });
 
   it('has no position for a body it does not carry', () => {

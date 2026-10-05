@@ -1,12 +1,7 @@
 import { Vector3, type Camera } from 'three';
-import {
-  earthMoonLagrangeJ2000Km,
-  MOON_RADIUS_KM,
-  sunEarthLagrangeJ2000Km,
-  type LagrangePoints,
-} from '@orcas/physics';
-import { DENSITY_RADIUS_PX } from '../points/object-label-layout.js';
-import { bodyScreenPosition, sphereBlocks, type BodyScreenPosition } from './body-screen.js';
+import { earthMoonLagrangeJ2000Km, sunEarthLagrangeJ2000Km, type LagrangePoints } from '@orcas/physics';
+import { bodyScreenPosition, type BodyScreenPosition } from './body-screen.js';
+import { crowds, hiddenByBody, type Occluder } from './body-label-layout.js';
 
 export interface LagrangeLabel {
   readonly name: string;
@@ -45,23 +40,19 @@ export const LAGRANGE_CREDIT = 'Lagrange points: computed from the circular rest
 
 const _point = new Vector3();
 
-function crowds(a: BodyScreenPosition, b: BodyScreenPosition | undefined): boolean {
-  return b !== undefined && b.visible && Math.hypot(a.xPx - b.xPx, a.yPx - b.yPx) < DENSITY_RADIUS_PX;
-}
-
 /**
  * Screen positions for `LAGRANGE_LABELS`, in order, into `out`. A point is
- * hidden behind the Earth or the Moon, and where its label would crowd a
- * body's (`bodies`) or an earlier point's: NASA Eyes declutters by weight
- * first, and a body outweighs a computed point. Input: UTC Date; the Moon's
- * centre in km, J2000; the viewport and `bodies` in CSS pixels.
+ * hidden behind the Earth or any of `occluders`, and where its label would
+ * crowd a body's (`bodies`) or an earlier point's: NASA Eyes declutters by
+ * weight first, and a body outweighs a computed point. Input: UTC Date;
+ * occluders in km, J2000; the viewport and `bodies` in CSS pixels.
  */
 export function writeLagrangeLabels(
   at: Date,
   camera: Camera,
   cssWidth: number,
   cssHeight: number,
-  moonKm: Vector3,
+  occluders: readonly Occluder[],
   bodies: readonly BodyScreenPosition[],
   out: BodyScreenPosition[],
 ): void {
@@ -72,7 +63,7 @@ export function writeLagrangeLabels(
     const p = points[l.system][l.point];
     _point.set(p.x, p.y, p.z);
     bodyScreenPosition(_point, camera, cssWidth, cssHeight, target);
-    if (target.visible && sphereBlocks(camera.position, _point, moonKm, MOON_RADIUS_KM)) target.visible = false;
+    if (target.visible && hiddenByBody(camera.position, _point, occluders, null)) target.visible = false;
     if (target.visible && bodies.some((b) => crowds(target, b))) target.visible = false;
     for (let j = 0; j < i && target.visible; j++) if (crowds(target, out[j])) target.visible = false;
   });

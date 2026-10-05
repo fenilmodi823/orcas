@@ -12,6 +12,7 @@ import { EarthSunMoon } from '../earth/EarthSunMoon.js';
 import { BodyLabels, type BodyLabelRefs } from '../earth/BodyLabels.js';
 import { DensityHeatmap } from '../density/DensityHeatmap.js';
 import { isClickNotDrag } from '../points/points-pick-schedule.js';
+import { classifyOrbitClass } from '../points/points-filters.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { useContextLoss } from '../use-context-loss.js';
 import { ObjectTether } from '../../ui/ObjectTether.js';
@@ -60,6 +61,7 @@ function toCanvasPixels(event: { clientX: number; clientY: number }, canvas: HTM
  */
 export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; canvasChildren?: ReactNode }) {
   const { objects, byNorad, loop, ranks, featuredNames, featuredNorads, resolvedHovered, resolvedSelected } = scene;
+  const selectedMeta = scene.selectedObjectMeta;
   // Each ref gets its own binding rather than being read off a bag during
   // render: passing `viewportRef` to a `ref=` attribute teaches the compiler
   // the bag holds refs, and it then treats every `refs.x` read as a render-
@@ -80,7 +82,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const contextLoss = useContextLoss(canvasEl);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
-  const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, lagrange: [] });
+  const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, planets: [], lagrange: [] });
   const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
@@ -205,10 +207,12 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           The graphics context was lost — usually the browser reclaiming GPU memory. The view will return on its own.
         </p>
       )}
+      {/* Name and class from the catalogue, which needs no position: on a cold
+          start the resolve is null and nothing re-renders once it isn't. */}
       <ObjectTether
         ref={selectedTetherRef}
-        name={resolvedSelected?.name ?? ''}
-        orbitClass={resolvedSelected?.orbitClass ?? 'debris'}
+        name={selectedMeta?.name ?? ''}
+        orbitClass={selectedMeta ? (classifyOrbitClass(selectedMeta) ?? 'debris') : 'debris'}
         altitudeKm={resolvedSelected?.altitudeKm ?? 0}
         selected
       />
@@ -230,7 +234,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
             ref={(l) => {
               labelRefs.current[k] = l;
             }}
-            name={isSelectionSlot ? (resolvedSelected?.name ?? '') : (featuredNames[k] ?? '')}
+            name={isSelectionSlot ? (selectedMeta?.name ?? '') : (featuredNames[k] ?? '')}
             emphasised={norad !== null && norad === selectedNorad}
             // "Click any label" flies there (Reference - NASA Eyes §4.4);
             // hovering it is hovering the object.

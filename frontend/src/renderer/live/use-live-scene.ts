@@ -61,14 +61,17 @@ export function useLiveScene(
   const [startEpochMs] = useState(() => startAtMs ?? Date.now());
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
 
-  useEffect(
-    () =>
-      useSimulationStore.subscribe((state) => {
-        playingRef.current = state.playing;
-        rateRef.current = effectiveRate(state);
-      }),
-    [],
-  );
+  useEffect(() => {
+    const mirror = (state: ReturnType<typeof useSimulationStore.getState>) => {
+      playingRef.current = state.playing;
+      rateRef.current = effectiveRate(state);
+    };
+    // React runs a child's effects before this one, so the dock may already
+    // have applied an opened link (`rate=0` pauses) before we subscribe. Not
+    // re-reading here let a paused link creep at 1x until the next change.
+    mirror(useSimulationStore.getState());
+    return useSimulationStore.subscribe(mirror);
+  }, []);
 
   // Pure function of the catalogue — computed once and shared by
   // TierZeroPoints (density slider) and ObjectLabels (label declutter),

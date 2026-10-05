@@ -1,22 +1,14 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial, Vector3 } from 'three';
-
-/** The Sun's true angular diameter from Earth, degrees (mean; 0.524–0.542 over the year). */
-export const SUN_ANGULAR_DIAMETER_DEG = 0.533;
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial } from 'three';
+import { SUN_RADIUS_KM } from '@orcas/physics';
 
 const VERTEX = /* glsl */ `
-  uniform vec3 uSunDir;
   uniform float uSpritePx;
 
   void main() {
-    // A direction, not a position: the Sun is drawn at the far plane like the
-    // stars (StarSky), but depth-TESTED, so the Earth occludes it.
-    vec4 clip = projectionMatrix * mat4(mat3(viewMatrix)) * vec4(uSunDir, 1.0);
-    gl_Position = clip;
-    #ifdef USE_REVERSED_DEPTH_BUFFER
-      gl_Position.z = 0.0;
-    #else
-      gl_Position.z = clip.w;
-    #endif
+    // At the Sun's true place (S4): the object sits at the Sun, and three forms
+    // modelViewMatrix in float64, so the GPU sees it camera-relative. Depth-tested
+    // at its centre, so a body in front of the Sun hides it.
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     gl_PointSize = uSpritePx;
   }
 `;
@@ -45,7 +37,6 @@ export function createSunSprite(): Points<BufferGeometry, ShaderMaterial> {
     vertexShader: VERTEX,
     fragmentShader: FRAGMENT,
     uniforms: {
-      uSunDir: { value: new Vector3(1, 0, 0) },
       uSpritePx: { value: 96 },
       uDiscFraction: { value: 0.2 },
     },
@@ -55,17 +46,19 @@ export function createSunSprite(): Points<BufferGeometry, ShaderMaterial> {
     blending: AdditiveBlending,
   });
   const sprite = new Points(geometry, material);
-  sprite.frustumCulled = false; // its position attribute is a placeholder; the shader places it
+  sprite.frustumCulled = false; // a one-vertex bounding sphere is no use for a 512 px sprite
   return sprite;
 }
 
 /**
- * Sprite size for the current viewport: the disc at its true angular size,
- * the sprite six times wider for the glow. Input: vertical fov (deg), drawing
- * buffer height (px). Output: sprite px and the disc's fraction of it.
+ * Sprite size for the current viewport: the disc at its true angular size from
+ * `distanceKm` (never under 3 px), the sprite six times wider for the glow.
+ * Input: camera-to-Sun distance (km), vertical fov (deg), drawing buffer height
+ * (px). Output: sprite px and the disc's fraction of it.
  */
-export function sunSpriteSize(fovDeg: number, heightPx: number): { spritePx: number; discFraction: number } {
-  const discPx = Math.max(3, (SUN_ANGULAR_DIAMETER_DEG / fovDeg) * heightPx);
+export function sunSpriteSize(distanceKm: number, fovDeg: number, heightPx: number): { spritePx: number; discFraction: number } {
+  const diameterDeg = (2 * Math.asin(Math.min(1, SUN_RADIUS_KM / distanceKm)) * 180) / Math.PI;
+  const discPx = Math.max(3, (diameterDeg / fovDeg) * heightPx);
   const spritePx = Math.min(512, Math.max(48, discPx * 6));
   return { spritePx, discFraction: discPx / spritePx };
 }

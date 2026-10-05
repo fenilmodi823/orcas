@@ -8,6 +8,7 @@ import { useSelectionStore } from '../../state/selection-store.js';
 import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
 import { computeLabelOpacities, labelOnScreen, type LabelCandidate } from './object-label-layout.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
+import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
 
 /** Hard cap on simultaneously-visible non-exempt labels (P4.D28). */
 const LABEL_CAP = 12;
@@ -134,12 +135,14 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
       cap: LABEL_CAP,
     });
 
+    // S4 (B.21): the labels fade with the satellites past ~2 × 10⁶ km.
+    const fade = layerFade(SATELLITE_LAYER_RADIUS_KM, camera.position.length());
     for (let k = 0; k < SLOT_COUNT; k++) {
       const handle = labelRefs.current[k];
       if (!handle) continue;
       const candidate = candidates[k];
       if (candidate.visible) handle.setPosition(candidate.xPx, candidate.yPx);
-      handle.setOpacity(opacities[k]);
+      handle.setOpacity(opacities[k] * fade);
     }
   });
 

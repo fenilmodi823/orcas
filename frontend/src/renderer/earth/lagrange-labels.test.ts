@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { moonPositionJ2000Km } from '@orcas/physics';
+import { MOON_RADIUS_KM, moonPositionJ2000Km } from '@orcas/physics';
 import { LAGRANGE_LABELS, writeLagrangeLabels } from './lagrange-labels.js';
 
 const AT = new Date('2026-10-05T08:00:00Z');
@@ -22,6 +22,7 @@ describe('LAGRANGE_LABELS', () => {
 describe('writeLagrangeLabels', () => {
   const m = moonPositionJ2000Km(AT);
   const moon = new Vector3(m.x, m.y, m.z);
+  const occluders = [{ centreKm: moon, radiusKm: MOON_RADIUS_KM }];
   // On the Earth side of the Moon, on the Earth–Moon line, looking at the Moon.
   const camera = new PerspectiveCamera(35, 2, 1, 1e7);
   camera.position.copy(moon).multiplyScalar(0.1);
@@ -29,7 +30,7 @@ describe('writeLagrangeLabels', () => {
   camera.lookAt(moon);
   camera.updateMatrixWorld();
   const out = LAGRANGE_LABELS.map(() => ({ xPx: 0, yPx: 0, visible: false }));
-  writeLagrangeLabels(AT, camera, 800, 400, moon, [], out);
+  writeLagrangeLabels(AT, camera, 800, 400, occluders, [], out);
 
   it('hides Earth–Moon L2 behind the Moon, as NASA hides what is behind a body', () => {
     expect(out[named('Earth–Moon L2')]?.visible).toBe(false);
@@ -47,7 +48,7 @@ describe('writeLagrangeLabels', () => {
   it('hides a point whose label would land on a body label', () => {
     const crowded = LAGRANGE_LABELS.map(() => ({ xPx: 0, yPx: 0, visible: false }));
     const body = { xPx: 410, yPx: 205, visible: true }; // beside Earth–Moon L1
-    writeLagrangeLabels(AT, camera, 800, 400, moon, [body], crowded);
+    writeLagrangeLabels(AT, camera, 800, 400, occluders, [body], crowded);
     expect(crowded[named('Earth–Moon L1')]?.visible).toBe(false);
   });
 
@@ -57,7 +58,7 @@ describe('writeLagrangeLabels', () => {
     far.lookAt(0, 0, 0);
     far.updateMatrixWorld();
     const stacked = LAGRANGE_LABELS.map(() => ({ xPx: 0, yPx: 0, visible: false }));
-    writeLagrangeLabels(AT, far, 800, 400, moon, [], stacked);
+    writeLagrangeLabels(AT, far, 800, 400, occluders, [], stacked);
     // Every point within 2 × 10⁶ km of the Earth lands within a few pixels;
     // only the first in list order, Sun–Earth L1, keeps its label.
     const cluster = LAGRANGE_LABELS.flatMap((l, i) =>

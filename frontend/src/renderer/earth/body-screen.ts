@@ -46,6 +46,7 @@ export function earthBlocks(fromKm: Vector3, toKm: Vector3): boolean {
 /**
  * Where a body at `worldKm` lands on screen, in CSS pixels from the top-left,
  * and whether it can be seen: in front of the camera and not behind the Earth.
+ * `testEarth` is false for the Earth's own label, which its surface would hide.
  */
 export function bodyScreenPosition(
   worldKm: Vector3,
@@ -53,11 +54,12 @@ export function bodyScreenPosition(
   widthPx: number,
   heightPx: number,
   out: BodyScreenPosition,
+  testEarth = true,
 ): BodyScreenPosition {
   _view.copy(worldKm).applyMatrix4(camera.matrixWorldInverse);
   _ndc.copy(worldKm).project(camera);
   out.xPx = ((_ndc.x + 1) / 2) * widthPx;
   out.yPx = ((1 - _ndc.y) / 2) * heightPx;
-  out.visible = _view.z < 0 && Math.abs(_ndc.x) <= 1 && Math.abs(_ndc.y) <= 1 && !earthBlocks(camera.position, worldKm);
+  out.visible = _view.z < 0 && Math.abs(_ndc.x) <= 1 && Math.abs(_ndc.y) <= 1 && !(testEarth && earthBlocks(camera.position, worldKm));
   return out;
 }

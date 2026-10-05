@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 import type { FilterClass } from '../state/selection-store.js';
 import './ObjectTether.css';
 
@@ -13,6 +13,9 @@ const FILTER_CLASS_VAR: Record<FilterClass, string> = {
 export interface ObjectTetherHandle {
   setPosition(xPx: number, yPx: number): void;
   setVisible(visible: boolean): void;
+  /** The live altitude, written per frame by the same projection that
+   * moves the chip; the prop alone froze while an object sat selected. */
+  setAltitude(altitudeKm: number): void;
 }
 
 export interface ObjectTetherProps {
@@ -36,6 +39,15 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
   forwardedRef,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
+  // React renders this span empty and never touches its text, so the
+  // per-frame writes below cannot be undone by a re-render.
+  const altitudeRef = useRef<HTMLSpanElement>(null);
+  const writeAltitude = (km: number) => {
+    const node = altitudeRef.current;
+    const text = km.toFixed(1);
+    if (node && node.textContent !== text) node.textContent = text;
+  };
+  useLayoutEffect(() => writeAltitude(altitudeKm), [altitudeKm]);
 
   useImperativeHandle(forwardedRef, () => ({
     setPosition(xPx, yPx) {
@@ -48,6 +60,7 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
       if (!node) return;
       node.style.opacity = visible ? '1' : '0';
     },
+    setAltitude: writeAltitude,
   }));
 
   return (
@@ -66,7 +79,7 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
         <span className="object-tether__dot" style={{ background: FILTER_CLASS_VAR[orbitClass] }} />
         <span className="object-tether__name">{name}</span>
         <span className="object-tether__meta">
-          {orbitClass.toUpperCase()} · {altitudeKm.toFixed(1)} km
+          {orbitClass.toUpperCase()} · <span ref={altitudeRef} /> km
         </span>
       </div>
     </div>

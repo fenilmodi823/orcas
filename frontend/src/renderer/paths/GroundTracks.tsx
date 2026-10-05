@@ -13,6 +13,7 @@ import { readCyanToken } from '../scene-colors.js';
 import { sampleGroundTrack, DEFAULT_GROUND_TRACK_SAMPLES } from './ground-track.js';
 import { toGroundTrackSegments } from './ground-track-split.js';
 import { reconcilePool } from '../trails/trail-pool.js';
+import { patchLineMaterial } from '../live/line-trim.js';
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
@@ -167,6 +168,7 @@ export function GroundTracks({
         slot.colorBuffer[v * 4 + 2] = slot.rgb.b;
         slot.colorBuffer[v * 4 + 3] = 1;
       }
+      patchLineMaterial(line.material); // the reversed-depth near trim; a no-op after the first time
       line.geometry.setPositions(slot.segBuffer.subarray(0, segmentCount * 6));
       line.geometry.setColors(slot.colorBuffer.subarray(0, vertexCount * 4), 4);
       line.geometry.instanceCount = segmentCount;

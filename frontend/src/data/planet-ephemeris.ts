@@ -89,6 +89,15 @@ function endpoint(states: Float32Array, k: number) {
  * UTC ms. Output: km, ICRF, relative to the Solar System barycentre.
  */
 export function bodyPositionKm(ephemeris: PlanetEphemeris, naifId: number, utcMs: number): Vec3 | null {
+  return bodyStateKm(ephemeris, naifId, utcMs)?.position ?? null;
+}
+
+/** As `bodyPositionKm`, with the velocity too. Output: km and km/s, ICRF, relative to the Solar System barycentre. */
+export function bodyStateKm(
+  ephemeris: PlanetEphemeris,
+  naifId: number,
+  utcMs: number,
+): { position: Vec3; velocity: Vec3 } | null {
   const body = ephemeris.bodies.get(naifId);
   if (!body) return null;
   const etS = utcMs / 1000 + TT_MINUS_UTC_S - J2000_LABEL_S;
@@ -96,5 +105,5 @@ export function bodyPositionKm(ephemeris: PlanetEphemeris, naifId: number, utcMs
   const last = body.states.length / FLOATS_PER_KEYFRAME - 1;
   if (!(u >= 0 && u <= last)) return null;
   const k = Math.min(Math.floor(u), last - 1);
-  return hermiteState(endpoint(body.states, k), endpoint(body.states, k + 1), body.stepS, u - k).position;
+  return hermiteState(endpoint(body.states, k), endpoint(body.states, k + 1), body.stepS, u - k);
 }

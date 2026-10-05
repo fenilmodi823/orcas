@@ -28,6 +28,7 @@ uniform float uDpr;
 uniform float uBaseBrightness;
 uniform float uFloorBrightness;
 uniform float uDimFactor;
+uniform float uLayerFade; // S4: 0 once the camera is so far out the shell is one pixel
 uniform float uLodLoPx;
 uniform float uLodHiPx;
 uniform float uFocusActive;
@@ -90,6 +91,7 @@ void main() {
   //    (both sides are small whole numbers with no accumulated error).
   float isSelected = step(abs(aEntityId - uSelectedEntityId), 0.5);
   brightness *= mix(1.0, mix(uDimFactor, 1.0, isSelected), uFocusActive);
+  brightness *= uLayerFade;
   // Orbit-class colour at rest, overridden to the selection accent — the same
   // isSelected already computed above, no second comparison.
   vTint = mix(uOrbitClassColors[int(aOrbitClass)], uSelectedColor, isSelected);
