@@ -12,6 +12,8 @@ export interface ObjectLabelProps {
   tier?: 'primary' | 'secondary';
   /** The selected object's label reads at full strength, as on hover. */
   emphasised?: boolean;
+  /** A computed point rather than an object: its marker shows its stability (RA5.D8). */
+  marker?: 'saddle' | 'stable';
   /** Makes the label a control that selects its object. */
   onSelect?: () => void;
   onHover?: (hovered: boolean) => void;
@@ -33,7 +35,7 @@ const HIDDEN_BELOW = 0.05;
  * object — "click any label" (§4.4).
  */
 export const ObjectLabel = forwardRef<ObjectLabelHandle, ObjectLabelProps>(function ObjectLabel(
-  { name, tier = 'secondary', emphasised = false, onSelect, onHover },
+  { name, tier = 'secondary', emphasised = false, marker, onSelect, onHover },
   forwardedRef,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -76,6 +78,7 @@ export const ObjectLabel = forwardRef<ObjectLabelHandle, ObjectLabelProps>(funct
       className="object-label"
       data-tier={tier}
       data-emphasised={emphasised ? '' : undefined}
+      data-marker={marker}
       data-hidden=""
       aria-hidden
       style={{ opacity: 0 }}

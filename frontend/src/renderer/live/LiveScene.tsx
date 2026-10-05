@@ -9,12 +9,13 @@ import { GroundTracks } from '../paths/GroundTracks.js';
 import { ObjectLabels, LABEL_SLOT_COUNT } from '../points/ObjectLabels.js';
 import { StarSky } from '../sky/StarSky.js';
 import { EarthSunMoon } from '../earth/EarthSunMoon.js';
+import { BodyLabels, type BodyLabelRefs } from '../earth/BodyLabels.js';
 import { DensityHeatmap } from '../density/DensityHeatmap.js';
 import { isClickNotDrag } from '../points/points-pick-schedule.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { useContextLoss } from '../use-context-loss.js';
 import { ObjectTether } from '../../ui/ObjectTether.js';
-import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
+import { ObjectLabel } from '../../ui/ObjectLabel.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FrameState } from '../../simulation/frame-state.js';
@@ -79,8 +80,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const contextLoss = useContextLoss(canvasEl);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
-  const sunLabelRef = useRef<ObjectLabelHandle | null>(null);
-  const moonLabelRef = useRef<ObjectLabelHandle | null>(null);
+  const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, lagrange: [] });
   const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
@@ -157,7 +157,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           <StarSky />
           {/* A faint ambient only: the night side stays dark (brief §F.1). */}
           <ambientLight intensity={0.08} />
-          <EarthSunMoon frameStateRef={loop.frameStateRef} sunLabelRef={sunLabelRef} moonLabelRef={moonLabelRef} />
+          <EarthSunMoon frameStateRef={loop.frameStateRef} labelsRef={bodyLabelsRef} />
           <TierZeroPoints
             objects={objects}
             ranks={ranks}
@@ -239,8 +239,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           />
         );
       })}
-      <ObjectLabel ref={sunLabelRef} name="Sun" tier="primary" />
-      <ObjectLabel ref={moonLabelRef} name="Moon" />
+      <BodyLabels labelsRef={bodyLabelsRef} />
     </div>
   );
 }

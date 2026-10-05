@@ -13,6 +13,7 @@ import {
 import { createSunSprite, sunSpriteSize } from './sun-sprite.js';
 import { MOON_TRAIL_SAMPLES, writeMoonTrail } from './moon-trail.js';
 import { bodyScreenPosition, type BodyScreenPosition } from './body-screen.js';
+import { LAGRANGE_LABELS, writeLagrangeLabels } from './lagrange-labels.js';
 
 /** Resample the Moon's trail once the clock has moved this far. The Moon covers
  * ~0.09° (~600 km) in 10 simulated minutes, so the trail never visibly lags it. */
@@ -50,8 +51,13 @@ export interface Viewport {
 
 export interface EarthSunMoonSystem {
   readonly group: Group;
-  /** Screen positions for the Sun and Moon labels, written by `update`. */
-  readonly labels: { readonly sun: BodyScreenPosition; readonly moon: BodyScreenPosition };
+  /** Screen positions for the Sun, Moon and Lagrange-point labels, written by `update`. */
+  readonly labels: {
+    readonly sun: BodyScreenPosition;
+    readonly moon: BodyScreenPosition;
+    /** In `LAGRANGE_LABELS` order. */
+    readonly lagrange: readonly BodyScreenPosition[];
+  };
   /** Advance everything to `epochMs` (the SIMULATION clock). Call after the camera is final. */
   update(epochMs: number, camera: Camera, fovDeg: number, viewport: Viewport): void;
   loadTextures(anisotropy: number): void;
@@ -98,7 +104,9 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
   const labels = {
     sun: { xPx: 0, yPx: 0, visible: false },
     moon: { xPx: 0, yPx: 0, visible: false },
+    lagrange: LAGRANGE_LABELS.map(() => ({ xPx: 0, yPx: 0, visible: false })),
   };
+  const bodyLabels = [labels.sun, labels.moon];
   let disposeTextures = () => {};
 
   return {
@@ -144,6 +152,7 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
       sunLabelPoint.copy(camera.position).addScaledVector(sunDir, SUN_LABEL_DISTANCE_KM);
       bodyScreenPosition(sunLabelPoint, camera, viewport.cssWidth, viewport.cssHeight, labels.sun);
       bodyScreenPosition(moonPosition, camera, viewport.cssWidth, viewport.cssHeight, labels.moon);
+      writeLagrangeLabels(at, camera, viewport.cssWidth, viewport.cssHeight, moonPosition, bodyLabels, labels.lagrange);
     },
     dispose() {
       disposeTextures();

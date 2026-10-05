@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { bodyScreenPosition, earthBlocks } from './body-screen.js';
+import { bodyScreenPosition, earthBlocks, sphereBlocks } from './body-screen.js';
 
 describe('earthBlocks', () => {
   it('is true straight through the planet', () => {
@@ -20,6 +20,22 @@ describe('earthBlocks', () => {
 
   it('is false when the target is in front of the planet', () => {
     expect(earthBlocks(new Vector3(42_000, 0, 0), new Vector3(20_000, 0, 0))).toBe(false);
+  });
+});
+
+describe('sphereBlocks', () => {
+  const moon = new Vector3(384_000, 0, 0);
+
+  it('is true for a point behind the Moon, seen from the Earth', () => {
+    expect(sphereBlocks(new Vector3(0, 0, 0), new Vector3(450_000, 0, 0), moon, 1737.4)).toBe(true);
+  });
+
+  it('is false for a point in front of the Moon', () => {
+    expect(sphereBlocks(new Vector3(0, 0, 0), new Vector3(320_000, 0, 0), moon, 1737.4)).toBe(false);
+  });
+
+  it('is false for a line that passes beside it', () => {
+    expect(sphereBlocks(new Vector3(0, 0, 0), new Vector3(450_000, 5_000, 0), moon, 1737.4)).toBe(false);
   });
 });
 

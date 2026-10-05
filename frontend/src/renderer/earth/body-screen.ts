@@ -11,24 +11,36 @@ const _view = new Vector3();
 const _ndc = new Vector3();
 const _ro = new Vector3();
 const _rd = new Vector3();
+const _from = new Vector3();
+const _to = new Vector3();
+const ORIGIN = new Vector3();
 const STRETCH = WGS84_A_KM / WGS84_B_KM;
+
+/**
+ * Does a sphere block the straight line from `fromKm` to `toKm`? Analytic,
+ * so it holds at any depth-buffer precision. Input: km, scene frame.
+ */
+export function sphereBlocks(fromKm: Vector3, toKm: Vector3, centreKm: Vector3, radiusKm: number): boolean {
+  _rd.copy(toKm).sub(fromKm);
+  const length = _rd.length();
+  _rd.divideScalar(length);
+  _ro.copy(fromKm).sub(centreKm);
+  const b = _ro.dot(_rd);
+  const h = b * b - (_ro.lengthSq() - radiusKm * radiusKm);
+  if (h < 0) return false;
+  const t = -b - Math.sqrt(h);
+  return t > 0 && t < length;
+}
 
 /**
  * Does the Earth (WGS84 ellipsoid) block the straight line from `fromKm` to
  * `toKm`? Stretching z by a/b turns the ellipsoid into a sphere of radius a.
- * Analytic, so it holds at any depth-buffer precision. Input: km, scene frame.
+ * Input: km, scene frame.
  */
 export function earthBlocks(fromKm: Vector3, toKm: Vector3): boolean {
-  _ro.set(fromKm.x, fromKm.y, fromKm.z * STRETCH);
-  _rd.set(toKm.x, toKm.y, toKm.z * STRETCH).sub(_ro);
-  const length = _rd.length();
-  _rd.divideScalar(length);
-  const b = _ro.dot(_rd);
-  const c = _ro.lengthSq() - WGS84_A_KM * WGS84_A_KM;
-  const h = b * b - c;
-  if (h < 0) return false;
-  const t = -b - Math.sqrt(h);
-  return t > 0 && t < length;
+  _from.set(fromKm.x, fromKm.y, fromKm.z * STRETCH);
+  _to.set(toKm.x, toKm.y, toKm.z * STRETCH);
+  return sphereBlocks(_from, _to, ORIGIN, WGS84_A_KM);
 }
 
 /**

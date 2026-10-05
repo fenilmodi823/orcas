@@ -28,7 +28,7 @@ const DISTANCE_FADE_NEAR_KM = 0.5;
 const DISTANCE_FADE_FAR_KM = 10;
 /** Two candidates whose projected centres land within this many screen
  * pixels of each other are considered crowded. */
-const DENSITY_RADIUS_PX = 60;
+export const DENSITY_RADIUS_PX = 60;
 
 function clamp01(x: number): number {
   return Math.min(1, Math.max(0, x));

@@ -78,4 +78,17 @@ describe('ObjectLabel', () => {
     expect(rootOf('ISS (ZARYA)').dataset.tier).toBe('secondary');
     expect(rootOf('ISS (ZARYA)').dataset.emphasised).toBe('');
   });
+
+  it('marks a computed point with its stability marker (RA5.D8)', () => {
+    render(
+      <>
+        <ObjectLabel name="Sun–Earth L2" marker="saddle" />
+        <ObjectLabel name="Earth–Moon L4" marker="stable" />
+        <ObjectLabel name="HST" />
+      </>,
+    );
+    expect(rootOf('Sun–Earth L2').dataset.marker).toBe('saddle');
+    expect(rootOf('Earth–Moon L4').dataset.marker).toBe('stable');
+    expect(rootOf('HST').dataset.marker).toBeUndefined();
+  });
 });

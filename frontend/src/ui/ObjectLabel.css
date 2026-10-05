@@ -52,6 +52,17 @@
   white-space: nowrap;
 }
 
+/* A computed point (a Lagrange point) is a diamond, not an object's circle.
+   Hollow is a saddle point that holds nothing; filled is a stable one (RA5.D8). */
+.object-label[data-marker] .object-label__marker {
+  border-radius: 0;
+  transform: translate(-3px, -3px) rotate(45deg);
+}
+
+.object-label[data-marker='stable'] .object-label__marker {
+  background: var(--text-mid);
+}
+
 /* NASA Eyes' tiers read through opacity (0.75 / 0.35 / 1 on hover). ORCAS
    tiers by token instead: 0.35 white fails the 4.5:1 rule (Design.md §9),
    and these labels are controls. */

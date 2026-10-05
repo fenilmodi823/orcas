@@ -18,6 +18,12 @@ describe('clampFreeOrbitRadiusKm', () => {
   it('stops zooming out at the ceiling', () => {
     expect(clampFreeOrbitRadiusKm(1e11)).toBe(MAX_CAMERA_RADIUS_KM);
   });
+
+  // S2: Sun–Earth L2 is ~1.5 million km out (1,506,039 km on 2026-10-05), so
+  // the camera must be able to stand back from it (RA-5 §1: about 2 × 10⁶ km).
+  it('lets the camera stand back past Sun–Earth L2', () => {
+    expect(clampFreeOrbitRadiusKm(1.9e6)).toBe(1.9e6);
+  });
 });
 
 describe('ellipsoidNormalizedDistance — Earth is 21 km flatter at the poles', () => {

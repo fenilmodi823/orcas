@@ -3,9 +3,10 @@ import type { MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
-import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { createEarthSunMoon } from './earth-sun-moon-system.js';
 import type { BodyScreenPosition } from './body-screen.js';
+import type { BodyLabelRefs } from './BodyLabels.js';
+import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 
 const DEFAULT_FOV_DEG = 35;
 
@@ -17,8 +18,7 @@ function place(label: ObjectLabelHandle | null, at: BodyScreenPosition): void {
 
 interface Props {
   readonly frameStateRef: MutableRefObject<FrameState>;
-  readonly sunLabelRef: MutableRefObject<ObjectLabelHandle | null>;
-  readonly moonLabelRef: MutableRefObject<ObjectLabelHandle | null>;
+  readonly labelsRef: MutableRefObject<BodyLabelRefs>;
 }
 
 /**
@@ -26,7 +26,7 @@ interface Props {
  * Mount after the camera controller: the atmosphere reads the final camera
  * position each frame.
  */
-export function EarthSunMoon({ frameStateRef, sunLabelRef, moonLabelRef }: Props) {
+export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const { gl } = useThree();
   const system = useMemo(() => createEarthSunMoon(), []);
 
@@ -40,8 +40,10 @@ export function EarthSunMoon({ frameStateRef, sunLabelRef, moonLabelRef }: Props
     if (epochMs <= 0) return; // the simulation clock has not ticked yet
     const fov = camera instanceof PerspectiveCamera ? camera.fov : DEFAULT_FOV_DEG;
     system.update(epochMs, camera, fov, { cssWidth: size.width, cssHeight: size.height, dpr: gl.getPixelRatio() });
-    place(sunLabelRef.current, system.labels.sun);
-    place(moonLabelRef.current, system.labels.moon);
+    const labels = labelsRef.current;
+    place(labels.sun, system.labels.sun);
+    place(labels.moon, system.labels.moon);
+    system.labels.lagrange.forEach((at, i) => place(labels.lagrange[i] ?? null, at));
   });
 
   return <primitive object={system.group} />;

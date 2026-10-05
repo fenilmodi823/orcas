@@ -4,9 +4,10 @@ export const R_EARTH_A_KM = 6378.137;
 export const R_EARTH_B_KM = 6356.752;
 
 const FREE_ORBIT_MIN_ALT_KM = 120; // atmosphere shell inner boundary / near-plane clipping
-/** Zoom-out ceiling: ~4x the Moon's distance, so its whole orbit frames with room
- * to spare. Unbounded, the wheel reached 1e11 km, where float32 falls apart. */
-export const MAX_CAMERA_RADIUS_KM = 1_500_000;
+/** Zoom-out ceiling: past Sun–Earth L2 (~1.5e6 km), the edge of the Earth regime
+ * (RA-5 §1, S2), where float32 still resolves ~90 m. Unbounded, the wheel
+ * reached 1e11 km, where float32 falls apart. */
+export const MAX_CAMERA_RADIUS_KM = 2_000_000;
 const FLIGHT_CLEARANCE_ALT_KM = 200;
 const SOFT_REPULSION_BAND_CAP_KM = 300;
 const SOFT_REPULSION_BAND_RATIO = 2;

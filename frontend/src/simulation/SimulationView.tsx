@@ -10,6 +10,7 @@ import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-sce
 import { countByOrbitClass } from '../renderer/points/points-filters.js';
 import { GAIA_ACKNOWLEDGEMENT } from '../renderer/sky/star-sky.js';
 import { EARTH_IMAGERY_CREDIT } from '../renderer/earth/earth-materials.js';
+import { LAGRANGE_CREDIT } from '../renderer/earth/lagrange-labels.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
@@ -141,7 +142,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimul
           USSPACECOM citation (RA14.D3) and ESA's Gaia acknowledgement are
           licence conditions — neither can wait to be summoned. */}
       <p className="simulation__credit">
-        {formatCreditLine(provenance)} Stars: {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT}
+        {formatCreditLine(provenance)} Stars: {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT} {LAGRANGE_CREDIT}
       </p>
     </div>
   );
