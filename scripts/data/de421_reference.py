@@ -51,16 +51,25 @@ class Segment:
 
     def position_km(self, et: float) -> np.ndarray:
         """Position at ET (TDB seconds past J2000). Output: km, ICRF."""
+        return self.state_km(et)[0]
+
+    def state_km(self, et: float) -> tuple[np.ndarray, np.ndarray]:
+        """Position and velocity at ET (TDB seconds past J2000). Velocity is the
+        exact derivative of the same Chebyshev series. Output: km and km/s, ICRF."""
         i = min(int((et - self.init) // self.intlen), self.n - 1)
         record = self.records[i]
         mid, radius = record[0], record[1]
         s = (et - mid) / radius
-        cheb = np.empty(self.ncoef)
-        cheb[0], cheb[1] = 1.0, s
+        cheb = np.zeros(self.ncoef)
+        dcheb = np.zeros(self.ncoef)  # d T_k / d s
+        cheb[0] = 1.0
+        if self.ncoef > 1:
+            cheb[1], dcheb[1] = s, 1.0
         for k in range(2, self.ncoef):
             cheb[k] = 2 * s * cheb[k - 1] - cheb[k - 2]
+            dcheb[k] = 2 * cheb[k - 1] + 2 * s * dcheb[k - 1] - dcheb[k - 2]
         coeffs = record[2:].reshape(3, self.ncoef)
-        return coeffs @ cheb
+        return coeffs @ cheb, (coeffs @ dcheb) / radius
 
 
 def read_segments(path: Path) -> dict[tuple[int, int], Segment]:
