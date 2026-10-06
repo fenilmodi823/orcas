@@ -1,7 +1,7 @@
-import { BufferAttribute, BufferGeometry, Group, Mesh, Points, SphereGeometry, Vector3, type Camera } from 'three';
-import type { InterleavedBufferAttribute } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, Points, SphereGeometry, Vector3, type Camera } from 'three';
+import type { InterleavedBufferAttribute, Texture } from 'three';
 import { Line2, LineGeometry, LineMaterial } from 'three-stdlib';
-import { writeOsculatingEllipse } from '@orcas/physics';
+import { iauBodyAxesJ2000, writeOsculatingEllipse } from '@orcas/physics';
 import { bodyStateKm, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { readColorToken } from '../scene-colors.js';
 import type { Occluder } from '../earth/body-label-layout.js';
@@ -9,10 +9,20 @@ import { EARTH_NAIF_ID, PLANETS, SUN_NAIF_ID } from './planets.js';
 import { ORBIT_LINE_HOVER_WIDTH_PX, ORBIT_LINE_WIDTH_PX, ORBIT_SAMPLES, writeOffsetPositions, writeOrbitColours } from './orbit-line.js';
 import { createPlanetDotMaterial, createPlanetMaterial } from './planet-materials.js';
 import { patchLineMaterial } from '../live/line-trim.js';
+import { loadPlanetMap, PLANET_MAPS } from './planet-maps.js';
+import { createSaturnRings, ringDistanceKm } from './saturn-rings.js';
 
 /** NASA's planet orbit lines are drawn at 0.75 opacity (Reference §4.3). */
 const ORBIT_OPACITY = 0.75;
 const DOT_CSS_PX = 2;
+/** A planet's map is fetched once its disc passes this radius, or once it is hovered or selected (S5b). */
+const MAP_LOAD_PX = 1;
+const SATURN_NAIF_ID = 6;
+const _poleToZ = new Matrix4().makeRotationX(Math.PI / 2); // three's sphere has its pole on +Y
+const _basis = new Matrix4();
+const _x = new Vector3();
+const _y = new Vector3();
+const _z = new Vector3();
 
 export interface Viewport {
   readonly cssWidth: number;
@@ -30,8 +40,20 @@ export interface PlanetBodies {
   readonly occluders: readonly Occluder[];
   /** False before the ephemeris loads, or outside DE421's span: nothing above is current then. */
   readonly placed: boolean;
-  /** `hoveredIndex`: the planet whose label is under the pointer, in `PLANETS` order, or −1. */
-  update(epochMs: number, ephemeris: PlanetEphemeris | null, camera: Camera, viewport: Viewport, hoveredIndex?: number): void;
+  /** The camera's distance from Saturn's rings as of the last `update`, km, for the near plane; Infinity unplaced. */
+  readonly ringDistanceKm: number;
+  /**
+   * `hoveredIndex`, `selectedIndex`: the planet whose label is under the pointer and the one selected, in
+   * `PLANETS` order, or −1.
+   */
+  update(
+    epochMs: number,
+    ephemeris: PlanetEphemeris | null,
+    camera: Camera,
+    viewport: Viewport,
+    hoveredIndex?: number,
+    selectedIndex?: number,
+  ): void;
   dispose(): void;
 }
 
@@ -47,25 +69,57 @@ function writeSegments(geometry: LineGeometry, points: Float32Array, count: numb
 
 /**
  * S4: the Sun's place and the planets, from the DE421 bake (S3). Each planet is
- * a true-size sphere lit from the Sun, a dot when it is smaller than one, and
+ * an IAU ellipsoid turned to its IAU pole and prime meridian, lit from the Sun
+ * and mapped once approached (S5b); a dot when it is smaller than one; and
  * NASA Eyes' orbit line: the osculating ellipse through its heliocentric state.
- * Everything reaches the GPU camera-relative (B.21).
+ * Saturn has its rings. Everything reaches the GPU camera-relative (B.21).
  */
-export function createPlanetBodies(): PlanetBodies {
+export function createPlanetBodies(anisotropy = 1): PlanetBodies {
   const group = new Group();
-  const sphere = new SphereGeometry(1, 48, 24);
+  const sphere = new SphereGeometry(1, 64, 32);
   const sunKm = new Vector3();
   const planetKm = PLANETS.map(() => new Vector3());
   const occluders: Occluder[] = [];
+  const textures: Texture[] = [];
+  const mapRequested = PLANETS.map(() => false);
+  const saturn = PLANETS.find((p) => p.naifId === SATURN_NAIF_ID);
+  const rings = saturn ? createSaturnRings(saturn.equatorialRadiusKm, saturn.polarRadiusKm) : null;
+  if (rings) group.add(rings.mesh);
+  let ringDistance = Infinity;
 
   const meshes = PLANETS.map((planet, i) => {
     if (planet.naifId === EARTH_NAIF_ID) return null; // the Earth is drawn by EarthSunMoon
     const mesh = new Mesh(sphere, createPlanetMaterial(readColorToken(planet.token, planet.fallback)));
-    mesh.scale.setScalar(planet.radiusKm);
+    mesh.matrixAutoUpdate = false;
     occluders.push({ centreKm: planetKm[i] ?? new Vector3(), radiusKm: planet.radiusKm });
     group.add(mesh);
     return mesh;
   });
+  // The unit sphere (pole on +Y) to the IAU ellipsoid: equatorial radius in x and z, polar in y.
+  const scales = PLANETS.map((p) => new Matrix4().makeScale(p.equatorialRadiusKm, p.polarRadiusKm, p.equatorialRadiusKm));
+
+  /** Fetch a planet's map, and Saturn's rings with Saturn's, once. */
+  function requestMap(i: number): void {
+    const planet = PLANETS[i];
+    const material = meshes[i]?.material;
+    if (mapRequested[i] || !planet || !material) return;
+    mapRequested[i] = true;
+    const map = PLANET_MAPS[planet.name.toLowerCase()];
+    if (map) {
+      loadPlanetMap(map.url, anisotropy, (texture) => {
+        textures.push(texture);
+        material.uniforms.uMap.value = texture;
+        material.uniforms.uHasMap.value = 1;
+      });
+    }
+    if (planet.naifId === SATURN_NAIF_ID && rings) {
+      rings.load(anisotropy, (transmission) => {
+        material.uniforms.uRingTransmission.value = transmission;
+        material.uniforms.uRingKm.value.copy(rings.mesh.material.uniforms.uRingKm.value);
+        material.uniforms.uHasRings.value = 1;
+      });
+    }
+  }
 
   const ellipse = new Float64Array(ORBIT_SAMPLES * 3);
   const linePoints = new Float32Array(ORBIT_SAMPLES * 3);
@@ -111,13 +165,19 @@ export function createPlanetBodies(): PlanetBodies {
     get placed() {
       return placed;
     },
-    update(epochMs, ephemeris, camera, viewport, hoveredIndex = -1) {
+    get ringDistanceKm() {
+      return ringDistance;
+    },
+    update(epochMs, ephemeris, camera, viewport, hoveredIndex = -1, selectedIndex = -1) {
       const earth = ephemeris && bodyStateKm(ephemeris, EARTH_NAIF_ID, epochMs);
       const sun = ephemeris && bodyStateKm(ephemeris, SUN_NAIF_ID, epochMs);
       placed = Boolean(earth && sun);
       group.visible = placed;
+      ringDistance = Infinity;
       if (!ephemeris || !earth || !sun) return;
 
+      const when = new Date(epochMs);
+      const pxPerRadian = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.cssHeight; // [5] = 1 / tan(fov / 2)
       const cam = camera.position;
       sunKm.set(sun.position.x - earth.position.x, sun.position.y - earth.position.y, sun.position.z - earth.position.z);
       offset.copy(sunKm).sub(cam); // Sun − camera: the orbit lines' camera-relative origin
@@ -136,8 +196,21 @@ export function createPlanetBodies(): PlanetBodies {
 
         const mesh = meshes[i];
         if (mesh) {
-          mesh.position.copy(at);
-          mesh.material.uniforms.uSunDir.value.copy(sunKm).sub(at).normalize();
+          const axes = iauBodyAxesJ2000(planet.bodyNaifId, when);
+          if (axes) _basis.makeBasis(_x.copy(axes.x), _y.copy(axes.y), _z.copy(axes.z));
+          else _basis.identity();
+          const u = mesh.material.uniforms;
+          u.uSunDir.value.copy(sunKm).sub(at).normalize();
+          u.uPole.value.set(0, 0, 1).transformDirection(_basis);
+          _basis.setPosition(at);
+          if (planet.naifId === SATURN_NAIF_ID && rings) {
+            rings.update(_basis, at, u.uSunDir.value, u.uPole.value, cam);
+            ringDistance = ringDistanceKm(cam, at, u.uPole.value);
+          }
+          mesh.matrix.copy(_basis).multiply(_poleToZ).multiply(scales[i] ?? _poleToZ);
+          mesh.matrixWorldNeedsUpdate = true;
+          const discPx = (planet.equatorialRadiusKm / cam.distanceTo(at)) * pxPerRadian;
+          if (discPx > MAP_LOAD_PX || i === hoveredIndex || i === selectedIndex) requestMap(i);
         }
 
         const r = { x: state.position.x - sun.position.x, y: state.position.y - sun.position.y, z: state.position.z - sun.position.z };
@@ -156,6 +229,8 @@ export function createPlanetBodies(): PlanetBodies {
     },
     dispose() {
       sphere.dispose();
+      rings?.dispose();
+      for (const texture of textures) texture.dispose();
       for (const mesh of meshes) mesh?.material.dispose();
       for (const line of lines) {
         line.geometry.dispose();

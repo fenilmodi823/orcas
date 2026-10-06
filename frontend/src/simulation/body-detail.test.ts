@@ -65,3 +65,32 @@ describe('bodyDetailGroups', () => {
     expect(note).toMatch(/until it loads/i);
   });
 });
+
+describe('bodyDetailGroups: maps and rings (S5b)', () => {
+  const group = (id: string, groupId: string) => bodyDetailGroups(body(id), true).find((g) => g.id === groupId);
+
+  it('names a planet’s map, its date, and that its clouds have moved', () => {
+    const map = group('jupiter', 'map');
+    expect(map?.fields[0]?.value).toBe('Hubble OPAL, Dec 2025');
+    expect(map?.note).toContain('CC BY 4.0');
+    expect(map?.note).toContain('clouds have moved');
+  });
+
+  it('says why Venus has no map, rather than leaving it out', () => {
+    const map = group('venus', 'map');
+    expect(map?.fields[0]?.value).toBe('None');
+    expect(map?.note).toContain('radar');
+  });
+
+  it('gives Saturn its rings’ sources, and no other body a rings group', () => {
+    expect(group('saturn', 'rings')?.note).toContain('Cassini UVIS');
+    expect(group('jupiter', 'rings')).toBeUndefined();
+  });
+
+  it('claims IAU spin only for the planets ORCAS turns by it', () => {
+    expect(group('mars', 'identity')?.note).toContain('pole and spin');
+    expect(group('earth', 'identity')?.note).not.toContain('spin');
+    expect(group('moon', 'identity')?.note).not.toContain('spin');
+    expect(group('earth', 'map')).toBeUndefined();
+  });
+});

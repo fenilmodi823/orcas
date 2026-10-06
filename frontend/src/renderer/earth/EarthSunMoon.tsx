@@ -38,7 +38,7 @@ interface Props {
 export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const { gl } = useThree();
   const system = useMemo(() => createEarthSunMoon(), []);
-  const planets = useMemo(() => createPlanetBodies(), []);
+  const planets = useMemo(() => createPlanetBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
   const labelWriter = useMemo(() => createSceneLabelWriter(planets), [planets]);
   const analyticSunKm = useMemo(() => new Vector3(), []);
   const ephemerisRef = usePlanetEphemeris();
@@ -58,9 +58,9 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     const fov = camera instanceof PerspectiveCamera ? camera.fov : DEFAULT_FOV_DEG;
     const viewport = { cssWidth: size.width, cssHeight: size.height, dpr: gl.getPixelRatio() };
 
-    const hovered = useSelectionStore.getState().hoveredBody; // read per frame, never re-rendered on
-    const hoveredIndex = PLANETS.findIndex((p) => p.name.toLowerCase() === hovered);
-    planets.update(epochMs, ephemerisRef.current, camera, viewport, hoveredIndex);
+    const { hoveredBody, selectedBody } = useSelectionStore.getState(); // read per frame, never re-rendered on
+    const indexOf = (id: string | null) => PLANETS.findIndex((p) => p.name.toLowerCase() === id);
+    planets.update(epochMs, ephemerisRef.current, camera, viewport, indexOf(hoveredBody), indexOf(selectedBody));
     // DE421's Sun once the bake has loaded, so the Sun sits where the planets'
     // orbits say; the analytic M1.11 Sun (~0.01°) until then.
     let sunKm = planets.sunKm;
@@ -70,7 +70,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     }
     system.update(epochMs, camera, fov, viewport, sunKm);
     labelWriter.write(at, camera, size.width, size.height, sunKm, system.moonKm);
-    if (camera instanceof PerspectiveCamera) clampNearToBodies(camera, labelWriter.occluders);
+    if (camera instanceof PerspectiveCamera) clampNearToBodies(camera, labelWriter.occluders, planets.ringDistanceKm);
 
     const refs = labelsRef.current;
     const labels = labelWriter.labels;

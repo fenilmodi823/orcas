@@ -24,3 +24,12 @@ describe('clampNearToBodies (S4)', () => {
     expect(camera.near).toBe(100);
   });
 });
+
+describe('clampNearToBodies: another surface (S5b)', () => {
+  it('pulls near inside Saturn’s rings when they are nearer than any body', () => {
+    const camera = new PerspectiveCamera(35, 1, 20_000, 1e10);
+    camera.position.set(1e9, 0, 0);
+    clampNearToBodies(camera, [{ centreKm: new Vector3(1e9 + 1e5, 0, 0), radiusKm: 58_232 }], 1_000);
+    expect(camera.near).toBe(500);
+  });
+});

@@ -2,6 +2,8 @@ import { Vector3 } from 'three';
 import type { PlanetEphemeris } from '../data/planet-ephemeris.js';
 import type { DetailGroup } from '../ui/object-detail-model.js';
 import { BODY_KIND_LABEL, bodyById, bodyPositionKm, type Body } from '../renderer/solar/bodies.js';
+import { NO_MAP_NOTE, PLANET_MAPS } from '../renderer/solar/planet-maps.js';
+import { RING_INNER_KM, RING_OUTER_KM } from '../renderer/solar/saturn-rings.js';
 
 const AU_KM = 149_597_870.7; // IAU 2012, exact
 const C_KM_S = 299_792.458; // exact
@@ -58,8 +60,30 @@ function provenanceNote(body: Body, ephemerisLoaded: boolean): string {
   return de421;
 }
 
+/** Where a planet's map came from (S5b), or why it has none. Null for the Sun, the Earth and the Moon. */
+function mapGroup(body: Body): DetailGroup | null {
+  const map = PLANET_MAPS[body.id];
+  if (map) return { id: 'map', title: 'Map', fields: [{ label: 'Source', value: map.source }], note: map.note };
+  const none = NO_MAP_NOTE[body.id];
+  return none ? { id: 'map', title: 'Map', fields: [{ label: 'Source', value: 'None' }], note: none } : null;
+}
+
+const RINGS: DetailGroup = {
+  id: 'rings',
+  title: 'Rings',
+  fields: [
+    { label: 'Inner edge', value: RING_INNER_KM, unit: 'km', precision: 0 },
+    { label: 'Outer edge', value: RING_OUTER_KM, unit: 'km', precision: 0 },
+  ],
+  note:
+    'Transparency at each radius from Cassini UVIS’s solar occultation of 15 February 2017 (Jarmak et al. 2022, PDS); ' +
+    'colour from Cassini’s PIA11142 of 26 November 2008 (NASA/JPL/SSI), as seen from 10° above the lit face. ' +
+    'Brightness follows single scattering, so the rings dim near equinox. The faint D ring and the F ring’s narrow core are not resolved.',
+};
+
 /** The panel's groups for a body. There is no description: none is written until one is sourced from NASA (B.23). */
 export function bodyDetailGroups(body: Body, ephemerisLoaded: boolean): DetailGroup[] {
+  const extra = [mapGroup(body), body.id === 'saturn' ? RINGS : null].filter((g): g is DetailGroup => g !== null);
   return [
     {
       id: 'identity',
@@ -68,7 +92,10 @@ export function bodyDetailGroups(body: Body, ephemerisLoaded: boolean): DetailGr
         { label: 'Type', value: BODY_KIND_LABEL[body.kind] },
         { label: 'Equatorial radius', value: body.equatorialRadiusKm, unit: 'km', precision: body.equatorialRadiusKm < 1e4 ? 1 : 0 },
       ],
-      note: 'Radius: IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries it.',
+      note:
+        body.kind === 'planet' && body.id !== 'earth'
+          ? 'Radius, pole and spin: IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries them.'
+          : 'Radius: IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries it.',
     },
     {
       id: 'provenance',
@@ -76,5 +103,6 @@ export function bodyDetailGroups(body: Body, ephemerisLoaded: boolean): DetailGr
       fields: [{ label: 'Source', value: body.id === 'moon' ? 'Meeus ch. 47' : body.id === 'earth' ? 'Origin' : 'JPL DE421' }],
       note: provenanceNote(body, ephemerisLoaded),
     },
+    ...extra,
   ];
 }
