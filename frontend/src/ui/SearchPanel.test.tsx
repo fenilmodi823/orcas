@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { SearchPanel } from './SearchPanel.js';
 
 const ITEMS = [
-  { id: '1', name: 'ISS (ZARYA)', noradId: '25544' },
-  { id: '2', name: 'Hubble Space Telescope', noradId: '20580' },
-  { id: '3', name: 'Iridium 33', noradId: '24946' },
+  { id: '1', name: 'ISS (ZARYA)', detail: '25544' },
+  { id: '2', name: 'Hubble Space Telescope', detail: '20580' },
+  { id: '3', name: 'Iridium 33', detail: '24946' },
 ];
 
 describe('SearchPanel', () => {
@@ -50,7 +50,7 @@ describe('SearchPanel', () => {
   });
 
   it('caps the rendered list and says how many matched, instead of drawing the whole catalogue', () => {
-    const many = Array.from({ length: 120 }, (_, i) => ({ id: String(i), name: `OBJECT ${i}`, noradId: String(i) }));
+    const many = Array.from({ length: 120 }, (_, i) => ({ id: String(i), name: `OBJECT ${i}`, detail: String(i) }));
     render(<SearchPanel items={many} onSelect={vi.fn()} maxResults={10} />);
 
     expect(screen.getAllByRole('option')).toHaveLength(10);

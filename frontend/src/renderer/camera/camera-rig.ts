@@ -68,7 +68,9 @@ export function dampRigAngles(
   radiusHalfLifeSec: number,
   rollHalfLifeSec: number,
 ): void {
-  rig.azimuthRad = damp(rig.azimuthRad, target.azimuthRad, azHalfLifeSec, dtSec);
+  // The short way round: azimuth comes from atan2, so a target just across ±π is a small step, not 2π.
+  const dAz = target.azimuthRad - rig.azimuthRad;
+  rig.azimuthRad = damp(rig.azimuthRad, rig.azimuthRad + Math.atan2(Math.sin(dAz), Math.cos(dAz)), azHalfLifeSec, dtSec);
   rig.elevationRad = clampElevation(damp(rig.elevationRad, target.elevationRad, azHalfLifeSec, dtSec));
   rig.radiusKm = Math.exp(damp(Math.log(rig.radiusKm), Math.log(target.radiusKm), radiusHalfLifeSec, dtSec));
   rig.rollRad = damp(rig.rollRad, 0, rollHalfLifeSec, dtSec);

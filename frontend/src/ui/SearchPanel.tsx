@@ -7,7 +7,8 @@ import './SearchPanel.css';
 export interface SearchableObject {
   id: string;
   name: string;
-  noradId: string;
+  /** The second column, also searched: a NORAD ID, or a body's kind ("Planet"). */
+  detail: string;
 }
 
 export interface SearchPanelProps {
@@ -27,7 +28,7 @@ export interface SearchPanelProps {
 const DEFAULT_MAX_RESULTS = 50;
 
 /**
- * Fuzzy search over name and NORAD ID. `/` focuses it from anywhere on the
+ * Fuzzy search over name and the detail column (a NORAD ID, or a body's kind). `/` focuses it from anywhere on the
  * page; arrow keys move the selection, Enter selects, Escape closes
  * (Design.md §6).
  */
@@ -69,7 +70,7 @@ export function SearchPanel({
     return items
       .map((item) => {
         const byName = fuzzyMatch(query, item.name);
-        const byId = fuzzyMatch(query, item.noradId);
+        const byId = fuzzyMatch(query, item.detail);
         return { item, ...(byName.score >= byId.score ? byName : byId) };
       })
       .filter((result) => result.matched)
@@ -101,7 +102,7 @@ export function SearchPanel({
           ref={inputRef}
           type="text"
           value={query}
-          placeholder="Search name or NORAD ID…"
+          placeholder="Search a planet, satellite or NORAD ID…"
           aria-label="Search objects"
           onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -116,7 +117,7 @@ export function SearchPanel({
               onClick={() => onSelect(item.id)}
             >
               <span className="search-panel__name">{item.name}</span>
-              <span className="search-panel__id">{item.noradId}</span>
+              <span className="search-panel__id">{item.detail}</span>
             </button>
           </li>
         ))}

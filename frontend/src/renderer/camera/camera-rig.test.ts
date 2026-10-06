@@ -3,6 +3,7 @@ import { Quaternion, Vector3 } from 'three';
 import {
   clampElevation,
   createRig,
+  dampRigAngles,
   DEFAULT_FOV_DEG,
   deriveAzElRadius,
   MAX_ELEVATION_RAD,
@@ -86,5 +87,18 @@ describe('deriveAzElRadius', () => {
 
     const recovered = rigCameraPosition(rig, new Vector3());
     expect(recovered.distanceTo(original)).toBeLessThan(1e-3);
+  });
+});
+
+describe('dampRigAngles', () => {
+  it('turns the short way across ±π, never the long way round', () => {
+    const rig = createRig();
+    const target = createRig();
+    rig.azimuthRad = Math.PI - 0.01;
+    target.azimuthRad = -Math.PI + 0.01; // 0.02 rad away, across the seam
+    dampRigAngles(rig, target, 1 / 60, 0.09, 0.13, 0.25);
+    const moved = Math.atan2(Math.sin(rig.azimuthRad - (Math.PI - 0.01)), Math.cos(rig.azimuthRad - (Math.PI - 0.01)));
+    expect(moved).toBeGreaterThan(0);
+    expect(moved).toBeLessThan(0.02);
   });
 });

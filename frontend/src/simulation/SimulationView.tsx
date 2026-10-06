@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
@@ -12,6 +11,7 @@ import { GAIA_ACKNOWLEDGEMENT } from '../renderer/sky/star-sky.js';
 import { EARTH_IMAGERY_CREDIT } from '../renderer/earth/earth-materials.js';
 import { LAGRANGE_CREDIT } from '../renderer/earth/lagrange-labels.js';
 import { PLANET_CREDIT } from '../renderer/solar/planets.js';
+import { isBodyId } from '../renderer/solar/bodies.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
@@ -23,11 +23,11 @@ import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
-import { useReducedMotion } from '../state/use-reduced-motion.js';
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationSearch } from './SimulationSearch.js';
-import { SimulationObjectPanel } from './SimulationObjectPanel.js';
+import { SimulationPanels } from './SimulationPanels.js';
+import { useSelectedBody } from './use-selected-body.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
 import { useEdgeStop } from './use-edge-stop.js';
 import { parseViewState } from './view-url.js';
@@ -36,8 +36,6 @@ import './SimulationView.css';
 
 const FILTER_LABELS: Record<FilterClass, string> = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', debris: 'Debris' };
 const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debris'];
-/** Design.md §5: panels spring, stiffness 220 / damping 26. */
-const PANEL_SPRING = { type: 'spring', stiffness: 220, damping: 26 } as const;
 
 /**
  * `/` — the product (M1.9). Design.md §7: at rest the scene owns the screen,
@@ -94,30 +92,13 @@ interface LiveSimulationProps {
 function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimulationProps) {
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad, replay.atMs ?? undefined);
   const provenance = useProvenance(snapshot, origin);
-  const reducedMotion = useReducedMotion();
-  const selected = scene.selectedObjectMeta;
-  // Reduced motion fades the panel in place rather than sliding it (P4.D21).
-  const panelOffset = reducedMotion ? { opacity: 0 } : { opacity: 0, x: -16 };
+  const body = useSelectedBody();
+  const panelOpen = scene.selectedObjectMeta !== null || body !== null;
 
   return (
-    <div className="simulation" data-object-panel={selected ? '' : undefined}>
+    <div className="simulation" data-object-panel={panelOpen ? '' : undefined}>
       <LiveScene scene={scene} />
-      <AnimatePresence>
-        {selected && (
-          <motion.div
-            key="object-panel"
-            className="simulation__panel"
-            initial={panelOffset}
-            animate={{ opacity: 1, x: 0 }}
-            exit={panelOffset}
-            transition={PANEL_SPRING}
-          >
-            <PanelErrorBoundary label="Object panel">
-              <SimulationObjectPanel scene={scene} meta={selected} provenance={provenance} />
-            </PanelErrorBoundary>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SimulationPanels scene={scene} provenance={provenance} />
       <PanelErrorBoundary label="Epoch">
         <div className="simulation__pill">
           <StatusPill
@@ -188,17 +169,19 @@ function SimulationDock({ scene, provenance, replay, takeInitialView }: Simulati
   // Stop at the edge of the data and say so; typed times jump and pause (S1).
   const edge = useEdgeStop(currentTime.getTime(), playing, range, scrubTo);
   // The view lives in the address bar, as in NASA Eyes (S1).
-  const selectedNorad = useSelectionStore((s) => s.selectedNorad);
+  const selected = useSelectionStore((s) => s.selectedNorad ?? s.selectedBody);
   const setSelected = useSelectionStore((s) => s.setSelected);
+  const setSelectedBody = useSelectionStore((s) => s.setSelectedBody);
   const select = useCallback(
-    (norad: string) => {
-      if (scene.byNorad[norad] !== undefined) setSelected(norad as NoradId);
+    (id: string) => {
+      if (isBodyId(id)) setSelectedBody(id);
+      else if (scene.byNorad[id] !== undefined) setSelected(id as NoradId);
     },
-    [scene.byNorad, setSelected],
+    [scene.byNorad, setSelected, setSelectedBody],
   );
   useApplyInitialView(takeInitialView, { select, jumpTo: edge.jumpTo });
   const live = useSimulationStore((s) => s.live);
-  useWriteViewUrl({ epochMs: currentTime.getTime(), rate, playing, live, selected: selectedNorad });
+  useWriteViewUrl({ epochMs: currentTime.getTime(), rate, playing, live, selected });
 
   return (
     <TimeDock

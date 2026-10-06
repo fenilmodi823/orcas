@@ -41,4 +41,10 @@ describe('parseViewState', () => {
     const view = parseViewState(new URLSearchParams('t=yesterday&rate=7&object=..%2F'));
     expect(view).toEqual({ epochMs: null, rate: null, paused: false, selected: null });
   });
+
+  it('reads a body, as NASA Eyes’ #/jupiter, and nothing that merely looks like one (S5a)', () => {
+    expect(parseViewState(new URLSearchParams('object=jupiter')).selected).toBe('jupiter');
+    expect(parseViewState(new URLSearchParams('object=pluto')).selected).toBeNull();
+    expect(parseViewState(new URLSearchParams('object=Jupiter')).selected).toBeNull();
+  });
 });

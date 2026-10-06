@@ -1,10 +1,11 @@
 import { RATE_LADDER_S_PER_S } from '../time/rate-ladder.js';
 import { parseUtcInput } from '../time/utc-input.js';
+import { isBodyId } from '../renderer/solar/bodies.js';
 
 /**
  * The view as a link, NASA Eyes' way (Reference - NASA Eyes §4.1: time and
  * rate live in the URL, so any view can be shared; LIVE clears them):
- * `?t=2026-10-05T00:00:00Z&rate=3600&object=25544`. `rate=0` is paused, as in
+ * `?t=2026-10-05T00:00:00Z&rate=3600&object=25544`, or `object=jupiter` for a body (S5a). `rate=0` is paused, as in
  * NASA's URLs. Time is UTC (A.11).
  */
 export interface ViewState {
@@ -47,7 +48,7 @@ export function parseViewState(search: URLSearchParams): {
     epochMs: t === null ? null : parseUtcInput(t),
     rate: onLadder ? rate : null,
     paused: rate === 0,
-    // NORAD catalogue numbers are decimal strings (P4.D15).
-    selected: object !== null && /^\d{1,9}$/.test(object) ? object : null,
+    // NORAD catalogue numbers are decimal strings (P4.D15); a body is one of the ids it knows.
+    selected: object !== null && (/^\d{1,9}$/.test(object) || isBodyId(object)) ? object : null,
   };
 }

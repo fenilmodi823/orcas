@@ -21,19 +21,32 @@ export interface SelectableObject {
 interface SelectionState {
   selectedNorad: NoradId | null;
   hoveredNorad: NoradId | null;
+  /** A body's id (`renderer/solar/bodies.ts`, S5a): the Sun, a planet or the Moon. Never set with `selectedNorad`. */
+  selectedBody: string | null;
+  hoveredBody: string | null;
   setSelected: (norad: NoradId | null) => void;
   setHover: (norad: NoradId | null) => void;
+  setSelectedBody: (id: string | null) => void;
+  setHoverBody: (id: string | null) => void;
+  /** Escape, a panel's close, the reset: nothing selected. */
+  clearSelection: () => void;
 }
 
 /**
  * Identity only — brief §D.7: "no handles, no indices, no positions, no
  * three.js objects. It survives a page reload and serialises into a URL."
  * Resolving a NORAD id into the display shape (SelectableObject) is a
- * separate concern — see points-selection-resolve.ts.
+ * separate concern — see points-selection-resolve.ts. One thing is selected
+ * at a time: choosing a satellite clears a body, and the reverse.
  */
 export const useSelectionStore = create<SelectionState>((set) => ({
   selectedNorad: null,
   hoveredNorad: null,
-  setSelected: (selectedNorad) => set({ selectedNorad }),
+  selectedBody: null,
+  hoveredBody: null,
+  setSelected: (selectedNorad) => set(selectedNorad === null ? { selectedNorad } : { selectedNorad, selectedBody: null }),
   setHover: (hoveredNorad) => set({ hoveredNorad }),
+  setSelectedBody: (selectedBody) => set(selectedBody === null ? { selectedBody } : { selectedBody, selectedNorad: null }),
+  setHoverBody: (hoveredBody) => set({ hoveredBody }),
+  clearSelection: () => set({ selectedNorad: null, selectedBody: null }),
 }));

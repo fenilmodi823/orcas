@@ -3,6 +3,7 @@ import type { FrameState } from '../../simulation/frame-state.js';
 import type { FlyOpts } from './flight.js';
 import type { ManualInput } from './manual-input.js';
 import type { CameraState } from './camera-state-machine.js';
+import type { BodyFlyOpts, BodyTarget } from './body-camera.js';
 
 export interface CameraSystemOpts {
   reducedMotion?: boolean;
@@ -37,6 +38,8 @@ export interface CameraSystem {
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void>;
   flyToEarth(opts?: FlyOpts): Promise<void>;
+  /** NASA Eyes' flight to a body, then follow it (S5a, Reference §4.5). */
+  flyToBody(target: BodyTarget, opts?: BodyFlyOpts): Promise<void>;
   exitToFree(): Promise<void>;
   dispose(): void;
 }

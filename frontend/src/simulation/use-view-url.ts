@@ -47,7 +47,7 @@ type InitialView = ReturnType<typeof parseViewState>;
  */
 export function useApplyInitialView(
   take: () => InitialView | null,
-  actions: { select: (norad: string) => void; jumpTo: (epochMs: number) => void },
+  actions: { select: (id: string) => void; jumpTo: (epochMs: number) => void },
 ): void {
   const { select, jumpTo } = actions;
   useEffect(() => {

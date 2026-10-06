@@ -6,6 +6,10 @@ export interface Planet {
   readonly naifId: number;
   /** Mean radius, km. Drawn as a sphere, so oblateness (Saturn 10 %) is not shown. */
   readonly radiusKm: number;
+  /** Equatorial radius, km: what NASA Eyes frames a body by on arrival (Reference §4.5). */
+  readonly equatorialRadiusKm: number;
+  /** The body's own NAIF id, for its IAU pole: Jupiter's 599, where `naifId` is its system's 5. */
+  readonly bodyNaifId: number;
   /** μ for the heliocentric orbit, G(M_sun + M_system), km³/s². */
   readonly muKm3S2: number;
   /** The orbit-line colour token in tokens.css, and its own value for JSDOM. */
@@ -16,11 +20,22 @@ export interface Planet {
 // Radii: mean radius, IAU WGCCRE 2015 (Archinal et al. 2018, Celest. Mech. Dyn. Astr.
 // 130:22), as tabulated by JPL SSD "Planetary Physical Parameters". GM: JPL planetary
 // ephemeris DE440, JPL SSD "Astrodynamic Parameters"; a system's GM includes its moons.
-// Both read from those pages on 2026-10-06.
-const planet = (name: string, naifId: number, radiusKm: number, gmKm3S2: number, fallback: string): Planet => ({
+// Both read from those pages on 2026-10-06. Equatorial radii: the same IAU 2015 values, as NAIF's
+// pck00011.tpc carries them (BODYnnn_RADII), read on 2026-10-06.
+const planet = (
+  name: string,
+  naifId: number,
+  bodyNaifId: number,
+  radiusKm: number,
+  equatorialRadiusKm: number,
+  gmKm3S2: number,
+  fallback: string,
+): Planet => ({
   name,
   naifId,
+  bodyNaifId,
   radiusKm,
+  equatorialRadiusKm,
   muKm3S2: GM_SUN + gmKm3S2,
   token: `--${name.toLowerCase()}`,
   fallback,
@@ -28,16 +43,16 @@ const planet = (name: string, naifId: number, radiusKm: number, gmKm3S2: number,
 
 /** The eight planets, inner to outer. Jupiter to Neptune are system barycentres in DE421. */
 export const PLANETS: readonly Planet[] = [
-  planet('Mercury', 199, 2439.4, 22_031.868551, '#a99e93'),
-  planet('Venus', 299, 6051.8, 324_858.592, '#e9cf96'),
+  planet('Mercury', 199, 199, 2439.4, 2440.53, 22_031.868551, '#a99e93'),
+  planet('Venus', 299, 299, 6051.8, 6051.8, 324_858.592, '#e9cf96'),
   // The Earth's own state, not the Earth–Moon barycentre, so its line passes
   // through the Earth; μ still counts the Moon.
-  planet('Earth', 399, 6371.0084, 398_600.435507 + 4_902.800118, '#5fb0c8'),
-  planet('Mars', 499, 3389.5, 42_828.375816, '#d46f4d'),
-  planet('Jupiter', 5, 69_911, 126_712_764.1, '#d9a37a'),
-  planet('Saturn', 6, 58_232, 37_940_584.8418, '#c9b27c'),
-  planet('Uranus', 7, 25_362, 5_794_556.4, '#7fd1c7'),
-  planet('Neptune', 8, 24_622, 6_836_527.10058, '#5d74c9'),
+  planet('Earth', 399, 399, 6371.0084, 6378.1366, 398_600.435507 + 4_902.800118, '#5fb0c8'),
+  planet('Mars', 499, 499, 3389.5, 3396.19, 42_828.375816, '#d46f4d'),
+  planet('Jupiter', 5, 599, 69_911, 71_492, 126_712_764.1, '#d9a37a'),
+  planet('Saturn', 6, 699, 58_232, 60_268, 37_940_584.8418, '#c9b27c'),
+  planet('Uranus', 7, 799, 25_362, 25_559, 5_794_556.4, '#7fd1c7'),
+  planet('Neptune', 8, 899, 24_622, 24_764, 6_836_527.10058, '#5d74c9'),
 ];
 
 export const SUN_NAIF_ID = 10;

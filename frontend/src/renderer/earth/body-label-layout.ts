@@ -1,4 +1,4 @@
-import type { Camera, Vector3 } from 'three';
+import { Vector3, type Camera } from 'three';
 import { WGS84_A_KM } from '@orcas/physics';
 import { DENSITY_RADIUS_PX } from '../points/object-label-layout.js';
 import { bodyScreenPosition, sphereBlocks, type BodyScreenPosition } from './body-screen.js';
@@ -17,8 +17,9 @@ export interface BodyLabelInput {
   readonly isEarth?: boolean;
 }
 
-/** The Earth's label shows once the Earth's disc is smaller than this radius, CSS px. */
-const EARTH_LABEL_MAX_DISC_PX = 20;
+/** A body's label shows only while its disc is smaller than this radius, CSS px: close up, the body is its own label. */
+const LABEL_MAX_DISC_PX = 20;
+const EARTH: Occluder = { centreKm: new Vector3(0, 0, 0), radiusKm: WGS84_A_KM };
 
 /** Is the line from `fromKm` to `pointKm` blocked by any occluder other than `self`? Input: km, scene frame. */
 export function hiddenByBody(
@@ -35,19 +36,21 @@ export function crowds(a: BodyScreenPosition, b: BodyScreenPosition | undefined)
   return b !== undefined && b.visible && Math.hypot(a.xPx - b.xPx, a.yPx - b.yPx) < DENSITY_RADIUS_PX;
 }
 
-/** The Earth's apparent radius on screen, CSS px. */
-function earthDiscPx(camera: Camera, heightPx: number): number {
-  const d = camera.position.length();
-  if (d <= WGS84_A_KM) return Infinity;
+/** A sphere's apparent radius on screen, CSS px. */
+function discPx(camera: Camera, body: Occluder, heightPx: number): number {
+  const d = camera.position.distanceTo(body.centreKm);
+  const r = body.radiusKm;
+  if (d <= r) return Infinity;
   // tan of the angular radius, times the projection's focal scale (1 / tan(fov/2)).
-  return (WGS84_A_KM / Math.sqrt(d * d - WGS84_A_KM * WGS84_A_KM)) * camera.projectionMatrix.elements[5] * (heightPx / 2);
+  return (r / Math.sqrt(d * d - r * r)) * camera.projectionMatrix.elements[5] * (heightPx / 2);
 }
 
 /**
  * Screen positions for body labels, in priority order, into `out`. As NASA
  * Eyes does (Reference §4.2): a label behind any body is hidden, and where two
- * would overlap the earlier, weightier one wins. The Earth's own label hides
- * while the camera is close, as the focused body's does. Input: CSS pixels.
+ * would overlap the earlier, weightier one wins. A body's own label hides
+ * while its disc is large, as the focused body's does (S4 for the Earth, S5a
+ * for every body). Input: CSS pixels.
  */
 export function layoutBodyLabels(
   camera: Camera,
@@ -61,7 +64,8 @@ export function layoutBodyLabels(
     const target = out[i];
     if (!target) return;
     bodyScreenPosition(input.pointKm, camera, cssWidth, cssHeight, target, !input.isEarth);
-    if (input.isEarth && earthDiscPx(camera, cssHeight) > EARTH_LABEL_MAX_DISC_PX) target.visible = false;
+    const body = input.isEarth ? EARTH : input.self;
+    if (body && discPx(camera, body, cssHeight) > LABEL_MAX_DISC_PX) target.visible = false;
     if (target.visible && hiddenByBody(camera.position, input.pointKm, occluders, input.self)) target.visible = false;
     for (let j = 0; j < i && target.visible; j++) if (crowds(target, out[j])) target.visible = false;
   });

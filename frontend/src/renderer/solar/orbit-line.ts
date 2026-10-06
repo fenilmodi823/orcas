@@ -4,6 +4,8 @@ import { TRAIL_FLOOR } from '../paths/path-geometry.js';
 export const ORBIT_SAMPLES = 361;
 /** NASA's planet line widths (Reference §4.3); the 2 px hover width arrives with clickable planet labels in S5. */
 export const ORBIT_LINE_WIDTH_PX = 1.2;
+/** NASA's hover: the line goes to 2 px at full opacity (Reference §4.3). */
+export const ORBIT_LINE_HOVER_WIDTH_PX = 2;
 
 /**
  * RGBA per sample for a planet's orbit line, written once: NASA Eyes' orbit

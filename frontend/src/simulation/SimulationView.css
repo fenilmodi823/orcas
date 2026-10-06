@@ -7,6 +7,8 @@
   width: 100vw;
   height: 100vh;
   --object-panel-width: 340px;
+  /* The brand mark spans 24–130.3 px (measured 2026-10-06 at 1440 × 900); the breadcrumb sits one --space-6 past it. */
+  --breadcrumb-left: calc(130px + var(--space-6));
 }
 
 .simulation__pill {
@@ -53,6 +55,18 @@
 
 .simulation__status[data-error] {
   color: var(--critical);
+}
+
+/* NASA Eyes' breadcrumb (S5a), on the logo's line and just right of it: the
+   brand mark sits at top/left --space-6 and is 28px tall (LandingSequence.css). */
+.simulation__breadcrumb {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--breadcrumb-left);
+  height: 28px;
+  display: flex;
+  align-items: center;
+  z-index: 13;
 }
 
 /* The selected object's panel, full height on the left under the logo (B.15,

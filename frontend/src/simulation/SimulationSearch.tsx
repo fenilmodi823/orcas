@@ -4,6 +4,7 @@ import { GlassSurface } from '../ui/GlassSurface.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore } from '../state/selection-store.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
+import { BODIES, BODY_KIND_LABEL, isBodyId } from '../renderer/solar/bodies.js';
 import './SimulationSearch.css';
 
 /**
@@ -18,9 +19,14 @@ export function SimulationSearch({ objects }: { objects: readonly ObjectMeta[] }
   const searchOpen = useViewStore((s) => s.searchOpen);
   const closeSearch = useViewStore((s) => s.closeSearch);
   const setSelected = useSelectionStore((s) => s.setSelected);
+  const setSelectedBody = useSelectionStore((s) => s.setSelectedBody);
 
+  // The Sun, the planets and the Moon first, then the catalogue: search crosses scales (Cosmic-Scales §6.3).
   const items = useMemo<SearchableObject[]>(
-    () => objects.map((o) => ({ id: o.norad, name: o.name, noradId: o.norad })),
+    () => [
+      ...BODIES.map((b) => ({ id: b.id, name: b.name, detail: BODY_KIND_LABEL[b.kind] })),
+      ...objects.map((o) => ({ id: o.norad, name: o.name, detail: o.norad })),
+    ],
     [objects],
   );
 
@@ -33,8 +39,9 @@ export function SimulationSearch({ objects }: { objects: readonly ObjectMeta[] }
           items={items}
           autoFocus
           onClose={closeSearch}
-          onSelect={(norad) => {
-            setSelected(norad as ObjectMeta['norad']);
+          onSelect={(id) => {
+            if (isBodyId(id)) setSelectedBody(id);
+            else setSelected(id as ObjectMeta['norad']);
             closeSearch();
           }}
         />

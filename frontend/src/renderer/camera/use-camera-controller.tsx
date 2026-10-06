@@ -1,9 +1,12 @@
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
-import type { PerspectiveCamera } from 'three';
+import { Vector3, type PerspectiveCamera } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { hasPosition, type FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
+import { usePlanetEphemeris } from '../../data/use-planet-ephemeris.js';
+import { bodyById } from '../solar/bodies.js';
+import { bodyTarget, ECLIPTIC_NORTH_J2000, homeOffsetKm } from '../solar/body-target.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
 import { dragToManualInput, wheelToManualInput } from './manual-input.js';
 import { useCameraTunables } from './camera-tunables.js';
@@ -44,6 +47,10 @@ export function useCameraController({
   // or a link opened with `object=`). Flying then would aim at the Earth's
   // centre, so the flight waits here until the slot is written.
   const pendingTargetRef = useRef(-1);
+  // The same for a body (S5a): a planet has no position until the DE421 bake loads.
+  const pendingBodyRef = useRef<string | null>(null);
+  const followBodyRef = useRef<((id: string) => void) | null>(null);
+  const ephemerisRef = usePlanetEphemeris();
   // dev-panel tunables read via a ref so the mount-effect listeners always
   // see the current value without re-subscribing.
   const tunablesRef = useRef(useCameraTunables.getState());
@@ -68,6 +75,7 @@ export function useCameraController({
     // selection → camera. Vanilla subscribe, outside React's render cycle.
     const follow = (norad: string | null) => {
       pendingTargetRef.current = -1;
+      pendingBodyRef.current = null;
       const index = norad === null ? undefined : byNorad[norad];
       if (index !== undefined && !hasPosition(frameStateRef.current, index)) {
         pendingTargetRef.current = index;
@@ -76,13 +84,50 @@ export function useCameraController({
       const p = norad === null ? sys.flyToEarth() : index === undefined ? Promise.resolve() : sys.flyTo(index);
       p.catch(() => undefined); // CancelledError when superseded — expected
     };
+    const followBody = (id: string) => {
+      pendingTargetRef.current = -1;
+      pendingBodyRef.current = null;
+      const body = bodyById(id);
+      if (!body) return;
+      const target = bodyTarget(body, ephemerisRef);
+      const epochMs = frameStateRef.current.epochMs;
+      if (epochMs <= 0 || !target.positionKm(epochMs, new Vector3())) {
+        pendingBodyRef.current = id;
+        return;
+      }
+      sys.flyToBody(target).catch(() => undefined);
+    };
+    followBodyRef.current = followBody;
+    let homing = false; // the home view clears the selection without flying back to the Earth
     const unsub = useSelectionStore.subscribe((state, prev) => {
-      if (state.selectedNorad !== prev.selectedNorad) follow(state.selectedNorad);
+      if (homing) return;
+      if (state.selectedBody !== prev.selectedBody && state.selectedBody !== null) return followBody(state.selectedBody);
+      if (state.selectedNorad !== prev.selectedNorad && state.selectedNorad !== null) return follow(state.selectedNorad);
+      const changed = state.selectedNorad !== prev.selectedNorad || state.selectedBody !== prev.selectedBody;
+      if (changed && state.selectedNorad === null && state.selectedBody === null) follow(null);
     });
     // A link's `object=` is applied by the dock's effect, outside the Canvas,
     // before R3F mounts this and subscribes; follow it now or it never flies.
-    const initial = useSelectionStore.getState().selectedNorad;
-    if (initial !== null) follow(initial);
+    const initial = useSelectionStore.getState();
+    if (initial.selectedBody !== null) followBody(initial.selectedBody);
+    else if (initial.selectedNorad !== null) follow(initial.selectedNorad);
+
+    // The breadcrumb's root: NASA Eyes' home, the Sun from 7 × 10⁸ km, 25° above the ecliptic.
+    const unsubHome = useCameraStatus.subscribe((state, prev) => {
+      const sun = bodyById('sun');
+      const epochMs = frameStateRef.current.epochMs;
+      if (state.homeRequests === prev.homeRequests || !sun || epochMs <= 0) return;
+      const target = { ...bodyTarget(sun, ephemerisRef), key: 'home' };
+      const sunKm = target.positionKm(epochMs, new Vector3());
+      if (!sunKm) return;
+      homing = true;
+      useSelectionStore.getState().clearSelection();
+      homing = false;
+      pendingTargetRef.current = -1;
+      pendingBodyRef.current = null;
+      const arrivalOffsetKm = homeOffsetKm(camera.position, sunKm, new Vector3());
+      sys.flyToBody(target, { arrivalOffsetKm, refUp: ECLIPTIC_NORTH_J2000.clone(), spin: false }).catch(() => undefined);
+    });
 
     // "Reset view & tunables" → actually reset the view. The selection
     // subscription above short-circuits on an unchanged id, so when nothing
@@ -91,14 +136,15 @@ export function useCameraController({
     // the explicit command the panel had no way to send.
     const unsubReset = useCameraStatus.subscribe((state, prev) => {
       if (state.resetRequests === prev.resetRequests) return;
-      const wasSelected = useSelectionStore.getState().selectedNorad !== null;
-      useSelectionStore.getState().setSelected(null);
+      const { selectedNorad, selectedBody } = useSelectionStore.getState();
+      const wasSelected = selectedNorad !== null || selectedBody !== null;
+      useSelectionStore.getState().clearSelection();
       if (!wasSelected) sys.flyToEarth().catch(() => undefined);
     });
 
     // Esc → clear selection (which the subscription turns into flyToEarth).
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') useSelectionStore.getState().setSelected(null);
+      if (e.key === 'Escape') useSelectionStore.getState().clearSelection();
     };
     const onPointerDown = (e: PointerEvent) => {
       if (e.button === 0) dragRef.current = { x: e.clientX, y: e.clientY };
@@ -133,6 +179,7 @@ export function useCameraController({
     return () => {
       unsub();
       unsubReset();
+      unsubHome();
       window.removeEventListener('keydown', onKey);
       el.removeEventListener('pointerdown', onPointerDown as EventListener);
       el.removeEventListener('pointermove', onPointerMove as EventListener);
@@ -160,6 +207,8 @@ export function useCameraController({
       pendingTargetRef.current = -1;
       sys.flyTo(pending).catch(() => undefined);
     }
+    const pendingBody = pendingBodyRef.current;
+    if (pendingBody !== null) followBodyRef.current?.(pendingBody); // re-pends until the body has a position
     sys.approachBlend = tunablesRef.current.approachBlend;
     sys.update(dt, frameStateRef.current);
     // Publish flight state for pick suppression. The store only writes on a

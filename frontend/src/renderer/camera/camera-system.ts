@@ -2,7 +2,7 @@ import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { clamp } from './easing.js';
 import { createRig, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
-import { ECI_UP, refUpForFreeOrbit } from './look-rotation.js';
+import { ECI_UP } from './look-rotation.js';
 import { applyNearFar, projectToScreen, writeCameraFromRig } from './camera-output.js';
 import { CancelledError } from './errors.js';
 import type { FlightEndpoint } from './flight-path.js';
@@ -12,12 +12,8 @@ import { accumulateManualInput, type ManualInput } from './manual-input.js';
 import { makeDeferred, type Deferred, type FlyOpts } from './flight.js';
 import { INITIAL_CAMERA_STATE, reduceCameraState, type CameraEvent, type CameraState } from './camera-state-machine.js';
 import type { CameraSystem, CameraSystemOpts } from './camera-system-types.js';
-import {
-  FREE_ORBIT_MIN_RADIUS_KM,
-  OBJECT_MIN_RADIUS_KM,
-  updateFreeOrbitRig,
-  updateObjectRig,
-} from './camera-rig-updates.js';
+import { BodyCamera, EARTH_TARGET, type BodyFlyOpts, type BodyTarget } from './body-camera.js';
+import { FREE_ORBIT_MIN_RADIUS_KM, OBJECT_MIN_RADIUS_KM, reexpressAsFreeOrbit, updateFreeOrbitRig, updateObjectRig } from './camera-rig-updates.js';
 
 const DT_CLAMP_SEC = 0.1;
 const EXIT_DURATION_SEC = 1.2;
@@ -43,6 +39,7 @@ class CameraSystemImpl implements CameraSystem {
   private frameRef!: FrameState;
 
   private readonly flights = new FlightController();
+  private readonly bodies = new BodyCamera();
   private targetIndex = -1;
   private readonly preFocusDir = new Vector3(1, 0, 0);
   private preFocusRadiusKm = 42164;
@@ -55,80 +52,76 @@ class CameraSystemImpl implements CameraSystem {
     this.camera.fov = this.rig.fovDeg;
   }
 
-  get state(): Readonly<CameraState> {
-    return this._state;
-  }
-
-  get radiusKm(): number {
-    return this.rig.radiusKm;
-  }
-
-  get targetDistanceKm(): number {
-    return this._targetDistanceKm;
-  }
-
-  get reducedMotion(): boolean {
-    return this.opts.reducedMotion ?? false;
-  }
-
-  set reducedMotion(value: boolean) {
-    this.opts.reducedMotion = value;
-  }
-
-  get approachBlend(): number {
-    return this.flights.approachBlend;
-  }
-
-  set approachBlend(p: number) {
-    this.flights.approachBlend = p;
-  }
-
-  get nearFarKm(): Readonly<{ nearKm: number; farKm: number }> {
-    return this._nearFar;
-  }
+  get state(): Readonly<CameraState> { return this._state; }
+  get radiusKm(): number { return this.rig.radiusKm; }
+  get targetDistanceKm(): number { return this._targetDistanceKm; }
+  get reducedMotion(): boolean { return this.opts.reducedMotion ?? false; }
+  set reducedMotion(value: boolean) { this.opts.reducedMotion = value; }
+  get approachBlend(): number { return this.flights.approachBlend; }
+  set approachBlend(p: number) { this.flights.approachBlend = p; }
+  get nearFarKm(): Readonly<{ nearKm: number; farKm: number }> { return this._nearFar; }
 
   private dispatch(event: CameraEvent): void {
     this._state = reduceCameraState(this._state, event);
   }
 
   applyManualInput(input: ManualInput): void {
-    // A grab mid-flight (brief §C.11): re-express BOTH rigs as a freeOrbit
-    // pose reproducing the camera's exact current world position, so the
-    // pivot snap from the flight's interpolated look-at back to Earth centre
-    // does not jolt the view. targetRig := rig means the first post-grab
-    // frame damps nowhere.
     if (this._state.kind === 'focusFlight' || this._state.kind === 'exit') {
       this.flights.cancel();
-      this.rig.pivotKm.set(0, 0, 0);
-      this.rig.frame.identity();
-      deriveAzElRadius(this.rig, this.camera.position);
-      this.targetRig.pivotKm.set(0, 0, 0);
-      this.targetRig.frame.identity();
-      syncTargetAngles(this.targetRig, this.rig);
-      // The drag basis is built from refUp, so it has to become freeOrbit's
-      // before the very first post-grab event uses it — not one frame later.
-      refUpForFreeOrbit(this.refUp);
+      this.bodies.cancel();
+      reexpressAsFreeOrbit(this.rig, this.targetRig, this.camera.position, this.refUp);
       this.dispatch({ type: 'grabInput' });
     }
-    const floor = this._state.kind === 'object' ? OBJECT_MIN_RADIUS_KM : FREE_ORBIT_MIN_RADIUS_KM;
+    this.bodies.stopSpin();
+    const objectFloor = this.bodies.target ? this.bodies.minRadiusKm : OBJECT_MIN_RADIUS_KM;
+    const floor = this._state.kind === 'object' ? objectFloor : FREE_ORBIT_MIN_RADIUS_KM;
     accumulateManualInput(this.targetRig, input, floor, this.refUp);
   }
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void> {
-    this.targetIndex = targetIndex;
-    if (this._state.kind === 'freeOrbit') {
-      this.preFocusDir.copy(this.camera.position).sub(this.rig.pivotKm).normalize();
-      this.preFocusRadiusKm = this.rig.radiusKm;
+    // From a planet, cross to the Earth first, NASA's way; the satellite flight takes it from there.
+    if (this.bodies.isFar(this.rig)) {
+      return this.flyToBody(EARTH_TARGET, { swing: false, spin: false }).then(() => this.flyTo(targetIndex, opts));
     }
-    this.dispatch({ type: 'select', index: targetIndex });
+    this.bodies.cancel();
+    this.targetIndex = targetIndex;
+    this.capturePreFocus();
+    this.dispatch({ type: 'select', target: targetIndex });
     return this.beginFlight(opts, false);
   }
 
   flyToEarth(opts?: FlyOpts): Promise<void> {
+    const far = this.bodies.isFar(this.rig);
     if (this._state.kind === 'object') this.dispatch({ type: 'deselect' });
     else this._state = { kind: 'exit' };
     this.targetIndex = -1;
-    return this.beginFlight(opts, true, EXIT_DURATION_SEC);
+    if (!far) {
+      this.bodies.cancel();
+      return this.beginFlight(opts, true, EXIT_DURATION_SEC);
+    }
+    const home = { arrivalOffsetKm: this.preFocusDir.clone().multiplyScalar(this.preFocusRadiusKm), refUp: ECI_UP, spin: false };
+    return this.startBodyFlight(EARTH_TARGET, home);
+  }
+
+  flyToBody(target: BodyTarget, opts?: BodyFlyOpts): Promise<void> {
+    this.capturePreFocus();
+    this.dispatch({ type: 'select', target: target.key });
+    this.flights.cancel();
+    this.targetIndex = -1;
+    return this.startBodyFlight(target, opts);
+  }
+
+  private startBodyFlight(target: BodyTarget, opts?: BodyFlyOpts): Promise<void> {
+    const { rig, targetRig, refUp, reducedMotion } = this;
+    const start = { rig, targetRig, refUp, epochMs: this.frameRef.epochMs, reducedMotion, onCrossFade: this.opts.onCrossFade };
+    return this.bodies.begin(target, start, opts) ?? Promise.resolve();
+  }
+
+  /** Where "back to the Earth" returns to: the free-orbit pose the user left. */
+  private capturePreFocus(): void {
+    if (this._state.kind !== 'freeOrbit') return;
+    this.preFocusDir.copy(this.camera.position).sub(this.rig.pivotKm).normalize();
+    this.preFocusRadiusKm = this.rig.radiusKm;
   }
 
   exitToFree(): Promise<void> {
@@ -190,6 +183,10 @@ class CameraSystemImpl implements CameraSystem {
         this.updateFlight(dt);
         break;
       case 'object': {
+        if (this.bodies.target) {
+          this.bodies.follow(this.rig, this.targetRig, this.refUp, this.frameRef.epochMs, dt, this.reducedMotion);
+          break;
+        }
         const target =
           this.targetIndex >= 0 ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
         updateObjectRig(this.rig, this.targetRig, this.refUp, target, dt);
@@ -203,12 +200,21 @@ class CameraSystemImpl implements CameraSystem {
     if (this.targetIndex >= 0) {
       targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp);
       this._targetDistanceKm = this.camera.position.distanceTo(_tp);
+    } else if (this.bodies.target?.positionKm(this.frameRef.epochMs, _tp)) {
+      this._targetDistanceKm = this.camera.position.distanceTo(_tp);
     } else {
       this._targetDistanceKm = 0;
     }
   }
 
   private updateFlight(dt: number): void {
+    if (this.bodies.flying) {
+      if (!this.bodies.tick(dt, this.frameRef.epochMs, this.rig, this.targetRig, this.refUp)) return;
+      this.bodies.finish();
+      if (this._state.kind === 'exit') this.bodies.target = null; // home: free orbit about the Earth
+      this.dispatch({ type: 'flightArrived' });
+      return;
+    }
     const tick = this.flights.tick(dt, this.frameRef.epochMs, (t, o) =>
       targetPositionAt(this.frameRef, this.targetIndex, t, o),
     );
@@ -230,6 +236,7 @@ class CameraSystemImpl implements CameraSystem {
 
   dispose(): void {
     this.flights.cancel();
+    this.bodies.cancel();
   }
 }
 

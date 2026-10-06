@@ -6,7 +6,7 @@ import { bodyStateKm, type PlanetEphemeris } from '../../data/planet-ephemeris.j
 import { readColorToken } from '../scene-colors.js';
 import type { Occluder } from '../earth/body-label-layout.js';
 import { EARTH_NAIF_ID, PLANETS, SUN_NAIF_ID } from './planets.js';
-import { ORBIT_LINE_WIDTH_PX, ORBIT_SAMPLES, writeOffsetPositions, writeOrbitColours } from './orbit-line.js';
+import { ORBIT_LINE_HOVER_WIDTH_PX, ORBIT_LINE_WIDTH_PX, ORBIT_SAMPLES, writeOffsetPositions, writeOrbitColours } from './orbit-line.js';
 import { createPlanetDotMaterial, createPlanetMaterial } from './planet-materials.js';
 import { patchLineMaterial } from '../live/line-trim.js';
 
@@ -30,7 +30,8 @@ export interface PlanetBodies {
   readonly occluders: readonly Occluder[];
   /** False before the ephemeris loads, or outside DE421's span: nothing above is current then. */
   readonly placed: boolean;
-  update(epochMs: number, ephemeris: PlanetEphemeris | null, camera: Camera, viewport: Viewport): void;
+  /** `hoveredIndex`: the planet whose label is under the pointer, in `PLANETS` order, or −1. */
+  update(epochMs: number, ephemeris: PlanetEphemeris | null, camera: Camera, viewport: Viewport, hoveredIndex?: number): void;
   dispose(): void;
 }
 
@@ -110,7 +111,7 @@ export function createPlanetBodies(): PlanetBodies {
     get placed() {
       return placed;
     },
-    update(epochMs, ephemeris, camera, viewport) {
+    update(epochMs, ephemeris, camera, viewport, hoveredIndex = -1) {
       const earth = ephemeris && bodyStateKm(ephemeris, EARTH_NAIF_ID, epochMs);
       const sun = ephemeris && bodyStateKm(ephemeris, SUN_NAIF_ID, epochMs);
       placed = Boolean(earth && sun);
@@ -147,6 +148,9 @@ export function createPlanetBodies(): PlanetBodies {
         writeSegments(line.geometry, linePoints, ORBIT_SAMPLES);
         line.position.copy(cam);
         line.material.resolution.set(viewport.cssWidth * viewport.dpr, viewport.cssHeight * viewport.dpr);
+        const hovered = i === hoveredIndex;
+        line.material.linewidth = hovered ? ORBIT_LINE_HOVER_WIDTH_PX : ORBIT_LINE_WIDTH_PX;
+        line.material.opacity = hovered ? 1 : ORBIT_OPACITY;
       });
       dotGeometry.getAttribute('position').needsUpdate = true;
     },

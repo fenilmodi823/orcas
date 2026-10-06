@@ -5,31 +5,38 @@ const free: CameraState = { kind: 'freeOrbit' };
 
 describe('reduceCameraState', () => {
   it('freeOrbit + select → focusFlight(returnTo freeOrbit)', () => {
-    const s = reduceCameraState(free, { type: 'select', index: 7 });
-    expect(s).toEqual({ kind: 'focusFlight', targetIndex: 7, returnTo: 'freeOrbit' });
+    const s = reduceCameraState(free, { type: 'select', target: 7 });
+    expect(s).toEqual({ kind: 'focusFlight', target: 7, returnTo: 'freeOrbit' });
   });
 
   it('focusFlight + flightArrived → object', () => {
-    const flight: CameraState = { kind: 'focusFlight', targetIndex: 7, returnTo: 'freeOrbit' };
-    expect(reduceCameraState(flight, { type: 'flightArrived' })).toEqual({ kind: 'object', targetIndex: 7 });
+    const flight: CameraState = { kind: 'focusFlight', target: 7, returnTo: 'freeOrbit' };
+    expect(reduceCameraState(flight, { type: 'flightArrived' })).toEqual({ kind: 'object', target: 7 });
   });
 
   it('object + select(other) → focusFlight(returnTo object)', () => {
-    const obj: CameraState = { kind: 'object', targetIndex: 7 };
-    expect(reduceCameraState(obj, { type: 'select', index: 9 })).toEqual({
+    const obj: CameraState = { kind: 'object', target: 7 };
+    expect(reduceCameraState(obj, { type: 'select', target: 9 })).toEqual({
       kind: 'focusFlight',
-      targetIndex: 9,
+      target: 9,
       returnTo: 'object',
     });
   });
 
   it('object + select(same) is a no-op', () => {
-    const obj: CameraState = { kind: 'object', targetIndex: 7 };
-    expect(reduceCameraState(obj, { type: 'select', index: 7 })).toBe(obj);
+    const obj: CameraState = { kind: 'object', target: 7 };
+    expect(reduceCameraState(obj, { type: 'select', target: 7 })).toBe(obj);
+  });
+
+  it('tells two bodies apart, and a body from a catalogue index (S5a)', () => {
+    const obj: CameraState = { kind: 'object', target: 'jupiter' };
+    expect(reduceCameraState(obj, { type: 'select', target: 'jupiter' })).toBe(obj);
+    expect(reduceCameraState(obj, { type: 'select', target: 'saturn' })).toMatchObject({ kind: 'focusFlight', target: 'saturn' });
+    expect(reduceCameraState({ kind: 'object', target: 7 }, { type: 'select', target: '7' }).kind).toBe('focusFlight');
   });
 
   it('object + deselect → exit', () => {
-    expect(reduceCameraState({ kind: 'object', targetIndex: 7 }, { type: 'deselect' })).toEqual({ kind: 'exit' });
+    expect(reduceCameraState({ kind: 'object', target: 7 }, { type: 'deselect' })).toEqual({ kind: 'exit' });
   });
 
   it('exit + flightArrived → freeOrbit', () => {
@@ -37,12 +44,12 @@ describe('reduceCameraState', () => {
   });
 
   it('grabInput during a flight drops to freeOrbit — the state machine does NOT clear selection', () => {
-    const flight: CameraState = { kind: 'focusFlight', targetIndex: 7, returnTo: 'freeOrbit' };
+    const flight: CameraState = { kind: 'focusFlight', target: 7, returnTo: 'freeOrbit' };
     expect(reduceCameraState(flight, { type: 'grabInput' })).toEqual({ kind: 'freeOrbit' });
   });
 
   it('grabInput in object mode is a no-op (manual authority handled elsewhere)', () => {
-    const obj: CameraState = { kind: 'object', targetIndex: 7 };
+    const obj: CameraState = { kind: 'object', target: 7 };
     expect(reduceCameraState(obj, { type: 'grabInput' })).toBe(obj);
   });
 

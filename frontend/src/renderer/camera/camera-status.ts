@@ -18,13 +18,18 @@ interface CameraStatus {
   /** Bumped by "Reset view & tunables". A counter rather than a boolean so
    * a second press while already at rest still registers. */
   resetRequests: number;
+  /** Bumped by the breadcrumb's root: NASA Eyes' home view, the Sun from above the ecliptic (S5a). */
+  homeRequests: number;
   setFlying(flying: boolean): void;
   requestReset(): void;
+  requestHome(): void;
 }
 
 export const useCameraStatus = create<CameraStatus>((set) => ({
   flying: false,
   resetRequests: 0,
+  homeRequests: 0,
   setFlying: (flying) => set((s) => (s.flying === flying ? s : { flying })),
   requestReset: () => set((s) => ({ resetRequests: s.resetRequests + 1 })),
+  requestHome: () => set((s) => ({ homeRequests: s.homeRequests + 1 })),
 }));

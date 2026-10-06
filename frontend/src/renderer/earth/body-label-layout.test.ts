@@ -45,6 +45,16 @@ describe('layoutBodyLabels (S4)', () => {
     expect(out[0]?.visible).toBe(false);
   });
 
+  it('hides any body’s label once its disc is large, as the focused body’s is (S5a)', () => {
+    const out = [screen()];
+    const near = cameraAt(new Vector3(7.8e8 - 309_071, 0, 0), jupiter.centreKm); // where a fly-to lands
+    layoutBodyLabels(near, 800, 400, [{ pointKm: jupiter.centreKm, self: jupiter }], [jupiter], out);
+    expect(out[0]?.visible).toBe(false);
+    const far = cameraAt(new Vector3(7.8e8 - 1e8, 0, 0), jupiter.centreKm);
+    layoutBodyLabels(far, 800, 400, [{ pointKm: jupiter.centreKm, self: jupiter }], [jupiter], out);
+    expect(out[0]?.visible).toBe(true);
+  });
+
   it('lets an earlier label win where two would overlap, unless the earlier one is hidden', () => {
     const near = new Vector3(7.8e8, 0, 3e5); // a few pixels above Jupiter's centre
     const inputs = [

@@ -6,7 +6,7 @@ const NORAD_A = '25544' as NoradId;
 const NORAD_B = '90000' as NoradId;
 
 beforeEach(() => {
-  useSelectionStore.setState({ selectedNorad: null, hoveredNorad: null });
+  useSelectionStore.setState({ selectedNorad: null, hoveredNorad: null, selectedBody: null, hoveredBody: null });
 });
 
 describe('useSelectionStore', () => {
@@ -32,5 +32,21 @@ describe('useSelectionStore', () => {
     useSelectionStore.getState().setSelected(NORAD_A);
     useSelectionStore.getState().setSelected(null);
     expect(useSelectionStore.getState().selectedNorad).toBeNull();
+  });
+
+  it('keeps one thing selected: a body clears a satellite, and a satellite a body (S5a)', () => {
+    const store = useSelectionStore.getState();
+    store.setSelected(NORAD_A);
+    store.setSelectedBody('jupiter');
+    expect(useSelectionStore.getState()).toMatchObject({ selectedNorad: null, selectedBody: 'jupiter' });
+    store.setSelected(NORAD_B);
+    expect(useSelectionStore.getState()).toMatchObject({ selectedNorad: NORAD_B, selectedBody: null });
+  });
+
+  it('clearing one never clears the other', () => {
+    const store = useSelectionStore.getState();
+    store.setSelectedBody('moon');
+    store.setSelected(null);
+    expect(useSelectionStore.getState().selectedBody).toBe('moon');
   });
 });

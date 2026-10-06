@@ -1,0 +1,45 @@
+/* NASA Eyes' breadcrumb, ORCAS's tokens: quiet text beside the logo, never a panel of its own. */
+.breadcrumb__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--t-small);
+}
+
+.breadcrumb__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.breadcrumb__item + .breadcrumb__item::before {
+  content: '›';
+  color: var(--text-mid);
+}
+
+.breadcrumb__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.breadcrumb__link:hover {
+  color: var(--text-hi);
+}
+
+.breadcrumb__link:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+.breadcrumb__current {
+  color: var(--text-hi);
+}

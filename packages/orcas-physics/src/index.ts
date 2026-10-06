@@ -9,3 +9,4 @@ export * from './moon.js';
 export * from './eclipse.js';
 export * from './lagrange.js';
 export * from './kepler.js';
+export * from './iau-poles.js';

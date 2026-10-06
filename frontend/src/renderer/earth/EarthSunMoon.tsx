@@ -13,6 +13,8 @@ import { createPlanetBodies } from '../solar/planet-bodies.js';
 import { createSceneLabelWriter } from '../solar/scene-labels.js';
 import { clampNearToBodies } from '../solar/near-clamp.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
+import { PLANETS } from '../solar/planets.js';
+import { useSelectionStore } from '../../state/selection-store.js';
 
 const DEFAULT_FOV_DEG = 35;
 
@@ -56,7 +58,9 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     const fov = camera instanceof PerspectiveCamera ? camera.fov : DEFAULT_FOV_DEG;
     const viewport = { cssWidth: size.width, cssHeight: size.height, dpr: gl.getPixelRatio() };
 
-    planets.update(epochMs, ephemerisRef.current, camera, viewport);
+    const hovered = useSelectionStore.getState().hoveredBody; // read per frame, never re-rendered on
+    const hoveredIndex = PLANETS.findIndex((p) => p.name.toLowerCase() === hovered);
+    planets.update(epochMs, ephemerisRef.current, camera, viewport, hoveredIndex);
     // DE421's Sun once the bake has loaded, so the Sun sits where the planets'
     // orbits say; the analytic M1.11 Sun (~0.01°) until then.
     let sunKm = planets.sunKm;
