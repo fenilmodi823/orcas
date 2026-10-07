@@ -92,6 +92,11 @@ export function bodyPositionKm(ephemeris: PlanetEphemeris, naifId: number, utcMs
   return bodyStateKm(ephemeris, naifId, utcMs)?.position ?? null;
 }
 
+/** ET (TDB seconds past J2000) for a UTC instant, taking TDB = UTC + 69.184 s as the Sun and Moon do. */
+export function etSecondsFromUtcMs(utcMs: number): number {
+  return utcMs / 1000 + TT_MINUS_UTC_S - J2000_LABEL_S;
+}
+
 /** As `bodyPositionKm`, with the velocity too. Output: km and km/s, ICRF, relative to the Solar System barycentre. */
 export function bodyStateKm(
   ephemeris: PlanetEphemeris,
@@ -100,7 +105,7 @@ export function bodyStateKm(
 ): { position: Vec3; velocity: Vec3 } | null {
   const body = ephemeris.bodies.get(naifId);
   if (!body) return null;
-  const etS = utcMs / 1000 + TT_MINUS_UTC_S - J2000_LABEL_S;
+  const etS = etSecondsFromUtcMs(utcMs);
   const u = (etS - body.firstEtS) / body.stepS;
   const last = body.states.length / FLOATS_PER_KEYFRAME - 1;
   if (!(u >= 0 && u <= last)) return null;

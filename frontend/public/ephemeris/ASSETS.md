@@ -24,3 +24,7 @@ is far inside the Solar regime's 1 arcminute budget (`Cosmic-Scales-Brief` §3.4
 
 **Credit.** On `/` the credit line names the source (S4): "Sun and planets: JPL DE421, interpolated to within 1″;
 Jupiter to Neptune at their system barycentres." The `/points` debug route does not yet.
+
+**Spacecraft and moons (S6a).** `horizons/` holds the JPL Horizons bake: 25 spacecraft and 19
+major moons, from one hand export through the Horizons web form. Its sources, accuracy and
+cross-check are in `horizons/README.md`.

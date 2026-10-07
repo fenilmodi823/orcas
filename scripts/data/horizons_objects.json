@@ -1,0 +1,236 @@
+{
+  "-170": {
+    "name": "James Webb Space Telescope",
+    "designator": "2021-130A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-27",
+    "fitQuote": "Concatenation of reconstructed trajectory solutions (as-flown) from Goddard Flight Dynamics Facility (FDF), based on tracking data through September 27, with prediction thereafter."
+  },
+  "-21": {
+    "name": "SOHO",
+    "designator": "1995-065A",
+    "dataSheetRevised": "2026-09-01",
+    "fitThrough": "2026-08-26",
+    "fitQuote": "soho_2026 2026-Jan-01 2026-Nov-02 (prediction > Aug 26)",
+    "notes": [
+      "For the time-span 1998-Aug-19 to 1998-Sep-25, there is no official trajectory information due to the recovery effort. [...] Trajectory errors during this interval may be significant due to unmodeled dynamics."
+    ]
+  },
+  "-78": {
+    "name": "DSCOVR",
+    "designator": "2015-007A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-27",
+    "fitQuote": "Concatenated trajectories based on weekly tag-up solutions through 2026-Sep-27, with a short-term prediction extending over the next three weeks."
+  },
+  "-85": {
+    "name": "Lunar Reconnaissance Orbiter",
+    "designator": "2009-031A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-02",
+    "fitQuote": "Final reconstructed trajectory segments are from PDS. Preliminary \"tag-up\" solutions begin 2026-Mar-15, with prediction after 2026-Sep-02."
+  },
+  "-152": {
+    "name": "Chandrayaan-2 orbiter",
+    "designator": "2019-042A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-29",
+    "fitQuote": "This is a merge of post-launch trajectory solutions fit to tracking data through 2026-Sep-29, with a prediction thereafter."
+  },
+  "-1023": {
+    "name": "Artemis I (Orion)",
+    "designator": "2022-156A",
+    "dataSheetRevised": "2026-04-07",
+    "fitThrough": "2022-12-11 17:20",
+    "fitQuote": "Post_TLI_Orion_AsFlown_20221213_EPH_OEM 2022-Nov-16 08:46 2022-Dec-11 17:20"
+  },
+  "-1024": {
+    "name": "Artemis II (Orion Integrity)",
+    "designator": "2026-069A",
+    "dataSheetRevised": "2026-04-20",
+    "fitThrough": null,
+    "fitQuote": "Post-launch Orion II trajectory data from NASA/JSC navigation (concatenated).",
+    "notes": [
+      "The data sheet does not say which segments are reconstructions. It was revised after splashdown (2026-Apr-11 00:07 UTC)."
+    ]
+  },
+  "-31": {
+    "name": "Voyager 1",
+    "designator": "1977-084A",
+    "dataSheetRevised": "2022-08-19",
+    "fitThrough": "1992-04-24",
+    "fitQuote": "1992-Apr-24 Final two-way tracking measurements",
+    "notes": [
+      "#1) 1977-Sep-5 to 1981-Jan-1: A patched conic mission-design type trajectory in which the conics were constructed to approximately match specific events, such as satellite encounters, providing a rough accuracy.",
+      "#2) 1981-Jan-1 to 2100-Jan-1 Refit of tracking data spanning 1981-1992 (end of two-way coherent transponder data). Done in 2022 by R. Jacobson (former Voyager navigation) using DE440 to generate a new solution and prediction.",
+      "Formal predicted geocentric pointing uncertainty on 2030-Jan-1: RA +/- 1.701 arcseconds, DEC +/- 1.535 arcseconds"
+    ]
+  },
+  "-32": {
+    "name": "Voyager 2",
+    "designator": "1977-076A",
+    "dataSheetRevised": "2022-08-19",
+    "fitThrough": "1992-10-30",
+    "fitQuote": "1098 F3 30-Aug-1989 01:13:30 30-Oct-1992 18:05:00 0.120 mm/s",
+    "notes": [
+      "The timeline says \"1992-Jul-17 Last transponder tracking data\"; the tracking-data table's last point, used here, is 30-Oct-1992.",
+      "#1) 1977-Aug-20 to 1989-Aug-29: A patched conic mission-design type trajectory in which the conics were constructed to approximately match specific events (such satellite encounters), providing a rough accuracy.",
+      "Formal predicted geocentric pointing uncertainty on 2030-Jan-1: RA +/- 4.718 arcseconds, DEC +/- 3.715 arcseconds"
+    ]
+  },
+  "-23": {
+    "name": "Pioneer 10",
+    "designator": "1972-012A",
+    "dataSheetRevised": "2005-07-27",
+    "fitThrough": null,
+    "fitQuote": null,
+    "lastContact": "2002-03-03",
+    "lastContactQuote": "The last fully successful acquisition of signal was March 3, 2002.",
+    "notes": [
+      "NOTE: This trajectory is suitable for general historical purposes, but should be used cautiously for high precision or tracking data applications."
+    ]
+  },
+  "-24": {
+    "name": "Pioneer 11",
+    "designator": "1973-019A",
+    "dataSheetRevised": "2007-06-15",
+    "fitThrough": null,
+    "fitQuote": null,
+    "lastContact": "1995-09-30",
+    "lastContactQuote": "Science operations and daily telemetry ceased on September 30, 1995 when the RTG power level was insufficient to operate any experiments.",
+    "notes": [
+      "NOTE: This trajectory is suitable for general historical purposes, but should be used cautiously for high precision or tracking data applications."
+    ]
+  },
+  "-98": {
+    "name": "New Horizons",
+    "designator": "2006-001A",
+    "dataSheetRevised": "2026-09-01",
+    "fitThrough": "2026-07-20 19:11:55",
+    "fitQuote": "Concatenated spacecraft trajectory (from NH navigation, KinetX, tracking data cut-off July 20, 2026 19:11:55 TDB)."
+  },
+  "-82": {
+    "name": "Cassini",
+    "designator": "1997-061A",
+    "dataSheetRevised": "2018-09-28",
+    "fitThrough": "2017-09-15 11:58",
+    "fitQuote": "UPDATED with \"final\" post-mission reconstruction, 2004 to end-of-mission.",
+    "notes": [
+      "Before 2004 the data sheet says only: \"Trajectories provided by the Navigation Team (concatenated here).\""
+    ]
+  },
+  "-77": {
+    "name": "Galileo",
+    "designator": "1989-084B",
+    "dataSheetRevised": "2008-02-23",
+    "fitThrough": "2002-08-12",
+    "fitQuote": "Trajectory provided by Navigation Team (JPL). Data fit: 1989 to Aug 12, 2002, baseline predicts thereafter."
+  },
+  "-61": {
+    "name": "Juno",
+    "designator": "2011-040A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-23",
+    "fitQuote": "The trajectory after 2026-Sep-23 is a planning prediction."
+  },
+  "-159": {
+    "name": "Europa Clipper",
+    "designator": "2024-182A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-22",
+    "fitQuote": "Segments marked by '*' below are pre-launch predictions. Then based on tracking data through 2026-Sep-22. Trajectory thereafter is predicted"
+  },
+  "-28": {
+    "name": "JUICE",
+    "designator": "2023-053A",
+    "dataSheetRevised": "2026-09-27",
+    "fitThrough": "2026-09-22",
+    "fitQuote": "Post-launch trajectory from ESA based on tracking data through September 22, prediction after that."
+  },
+  "-96": {
+    "name": "Parker Solar Probe",
+    "designator": "2018-065A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-01",
+    "fitQuote": "Fit to post-launch tracking data through 2026-Sep-01. Reference planning trajectory for subsequent times."
+  },
+  "-121": {
+    "name": "BepiColombo",
+    "designator": "2018-080A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-28",
+    "fitQuote": "Trajectory from ESA. Data fit through 2026-Sep-28, prediction thereafter."
+  },
+  "-255": {
+    "name": "Psyche",
+    "designator": "2023-157A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-08-11",
+    "fitQuote": "Post-launch spacecraft trajectory from JPL navigation. Data through August 11, prediction thereafter."
+  },
+  "-49": {
+    "name": "Lucy",
+    "designator": "2021-093A",
+    "dataSheetRevised": "2025-10-25",
+    "fitThrough": "2025-09-08",
+    "fitQuote": "Data fit through 2025-Sep-08, prediction thereafter"
+  },
+  "-64": {
+    "name": "OSIRIS-REx / OSIRIS-APEX",
+    "designator": "2016-055A",
+    "dataSheetRevised": "2025-09-18",
+    "fitThrough": null,
+    "fitQuote": "Updated as the mission progresses.",
+    "notes": ["The data sheet states no fit boundary."]
+  },
+  "-74": {
+    "name": "Mars Reconnaissance Orbiter",
+    "designator": "2005-029A",
+    "dataSheetRevised": "2026-09-30",
+    "fitThrough": "2026-09-27",
+    "fitQuote": "Trajectory after 2026-Sep-27 is a planning PREDICTION."
+  },
+  "-202": {
+    "name": "MAVEN",
+    "designator": "2013-063A",
+    "dataSheetRevised": "2026-02-13",
+    "fitThrough": "2025-12-04",
+    "fitQuote": "Fit to data through 2025-Dec-04, prediction thereafter.",
+    "notes": [
+      "[...] with some evidence it experienced an unplanned delta-V Dec. 4 and is spinning in an altered trajectory. Therefore predicts after December 4, 2025 may be inaccurate."
+    ]
+  },
+  "-3": {
+    "name": "Mars Orbiter Mission (Mangalyaan)",
+    "designator": "2013-060A",
+    "dataSheetRevised": "2022-06-11",
+    "fitThrough": "2022-04",
+    "fitQuote": "Merge of DSN/JPL/Nav data-fit tag-up trajectory through April 2022. Prediction thereafter.",
+    "notes": [
+      "The interval from 2019-Oct-01 to 2020-Apr-29 may drift slightly from actual, with discontinuties on 2020-Mar-30 and 2020-Apr-18 when the trajectory was updated from a new initial ISRO state integration, not a new data fit."
+    ]
+  },
+  "401": { "name": "Phobos" },
+  "402": { "name": "Deimos" },
+  "501": { "name": "Io" },
+  "502": { "name": "Europa" },
+  "503": { "name": "Ganymede" },
+  "504": { "name": "Callisto" },
+  "599": { "name": "Jupiter" },
+  "601": { "name": "Mimas" },
+  "602": { "name": "Enceladus" },
+  "603": { "name": "Tethys" },
+  "604": { "name": "Dione" },
+  "605": { "name": "Rhea" },
+  "606": { "name": "Titan" },
+  "608": { "name": "Iapetus" },
+  "699": { "name": "Saturn" },
+  "701": { "name": "Ariel" },
+  "702": { "name": "Umbriel" },
+  "703": { "name": "Titania" },
+  "704": { "name": "Oberon" },
+  "705": { "name": "Miranda" },
+  "799": { "name": "Uranus" },
+  "801": { "name": "Triton" },
+  "899": { "name": "Neptune" }
+}

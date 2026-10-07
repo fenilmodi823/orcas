@@ -1,0 +1,5890 @@
+{
+ "source": "JPL Horizons (https://ssd.jpl.nasa.gov/horizons/), web form, by hand",
+ "licence": "None stated by NASA for Horizons; committed with attribution (B.17)",
+ "frame": "ICRF; positions relative to each segment's centre",
+ "units": "km, km/s; time ET (TDB seconds past J2000)",
+ "interpolation": "Hermite through W states (SPK type 13); W per segment in the .bin",
+ "maxRelativeError": 0.0001,
+ "objects": {
+  "-170": {
+   "name": "James Webb Space Telescope",
+   "designator": "2021-130A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-27",
+   "fitQuote": "Concatenation of reconstructed trajectory solutions (as-flown) from Goddard Flight Dynamics Facility (FDF), based on tracking data through September 27, with prediction thereafter.",
+   "horizonsSource": "JWST_merged"
+  },
+  "-21": {
+   "name": "SOHO",
+   "designator": "1995-065A",
+   "dataSheetRevised": "2026-09-01",
+   "fitThrough": "2026-08-26",
+   "fitQuote": "soho_2026 2026-Jan-01 2026-Nov-02 (prediction > Aug 26)",
+   "notes": [
+    "For the time-span 1998-Aug-19 to 1998-Sep-25, there is no official trajectory information due to the recovery effort. [...] Trajectory errors during this interval may be significant due to unmodeled dynamics."
+   ],
+   "horizonsSource": "SOHO_merged"
+  },
+  "-78": {
+   "name": "DSCOVR",
+   "designator": "2015-007A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-27",
+   "fitQuote": "Concatenated trajectories based on weekly tag-up solutions through 2026-Sep-27, with a short-term prediction extending over the next three weeks.",
+   "horizonsSource": "DSCOVR_merged"
+  },
+  "-85": {
+   "name": "Lunar Reconnaissance Orbiter",
+   "designator": "2009-031A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-02",
+   "fitQuote": "Final reconstructed trajectory segments are from PDS. Preliminary \"tag-up\" solutions begin 2026-Mar-15, with prediction after 2026-Sep-02.",
+   "horizonsSource": "LRO_merged"
+  },
+  "-152": {
+   "name": "Chandrayaan-2 orbiter",
+   "designator": "2019-042A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-29",
+   "fitQuote": "This is a merge of post-launch trajectory solutions fit to tracking data through 2026-Sep-29, with a prediction thereafter.",
+   "horizonsSource": "chandrayaan-2_orbiter_me"
+  },
+  "-1023": {
+   "name": "Artemis I (Orion)",
+   "designator": "2022-156A",
+   "dataSheetRevised": "2026-04-07",
+   "fitThrough": "2022-12-11 17:20",
+   "fitQuote": "Post_TLI_Orion_AsFlown_20221213_EPH_OEM 2022-Nov-16 08:46 2022-Dec-11 17:20",
+   "horizonsSource": "Artemis-I_ASF"
+  },
+  "-1024": {
+   "name": "Artemis II (Orion Integrity)",
+   "designator": "2026-069A",
+   "dataSheetRevised": "2026-04-20",
+   "fitThrough": null,
+   "fitQuote": "Post-launch Orion II trajectory data from NASA/JSC navigation (concatenated).",
+   "notes": [
+    "The data sheet does not say which segments are reconstructions. It was revised after splashdown (2026-Apr-11 00:07 UTC)."
+   ],
+   "horizonsSource": "Artemis_II_merged"
+  },
+  "-31": {
+   "name": "Voyager 1",
+   "designator": "1977-084A",
+   "dataSheetRevised": "2022-08-19",
+   "fitThrough": "1992-04-24",
+   "fitQuote": "1992-Apr-24 Final two-way tracking measurements",
+   "notes": [
+    "#1) 1977-Sep-5 to 1981-Jan-1: A patched conic mission-design type trajectory in which the conics were constructed to approximately match specific events, such as satellite encounters, providing a rough accuracy.",
+    "#2) 1981-Jan-1 to 2100-Jan-1 Refit of tracking data spanning 1981-1992 (end of two-way coherent transponder data). Done in 2022 by R. Jacobson (former Voyager navigation) using DE440 to generate a new solution and prediction.",
+    "Formal predicted geocentric pointing uncertainty on 2030-Jan-1: RA +/- 1.701 arcseconds, DEC +/- 1.535 arcseconds"
+   ],
+   "horizonsSource": "Voyager_1_ST+refit2022_m"
+  },
+  "-32": {
+   "name": "Voyager 2",
+   "designator": "1977-076A",
+   "dataSheetRevised": "2022-08-19",
+   "fitThrough": "1992-10-30",
+   "fitQuote": "1098 F3 30-Aug-1989 01:13:30 30-Oct-1992 18:05:00 0.120 mm/s",
+   "notes": [
+    "The timeline says \"1992-Jul-17 Last transponder tracking data\"; the tracking-data table's last point, used here, is 30-Oct-1992.",
+    "#1) 1977-Aug-20 to 1989-Aug-29: A patched conic mission-design type trajectory in which the conics were constructed to approximately match specific events (such satellite encounters), providing a rough accuracy.",
+    "Formal predicted geocentric pointing uncertainty on 2030-Jan-1: RA +/- 4.718 arcseconds, DEC +/- 3.715 arcseconds"
+   ],
+   "horizonsSource": "Voyager_2_ST+refit2022_m"
+  },
+  "-23": {
+   "name": "Pioneer 10",
+   "designator": "1972-012A",
+   "dataSheetRevised": "2005-07-27",
+   "fitThrough": null,
+   "fitQuote": null,
+   "lastContact": "2002-03-03",
+   "lastContactQuote": "The last fully successful acquisition of signal was March 3, 2002.",
+   "notes": [
+    "NOTE: This trajectory is suitable for general historical purposes, but should be used cautiously for high precision or tracking data applications."
+   ],
+   "horizonsSource": "pioneer_10_merged"
+  },
+  "-24": {
+   "name": "Pioneer 11",
+   "designator": "1973-019A",
+   "dataSheetRevised": "2007-06-15",
+   "fitThrough": null,
+   "fitQuote": null,
+   "lastContact": "1995-09-30",
+   "lastContactQuote": "Science operations and daily telemetry ceased on September 30, 1995 when the RTG power level was insufficient to operate any experiments.",
+   "notes": [
+    "NOTE: This trajectory is suitable for general historical purposes, but should be used cautiously for high precision or tracking data applications."
+   ],
+   "horizonsSource": "pioneer_11_merged"
+  },
+  "-98": {
+   "name": "New Horizons",
+   "designator": "2006-001A",
+   "dataSheetRevised": "2026-09-01",
+   "fitThrough": "2026-07-20 19:11:55",
+   "fitQuote": "Concatenated spacecraft trajectory (from NH navigation, KinetX, tracking data cut-off July 20, 2026 19:11:55 TDB).",
+   "horizonsSource": "NH_merged"
+  },
+  "-82": {
+   "name": "Cassini",
+   "designator": "1997-061A",
+   "dataSheetRevised": "2018-09-28",
+   "fitThrough": "2017-09-15 11:58",
+   "fitQuote": "UPDATED with \"final\" post-mission reconstruction, 2004 to end-of-mission.",
+   "notes": [
+    "Before 2004 the data sheet says only: \"Trajectories provided by the Navigation Team (concatenated here).\""
+   ],
+   "horizonsSource": "cassini_merge"
+  },
+  "-77": {
+   "name": "Galileo",
+   "designator": "1989-084B",
+   "dataSheetRevised": "2008-02-23",
+   "fitThrough": "2002-08-12",
+   "fitQuote": "Trajectory provided by Navigation Team (JPL). Data fit: 1989 to Aug 12, 2002, baseline predicts thereafter.",
+   "horizonsSource": "galileo_merged"
+  },
+  "-61": {
+   "name": "Juno",
+   "designator": "2011-040A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-23",
+   "fitQuote": "The trajectory after 2026-Sep-23 is a planning prediction.",
+   "horizonsSource": "Juno_merged"
+  },
+  "-159": {
+   "name": "Europa Clipper",
+   "designator": "2024-182A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-22",
+   "fitQuote": "Segments marked by '*' below are pre-launch predictions. Then based on tracking data through 2026-Sep-22. Trajectory thereafter is predicted",
+   "horizonsSource": "Europa_Clipper_merged"
+  },
+  "-28": {
+   "name": "JUICE",
+   "designator": "2023-053A",
+   "dataSheetRevised": "2026-09-27",
+   "fitThrough": "2026-09-22",
+   "fitQuote": "Post-launch trajectory from ESA based on tracking data through September 22, prediction after that.",
+   "horizonsSource": "JUICE_merged"
+  },
+  "-96": {
+   "name": "Parker Solar Probe",
+   "designator": "2018-065A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-01",
+   "fitQuote": "Fit to post-launch tracking data through 2026-Sep-01. Reference planning trajectory for subsequent times.",
+   "horizonsSource": "psp_merged"
+  },
+  "-121": {
+   "name": "BepiColombo",
+   "designator": "2018-080A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-28",
+   "fitQuote": "Trajectory from ESA. Data fit through 2026-Sep-28, prediction thereafter.",
+   "horizonsSource": "BepiColombo_ESA"
+  },
+  "-255": {
+   "name": "Psyche",
+   "designator": "2023-157A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-08-11",
+   "fitQuote": "Post-launch spacecraft trajectory from JPL navigation. Data through August 11, prediction thereafter.",
+   "horizonsSource": "psyche_merged"
+  },
+  "-49": {
+   "name": "Lucy",
+   "designator": "2021-093A",
+   "dataSheetRevised": "2025-10-25",
+   "fitThrough": "2025-09-08",
+   "fitQuote": "Data fit through 2025-Sep-08, prediction thereafter",
+   "horizonsSource": "Lucy_merged_DE430"
+  },
+  "-64": {
+   "name": "OSIRIS-REx / OSIRIS-APEX",
+   "designator": "2016-055A",
+   "dataSheetRevised": "2025-09-18",
+   "fitThrough": null,
+   "fitQuote": "Updated as the mission progresses.",
+   "notes": [
+    "The data sheet states no fit boundary."
+   ],
+   "horizonsSource": "ORX_merged"
+  },
+  "-74": {
+   "name": "Mars Reconnaissance Orbiter",
+   "designator": "2005-029A",
+   "dataSheetRevised": "2026-09-30",
+   "fitThrough": "2026-09-27",
+   "fitQuote": "Trajectory after 2026-Sep-27 is a planning PREDICTION.",
+   "horizonsSource": "MRO_MERGED"
+  },
+  "-202": {
+   "name": "MAVEN",
+   "designator": "2013-063A",
+   "dataSheetRevised": "2026-02-13",
+   "fitThrough": "2025-12-04",
+   "fitQuote": "Fit to data through 2025-Dec-04, prediction thereafter.",
+   "notes": [
+    "[...] with some evidence it experienced an unplanned delta-V Dec. 4 and is spinning in an altered trajectory. Therefore predicts after December 4, 2025 may be inaccurate."
+   ],
+   "horizonsSource": "MAVEN_merged"
+  },
+  "-3": {
+   "name": "Mars Orbiter Mission (Mangalyaan)",
+   "designator": "2013-060A",
+   "dataSheetRevised": "2022-06-11",
+   "fitThrough": "2022-04",
+   "fitQuote": "Merge of DSN/JPL/Nav data-fit tag-up trajectory through April 2022. Prediction thereafter.",
+   "notes": [
+    "The interval from 2019-Oct-01 to 2020-Apr-29 may drift slightly from actual, with discontinuties on 2020-Mar-30 and 2020-Apr-18 when the trajectory was updated from a new initial ISRO state integration, not a new data fit."
+   ],
+   "horizonsSource": "MOM_merged"
+  },
+  "401": {
+   "name": "Phobos",
+   "horizonsSource": "mar099"
+  },
+  "402": {
+   "name": "Deimos",
+   "horizonsSource": "mar099"
+  },
+  "501": {
+   "name": "Io",
+   "horizonsSource": "jup365_merged"
+  },
+  "502": {
+   "name": "Europa",
+   "horizonsSource": "jup365_merged"
+  },
+  "503": {
+   "name": "Ganymede",
+   "horizonsSource": "jup365_merged"
+  },
+  "504": {
+   "name": "Callisto",
+   "horizonsSource": "jup365_merged"
+  },
+  "599": {
+   "name": "Jupiter",
+   "horizonsSource": "jup365_merged"
+  },
+  "601": {
+   "name": "Mimas",
+   "horizonsSource": "sat441l"
+  },
+  "602": {
+   "name": "Enceladus",
+   "horizonsSource": "sat441l"
+  },
+  "603": {
+   "name": "Tethys",
+   "horizonsSource": "sat441l"
+  },
+  "604": {
+   "name": "Dione",
+   "horizonsSource": "sat441l"
+  },
+  "605": {
+   "name": "Rhea",
+   "horizonsSource": "sat441l"
+  },
+  "606": {
+   "name": "Titan",
+   "horizonsSource": "sat441l"
+  },
+  "608": {
+   "name": "Iapetus",
+   "horizonsSource": "sat441l"
+  },
+  "699": {
+   "name": "Saturn",
+   "horizonsSource": "sat441l"
+  },
+  "705": {
+   "name": "Miranda",
+   "horizonsSource": "ura184_merged"
+  },
+  "701": {
+   "name": "Ariel",
+   "horizonsSource": "ura184_merged"
+  },
+  "702": {
+   "name": "Umbriel",
+   "horizonsSource": "ura184_merged"
+  },
+  "703": {
+   "name": "Titania",
+   "horizonsSource": "ura184_merged"
+  },
+  "704": {
+   "name": "Oberon",
+   "horizonsSource": "ura184_merged"
+  },
+  "799": {
+   "name": "Uranus",
+   "horizonsSource": "ura184_merged"
+  },
+  "801": {
+   "name": "Triton",
+   "horizonsSource": "nep098_merged"
+  },
+  "899": {
+   "name": "Neptune",
+   "horizonsSource": "nep098_merged"
+  }
+ },
+ "series": [
+  {
+   "file": "spacecraft.bin",
+   "target": -1024,
+   "centre": 399,
+   "start": "2026-04-02 01:59",
+   "stop": "2026-04-10 23:53",
+   "exportStepS": 300,
+   "segments": 11,
+   "keyframes": 778,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 8.770829261876534e-05,
+   "segmentsAtExportStep": 3,
+   "worstErrorAtExportStepEstimated": 0.00012645816848920108,
+   "jumpsInTheData": [
+    [
+     "2026-04-04 17:59",
+     "2026-04-05 15:19"
+    ]
+   ],
+   "requests": [
+    "011"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -1024,
+   "centre": 301,
+   "start": "2026-04-02 01:59",
+   "stop": "2026-04-10 23:53",
+   "exportStepS": 300,
+   "segments": 11,
+   "keyframes": 910,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 7.615098023871857e-05,
+   "segmentsAtExportStep": 3,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2026-04-04 17:59",
+     "2026-04-05 15:19"
+    ],
+    [
+     "2026-04-06 12:38",
+     "2026-04-07 09:58"
+    ]
+   ],
+   "requests": [
+    "012"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -1023,
+   "centre": 399,
+   "start": "2022-11-16 08:46",
+   "stop": "2022-12-11 17:16",
+   "exportStepS": 300,
+   "segments": 29,
+   "keyframes": 932,
+   "fourStateSegments": 27,
+   "worstErrorMeasured": 8.191577751836008e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2022-11-21 16:47",
+     "2022-11-22 14:06"
+    ],
+    [
+     "2022-11-23 11:26",
+     "2022-11-24 08:46"
+    ]
+   ],
+   "requests": [
+    "009"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -1023,
+   "centre": 301,
+   "start": "2022-11-16 08:46",
+   "stop": "2022-12-11 17:16",
+   "exportStepS": 300,
+   "segments": 29,
+   "keyframes": 2116,
+   "fourStateSegments": 25,
+   "worstErrorMeasured": 9.392312636634634e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2022-11-20 19:27",
+     "2022-11-21 16:47"
+    ],
+    [
+     "2022-11-21 16:47",
+     "2022-11-22 14:06"
+    ],
+    [
+     "2022-11-22 14:06",
+     "2022-11-23 11:26"
+    ],
+    [
+     "2022-11-23 11:26",
+     "2022-11-24 08:46"
+    ],
+    [
+     "2022-12-05 00:46",
+     "2022-12-05 22:07"
+    ]
+   ],
+   "requests": [
+    "010"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -255,
+   "centre": 399,
+   "start": "2023-10-13 15:22",
+   "stop": "2023-10-17 23:59",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 154,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 8.870811696075486e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "044"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -255,
+   "centre": 499,
+   "start": "2026-05-13 00:00",
+   "stop": "2026-05-19 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 120,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 4.1789319187997325e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "093"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -255,
+   "centre": 0,
+   "start": "2023-10-18 00:00",
+   "stop": "2029-02-11 00:00",
+   "exportStepS": 86400,
+   "segments": 8,
+   "keyframes": 703,
+   "fourStateSegments": 7,
+   "worstErrorMeasured": 7.612794224734076e-05,
+   "segmentsAtExportStep": 3,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2025-11-24 00:00",
+     "2026-08-07 00:00"
+    ],
+    [
+     "2026-08-07 00:00",
+     "2027-04-20 00:00"
+    ]
+   ],
+   "requests": [
+    "026"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -202,
+   "centre": 399,
+   "start": "2013-11-18 19:21",
+   "stop": "2013-11-23 00:00",
+   "exportStepS": 120,
+   "segments": 12,
+   "keyframes": 319,
+   "fourStateSegments": 12,
+   "worstErrorMeasured": 8.194390155802132e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "048"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -202,
+   "centre": 499,
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "exportStepS": 300,
+   "segments": 51,
+   "keyframes": 5623,
+   "fourStateSegments": 50,
+   "worstErrorMeasured": 9.36140754766727e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 0.00011366161551430543,
+   "jumpsInTheData": [],
+   "requests": [
+    "130"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -202,
+   "centre": 499,
+   "start": "2025-03-01 00:00",
+   "stop": "2026-03-01 00:54",
+   "exportStepS": 300,
+   "segments": 411,
+   "keyframes": 53190,
+   "fourStateSegments": 410,
+   "worstErrorMeasured": 4.768197119205566e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 6.0180292676662775e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "131",
+    "132"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -202,
+   "centre": 0,
+   "start": "2013-11-23 00:00",
+   "stop": "2014-09-15 00:00",
+   "exportStepS": 86400,
+   "segments": 2,
+   "keyframes": 15,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 2.3154987369216263e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "030"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -170,
+   "centre": 399,
+   "start": "2021-12-25 13:02",
+   "stop": "2021-12-27 00:00",
+   "exportStepS": 120,
+   "segments": 5,
+   "keyframes": 74,
+   "fourStateSegments": 5,
+   "worstErrorMeasured": 5.9349299331098845e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "050"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -170,
+   "centre": 399,
+   "start": "2021-12-25 13:02",
+   "stop": "2031-09-27 22:02",
+   "exportStepS": 3600,
+   "segments": 335,
+   "keyframes": 1940,
+   "fourStateSegments": 335,
+   "worstErrorMeasured": 1.3740570181960116e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 0.0011528644599193576,
+   "jumpsInTheData": [],
+   "requests": [
+    "001"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -159,
+   "centre": 399,
+   "start": "2024-10-14 16:16",
+   "stop": "2024-10-19 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 318,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 2.1380345896374516e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": 0.0003639812705234159,
+   "jumpsInTheData": [],
+   "requests": [
+    "040"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -159,
+   "centre": 499,
+   "start": "2025-02-27 00:00",
+   "stop": "2025-03-05 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 7.19119305062659e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "070"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -159,
+   "centre": 399,
+   "start": "2026-12-01 00:00",
+   "stop": "2026-12-07 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 208,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.9649214444747408e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "071"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -159,
+   "centre": 5,
+   "start": "2030-03-01 00:00",
+   "stop": "2034-09-03 04:39",
+   "exportStepS": 600,
+   "segments": 927,
+   "keyframes": 11922,
+   "fourStateSegments": 927,
+   "worstErrorMeasured": 9.557502557022105e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "123",
+    "124",
+    "125"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -159,
+   "centre": 0,
+   "start": "2024-10-19 00:00",
+   "stop": "2030-03-01 00:00",
+   "exportStepS": 86400,
+   "segments": 8,
+   "keyframes": 591,
+   "fourStateSegments": 7,
+   "worstErrorMeasured": 9.530006165082648e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2026-11-26 00:00",
+     "2027-08-09 00:00"
+    ]
+   ],
+   "requests": [
+    "021"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -152,
+   "centre": 399,
+   "start": "2019-07-22 09:31",
+   "stop": "2019-08-13 23:55",
+   "exportStepS": 300,
+   "segments": 26,
+   "keyframes": 4671,
+   "fourStateSegments": 26,
+   "worstErrorMeasured": 9.289279457600568e-05,
+   "segmentsAtExportStep": 18,
+   "worstErrorAtExportStepEstimated": 6.288216602257904e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "006"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -152,
+   "centre": 301,
+   "start": "2019-08-14 00:00",
+   "stop": "2019-09-20 00:00",
+   "exportStepS": 300,
+   "segments": 42,
+   "keyframes": 4154,
+   "fourStateSegments": 42,
+   "worstErrorMeasured": 9.748745779512079e-05,
+   "segmentsAtExportStep": 6,
+   "worstErrorAtExportStepEstimated": 5.262868076401374e-05,
+   "jumpsInTheData": [
+    [
+     "2019-08-28 05:19",
+     "2019-08-29 02:39"
+    ],
+    [
+     "2019-08-30 00:00",
+     "2019-08-30 21:20"
+    ],
+    [
+     "2019-09-15 00:00",
+     "2019-09-15 21:20"
+    ]
+   ],
+   "requests": [
+    "007"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -152,
+   "centre": 301,
+   "start": "2025-10-07 00:00",
+   "stop": "2026-11-08 16:59",
+   "exportStepS": 600,
+   "segments": 224,
+   "keyframes": 46395,
+   "fourStateSegments": 224,
+   "worstErrorMeasured": 9.937828756337426e-05,
+   "segmentsAtExportStep": 137,
+   "worstErrorAtExportStepEstimated": 0.0005739206283832634,
+   "jumpsInTheData": [
+    [
+     "2026-05-15 10:39",
+     "2026-05-17 05:19"
+    ],
+    [
+     "2026-08-19 10:39",
+     "2026-08-21 05:19"
+    ],
+    [
+     "2026-08-28 07:59",
+     "2026-08-30 02:39"
+    ]
+   ],
+   "requests": [
+    "008"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 399,
+   "start": "2018-10-20 02:14",
+   "stop": "2018-10-25 00:00",
+   "exportStepS": 120,
+   "segments": 14,
+   "keyframes": 331,
+   "fourStateSegments": 14,
+   "worstErrorMeasured": 7.203788050285831e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "043"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 399,
+   "start": "2020-04-07 00:00",
+   "stop": "2020-04-13 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 128,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.3814318288346536e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "084"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 299,
+   "start": "2020-10-12 00:00",
+   "stop": "2020-10-18 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 120,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 3.826040834467264e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "085"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 299,
+   "start": "2021-08-08 00:00",
+   "stop": "2021-08-14 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.0475000272629244e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "086"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2021-09-29 00:00",
+   "stop": "2021-10-05 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.8168222540793972e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "087"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2022-06-20 00:00",
+   "stop": "2022-06-26 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.0527838382433262e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "088"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2023-06-17 00:00",
+   "stop": "2023-06-23 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 224,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 6.9106916733291845e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "089"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2024-09-02 00:00",
+   "stop": "2024-09-08 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.941386430955128e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "090"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2024-11-29 00:00",
+   "stop": "2024-12-05 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 88,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 6.728423064121978e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "091"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2025-01-05 00:00",
+   "stop": "2025-01-11 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 152,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.670737288073891e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "092"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 199,
+   "start": "2026-10-01 00:00",
+   "stop": "2027-04-10 23:50",
+   "exportStepS": 600,
+   "segments": 108,
+   "keyframes": 20451,
+   "fourStateSegments": 108,
+   "worstErrorMeasured": 3.8823735242309165e-05,
+   "segmentsAtExportStep": 79,
+   "worstErrorAtExportStepEstimated": 0.0002112803611239653,
+   "jumpsInTheData": [],
+   "requests": [
+    "127"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -121,
+   "centre": 0,
+   "start": "2018-10-25 00:00",
+   "stop": "2026-10-01 00:00",
+   "exportStepS": 86400,
+   "segments": 12,
+   "keyframes": 1637,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 8.712441549544602e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 5.6520561440433655e-05,
+   "jumpsInTheData": [
+    [
+     "2020-03-20 00:00",
+     "2020-12-01 00:00"
+    ],
+    [
+     "2021-08-14 00:00",
+     "2022-04-27 00:00"
+    ],
+    [
+     "2023-01-08 00:00",
+     "2023-09-21 00:00"
+    ],
+    [
+     "2024-06-03 00:00",
+     "2025-02-14 00:00"
+    ]
+   ],
+   "requests": [
+    "025"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -98,
+   "centre": 399,
+   "start": "2006-01-19 19:52",
+   "stop": "2006-01-24 00:00",
+   "exportStepS": 120,
+   "segments": 12,
+   "keyframes": 131,
+   "fourStateSegments": 12,
+   "worstErrorMeasured": 3.260945058314098e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "036"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -98,
+   "centre": 5,
+   "start": "2007-02-08 00:00",
+   "stop": "2007-03-20 00:00",
+   "exportStepS": 3600,
+   "segments": 4,
+   "keyframes": 35,
+   "fourStateSegments": 4,
+   "worstErrorMeasured": 7.638401148075705e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "062"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -98,
+   "centre": 0,
+   "start": "2006-01-24 00:00",
+   "stop": "2049-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 63,
+   "keyframes": 550,
+   "fourStateSegments": 63,
+   "worstErrorMeasured": 6.417929545426893e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "017"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 399,
+   "start": "2018-08-12 08:16",
+   "stop": "2018-08-16 23:59",
+   "exportStepS": 120,
+   "segments": 14,
+   "keyframes": 117,
+   "fourStateSegments": 14,
+   "worstErrorMeasured": 6.347504994803926e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "042"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2018-09-30 00:00",
+   "stop": "2018-10-06 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.1008283198379034e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "077"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2019-12-23 00:00",
+   "stop": "2019-12-29 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.138582831536295e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "078"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2020-07-08 00:00",
+   "stop": "2020-07-14 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 4.122267197727058e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "079"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2021-02-17 00:00",
+   "stop": "2021-02-23 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.0679176089424289e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "080"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2021-10-13 00:00",
+   "stop": "2021-10-19 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.744277256776222e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "081"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2023-08-18 00:00",
+   "stop": "2023-08-24 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 8.148197182134928e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "082"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 299,
+   "start": "2024-11-03 00:00",
+   "stop": "2024-11-09 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 6.468216445134286e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "083"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -96,
+   "centre": 0,
+   "start": "2018-08-17 00:00",
+   "stop": "2029-12-31 22:59",
+   "exportStepS": 3600,
+   "segments": 390,
+   "keyframes": 3725,
+   "fourStateSegments": 390,
+   "worstErrorMeasured": 9.753256107850794e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2025-06-17 00:00",
+     "2025-06-27 16:00"
+    ]
+   ],
+   "requests": [
+    "023",
+    "024"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -85,
+   "centre": 301,
+   "start": "2009-06-18 22:18",
+   "stop": "2009-07-23 23:58",
+   "exportStepS": 300,
+   "segments": 40,
+   "keyframes": 5054,
+   "fourStateSegments": 37,
+   "worstErrorMeasured": 9.715166517156341e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 0.0002898454141272096,
+   "jumpsInTheData": [
+    [
+     "2009-06-24 06:18",
+     "2009-06-25 03:38"
+    ],
+    [
+     "2009-06-25 03:38",
+     "2009-06-26 00:58"
+    ],
+    [
+     "2009-06-26 00:58",
+     "2009-06-26 22:18"
+    ],
+    [
+     "2009-06-26 22:18",
+     "2009-06-27 19:38"
+    ]
+   ],
+   "requests": [
+    "004"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -85,
+   "centre": 301,
+   "start": "2025-10-07 00:00",
+   "stop": "2027-01-07 00:00",
+   "exportStepS": 600,
+   "segments": 258,
+   "keyframes": 43018,
+   "fourStateSegments": 257,
+   "worstErrorMeasured": 9.930753283431854e-05,
+   "segmentsAtExportStep": 77,
+   "worstErrorAtExportStepEstimated": 0.00012373594281657785,
+   "jumpsInTheData": [
+    [
+     "2026-08-03 10:39",
+     "2026-08-05 05:19"
+    ],
+    [
+     "2026-08-31 21:20",
+     "2026-09-02 16:00"
+    ]
+   ],
+   "requests": [
+    "005"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 399,
+   "start": "1997-10-15 09:27",
+   "stop": "1997-10-20 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 182,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 4.126079381799289e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "037"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 299,
+   "start": "1998-04-24 00:00",
+   "stop": "1998-04-30 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.2500343835382053e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "063"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 299,
+   "start": "1999-06-22 00:00",
+   "stop": "1999-06-28 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 240,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.3391548154308508e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "064"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 399,
+   "start": "1999-08-15 00:00",
+   "stop": "1999-08-21 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.3189639947649652e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "065"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2017-09-15 11:50",
+   "exportStepS": 600,
+   "segments": 2731,
+   "keyframes": 27946,
+   "fourStateSegments": 2730,
+   "worstErrorMeasured": 9.968499072921108e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2004-07-01 05:19",
+     "2004-07-03 00:00"
+    ]
+   ],
+   "requests": [
+    "102",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "108",
+    "109"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -82,
+   "centre": 0,
+   "start": "1997-10-20 00:00",
+   "stop": "2004-06-01 00:00",
+   "exportStepS": 86400,
+   "segments": 10,
+   "keyframes": 597,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 7.71348899068569e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 2.4021372566939975e-05,
+   "jumpsInTheData": [
+    [
+     "1999-03-16 00:00",
+     "1999-11-27 00:00"
+    ]
+   ],
+   "requests": [
+    "018"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -78,
+   "centre": 399,
+   "start": "2015-02-11 23:46",
+   "stop": "2015-02-14 00:00",
+   "exportStepS": 120,
+   "segments": 6,
+   "keyframes": 697,
+   "fourStateSegments": 6,
+   "worstErrorMeasured": 2.561659980124133e-07,
+   "segmentsAtExportStep": 3,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2015-02-11 23:46",
+     "2015-02-12 08:17"
+    ],
+    [
+     "2015-02-13 01:21",
+     "2015-02-13 09:54"
+    ]
+   ],
+   "requests": [
+    "052"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -78,
+   "centre": 399,
+   "start": "2015-02-14 00:00",
+   "stop": "2026-10-18 18:00",
+   "exportStepS": 21600,
+   "segments": 67,
+   "keyframes": 5662,
+   "fourStateSegments": 51,
+   "worstErrorMeasured": 9.851061473152175e-05,
+   "segmentsAtExportStep": 16,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2015-04-19 00:00",
+     "2015-06-22 00:00"
+    ],
+    [
+     "2016-05-07 00:00",
+     "2016-07-10 00:00"
+    ],
+    [
+     "2016-07-10 00:00",
+     "2016-09-12 00:00"
+    ],
+    [
+     "2017-03-23 00:00",
+     "2017-05-26 00:00"
+    ],
+    [
+     "2019-09-05 00:00",
+     "2019-11-08 00:00"
+    ],
+    [
+     "2020-01-11 00:00",
+     "2020-03-15 00:00"
+    ],
+    [
+     "2020-09-23 00:00",
+     "2020-11-26 00:00"
+    ],
+    [
+     "2020-11-26 00:00",
+     "2021-01-29 00:00"
+    ],
+    [
+     "2021-04-03 00:00",
+     "2021-06-06 00:00"
+    ],
+    [
+     "2021-06-06 00:00",
+     "2021-08-09 00:00"
+    ],
+    [
+     "2021-08-09 00:00",
+     "2021-10-12 00:00"
+    ],
+    [
+     "2025-02-09 00:00",
+     "2025-04-14 00:00"
+    ],
+    [
+     "2025-08-20 00:00",
+     "2025-10-23 00:00"
+    ],
+    [
+     "2025-10-23 00:00",
+     "2025-12-26 00:00"
+    ],
+    [
+     "2025-12-26 00:00",
+     "2026-02-28 00:00"
+    ]
+   ],
+   "requests": [
+    "003"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 399,
+   "start": "1989-10-19 01:30",
+   "stop": "1989-10-24 00:00",
+   "exportStepS": 120,
+   "segments": 14,
+   "keyframes": 297,
+   "fourStateSegments": 14,
+   "worstErrorMeasured": 2.815614641664368e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "038"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 299,
+   "start": "1990-02-07 00:00",
+   "stop": "1990-02-13 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 104,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 3.577998384736657e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "066"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 399,
+   "start": "1990-12-06 00:00",
+   "stop": "1990-12-12 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 240,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 8.846301567324785e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "067"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 399,
+   "start": "1992-12-06 00:00",
+   "stop": "1992-12-12 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 4.005963107688579e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "068"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2003-09-30 11:50",
+   "exportStepS": 600,
+   "segments": 1626,
+   "keyframes": 10977,
+   "fourStateSegments": 1626,
+   "worstErrorMeasured": 9.841503996405253e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 8.598893016155287e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "110",
+    "111",
+    "112",
+    "113",
+    "114"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -77,
+   "centre": 0,
+   "start": "1989-10-24 00:00",
+   "stop": "1995-11-01 00:00",
+   "exportStepS": 86400,
+   "segments": 9,
+   "keyframes": 948,
+   "fourStateSegments": 7,
+   "worstErrorMeasured": 6.716244568791293e-05,
+   "segmentsAtExportStep": 4,
+   "worstErrorAtExportStepEstimated": 7.092647698978502e-05,
+   "jumpsInTheData": [
+    [
+     "1989-10-24 00:00",
+     "1990-07-07 00:00"
+    ],
+    [
+     "1990-07-07 00:00",
+     "1991-03-20 00:00"
+    ]
+   ],
+   "requests": [
+    "019"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -74,
+   "centre": 399,
+   "start": "2005-08-12 12:42",
+   "stop": "2005-08-17 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 268,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 2.2025264451202605e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "047"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -74,
+   "centre": 499,
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "exportStepS": 300,
+   "segments": 51,
+   "keyframes": 3832,
+   "fourStateSegments": 51,
+   "worstErrorMeasured": 9.430911210574261e-05,
+   "segmentsAtExportStep": 3,
+   "worstErrorAtExportStepEstimated": 4.604618973038985e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "128"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -74,
+   "centre": 499,
+   "start": "2025-10-07 00:00",
+   "stop": "2026-10-27 13:00",
+   "exportStepS": 600,
+   "segments": 217,
+   "keyframes": 44983,
+   "fourStateSegments": 217,
+   "worstErrorMeasured": 9.975025590248612e-05,
+   "segmentsAtExportStep": 133,
+   "worstErrorAtExportStepEstimated": 2.4233598901451013e-06,
+   "jumpsInTheData": [],
+   "requests": [
+    "129"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -74,
+   "centre": 0,
+   "start": "2005-08-17 00:00",
+   "stop": "2006-03-01 00:00",
+   "exportStepS": 86400,
+   "segments": 1,
+   "keyframes": 50,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 9.868194920530205e-07,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "029"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2016-09-08 23:06",
+   "stop": "2016-09-12 23:59",
+   "exportStepS": 120,
+   "segments": 12,
+   "keyframes": 353,
+   "fourStateSegments": 12,
+   "worstErrorMeasured": 4.3760394980704443e-08,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": 0.00016060650425642051,
+   "jumpsInTheData": [],
+   "requests": [
+    "046"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2017-09-20 00:00",
+   "stop": "2017-09-26 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 100,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.8909369093639445e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "097"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2023-09-22 00:00",
+   "stop": "2023-09-28 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 176,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 9.532286370052934e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "098"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2025-09-21 00:00",
+   "stop": "2025-09-27 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 148,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 6.049164721238907e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "099"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2027-03-13 00:00",
+   "stop": "2027-03-19 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 152,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.1679306458723017e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "100"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 399,
+   "start": "2029-04-11 00:00",
+   "stop": "2029-04-17 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 148,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.956760400324869e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "101"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -64,
+   "centre": 0,
+   "start": "2016-09-13 00:00",
+   "stop": "2030-03-22 00:00",
+   "exportStepS": 86400,
+   "segments": 20,
+   "keyframes": 1645,
+   "fourStateSegments": 16,
+   "worstErrorMeasured": 9.66125798857528e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 6.685358318605128e-05,
+   "jumpsInTheData": [
+    [
+     "2017-05-27 00:00",
+     "2018-02-07 00:00"
+    ],
+    [
+     "2025-02-10 00:00",
+     "2025-10-24 00:00"
+    ],
+    [
+     "2026-07-07 00:00",
+     "2027-03-20 00:00"
+    ],
+    [
+     "2028-08-13 00:00",
+     "2029-04-26 00:00"
+    ]
+   ],
+   "requests": [
+    "028"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -61,
+   "centre": 399,
+   "start": "2011-08-05 17:19",
+   "stop": "2011-08-10 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 125,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 1.0257205224369349e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "039"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -61,
+   "centre": 399,
+   "start": "2013-10-07 00:00",
+   "stop": "2013-10-13 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 216,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.8528453085001394e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "069"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -61,
+   "centre": 5,
+   "start": "2016-06-01 00:00",
+   "stop": "2028-09-02 01:30",
+   "exportStepS": 600,
+   "segments": 2518,
+   "keyframes": 38003,
+   "fourStateSegments": 2518,
+   "worstErrorMeasured": 9.883084405983216e-05,
+   "segmentsAtExportStep": 86,
+   "worstErrorAtExportStepEstimated": 2.015313527185796e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "115",
+    "116",
+    "117",
+    "118",
+    "119",
+    "120",
+    "121",
+    "122"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -61,
+   "centre": 0,
+   "start": "2011-08-10 00:00",
+   "stop": "2016-06-01 00:00",
+   "exportStepS": 86400,
+   "segments": 7,
+   "keyframes": 548,
+   "fourStateSegments": 6,
+   "worstErrorMeasured": 6.456358800765537e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "2013-09-16 00:00",
+     "2014-05-30 00:00"
+    ]
+   ],
+   "requests": [
+    "020"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -49,
+   "centre": 399,
+   "start": "2021-10-16 10:34",
+   "stop": "2021-10-21 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 300,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 4.047580925026647e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "045"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -49,
+   "centre": 399,
+   "start": "2022-10-13 00:00",
+   "stop": "2022-10-19 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 1.825495407069949e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "094"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -49,
+   "centre": 399,
+   "start": "2024-12-10 00:00",
+   "stop": "2024-12-16 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 224,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.0467589006276074e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "095"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -49,
+   "centre": 399,
+   "start": "2030-12-24 00:00",
+   "stop": "2030-12-30 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 212,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 7.0586531051307975e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "096"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -49,
+   "centre": 0,
+   "start": "2021-10-21 00:00",
+   "stop": "2033-04-02 00:00",
+   "exportStepS": 86400,
+   "segments": 17,
+   "keyframes": 1062,
+   "fourStateSegments": 15,
+   "worstErrorMeasured": 8.920281537894416e-05,
+   "segmentsAtExportStep": 4,
+   "worstErrorAtExportStepEstimated": 3.1318661067805566e-05,
+   "jumpsInTheData": [
+    [
+     "2024-08-10 00:00",
+     "2025-04-23 00:00"
+    ],
+    [
+     "2030-12-01 00:00",
+     "2031-08-14 00:00"
+    ]
+   ],
+   "requests": [
+    "027"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 399,
+   "start": "1977-08-20 15:33",
+   "stop": "1977-08-24 23:59",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 182,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 2.96579791275557e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "033"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 8,
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "exportStepS": 300,
+   "segments": 45,
+   "keyframes": 349,
+   "fourStateSegments": 45,
+   "worstErrorMeasured": 5.0250114791019025e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "058"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 5,
+   "start": "1979-06-20 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 119,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 2.8272884856160206e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "055"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 6,
+   "start": "1981-08-06 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 143,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 4.6285215362965635e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "056"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 147,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 6.211480520569949e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "057"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -32,
+   "centre": 0,
+   "start": "1977-08-25 00:00",
+   "stop": "2053-10-09 00:00",
+   "exportStepS": 86400,
+   "segments": 109,
+   "keyframes": 1208,
+   "fourStateSegments": 108,
+   "worstErrorMeasured": 5.6947826267854784e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": 2.685250001648666e-05,
+   "jumpsInTheData": [
+    [
+     "1981-02-25 00:00",
+     "1981-11-08 00:00"
+    ]
+   ],
+   "requests": [
+    "014"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -31,
+   "centre": 399,
+   "start": "1977-09-05 13:59",
+   "stop": "1977-09-10 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 148,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 3.0253864127572283e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "032"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -31,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-03-26 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 155,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 7.72983221937269e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "053"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -31,
+   "centre": 6,
+   "start": "1980-10-24 00:00",
+   "stop": "1980-12-03 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 171,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 2.9613379092249483e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "054"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -31,
+   "centre": 0,
+   "start": "1977-09-10 00:00",
+   "stop": "2053-10-09 00:00",
+   "exportStepS": 86400,
+   "segments": 109,
+   "keyframes": 1084,
+   "fourStateSegments": 108,
+   "worstErrorMeasured": 3.491299406493751e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1979-02-04 00:00",
+     "1979-10-18 00:00"
+    ],
+    [
+     "1980-06-30 00:00",
+     "1981-03-13 00:00"
+    ]
+   ],
+   "requests": [
+    "013"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 399,
+   "start": "2023-04-14 12:44",
+   "stop": "2023-04-19 00:00",
+   "exportStepS": 120,
+   "segments": 13,
+   "keyframes": 194,
+   "fourStateSegments": 13,
+   "worstErrorMeasured": 6.375440626778812e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "041"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 399,
+   "start": "2024-08-18 00:00",
+   "stop": "2024-08-24 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 132,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 8.345821004884775e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "072"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 301,
+   "start": "2024-08-18 00:00",
+   "stop": "2024-08-21 00:00",
+   "exportStepS": 120,
+   "segments": 9,
+   "keyframes": 108,
+   "fourStateSegments": 9,
+   "worstErrorMeasured": 4.394878187925877e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "073"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 299,
+   "start": "2025-08-28 00:00",
+   "stop": "2025-09-03 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 160,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.875081912786174e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "074"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 399,
+   "start": "2026-09-25 00:00",
+   "stop": "2026-10-01 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 116,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 5.871793313723312e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "075"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 399,
+   "start": "2029-01-15 00:00",
+   "stop": "2029-01-21 00:00",
+   "exportStepS": 120,
+   "segments": 17,
+   "keyframes": 148,
+   "fourStateSegments": 17,
+   "worstErrorMeasured": 2.034755124285924e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "076"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 5,
+   "start": "2031-06-21 00:00",
+   "stop": "2031-07-21 06:20",
+   "exportStepS": 600,
+   "segments": 18,
+   "keyframes": 89,
+   "fourStateSegments": 18,
+   "worstErrorMeasured": 5.32751111808057e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "126"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -28,
+   "centre": 0,
+   "start": "2023-04-19 00:00",
+   "stop": "2031-07-21 00:00",
+   "exportStepS": 86400,
+   "segments": 12,
+   "keyframes": 1319,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 8.76250373619448e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 8.133659891612055e-06,
+   "jumpsInTheData": [
+    [
+     "2023-12-31 00:00",
+     "2024-09-12 00:00"
+    ],
+    [
+     "2025-05-26 00:00",
+     "2026-02-06 00:00"
+    ],
+    [
+     "2028-11-26 00:00",
+     "2029-08-09 00:00"
+    ]
+   ],
+   "requests": [
+    "022"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -24,
+   "centre": 399,
+   "start": "1973-04-06 02:26",
+   "stop": "1973-04-11 00:00",
+   "exportStepS": 120,
+   "segments": 14,
+   "keyframes": 389,
+   "fourStateSegments": 14,
+   "worstErrorMeasured": 3.714004071276194e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "035"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -24,
+   "centre": 5,
+   "start": "1974-11-13 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 743,
+   "fourStateSegments": 21,
+   "worstErrorMeasured": 5.282468401829329e-06,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1974-11-21 21:20",
+     "1974-11-23 16:00"
+    ],
+    [
+     "1974-12-07 21:20",
+     "1974-12-09 16:00"
+    ]
+   ],
+   "requests": [
+    "060"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -24,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1979-09-22 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 503,
+   "fourStateSegments": 22,
+   "worstErrorMeasured": 2.5761926945989234e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1979-08-27 05:19",
+     "1979-08-29 00:00"
+    ]
+   ],
+   "requests": [
+    "061"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -24,
+   "centre": 0,
+   "start": "1973-04-11 00:00",
+   "stop": "2049-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 110,
+   "keyframes": 1441,
+   "fourStateSegments": 110,
+   "worstErrorMeasured": 9.9660074329722e-05,
+   "segmentsAtExportStep": 4,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1974-09-05 00:00",
+     "1975-05-19 00:00"
+    ],
+    [
+     "1976-01-30 00:00",
+     "1976-10-12 00:00"
+    ],
+    [
+     "1979-08-02 00:00",
+     "1980-04-14 00:00"
+    ]
+   ],
+   "requests": [
+    "016"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -23,
+   "centre": 399,
+   "start": "1972-03-03 02:05",
+   "stop": "1972-03-07 23:59",
+   "exportStepS": 120,
+   "segments": 14,
+   "keyframes": 335,
+   "fourStateSegments": 14,
+   "worstErrorMeasured": 7.222086746376244e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "034"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -23,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1973-12-24 00:00",
+   "exportStepS": 600,
+   "segments": 23,
+   "keyframes": 551,
+   "fourStateSegments": 23,
+   "worstErrorMeasured": 1.9054513269912985e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1973-11-22 21:20",
+     "1973-11-24 16:00"
+    ],
+    [
+     "1973-12-23 02:39",
+     "1973-12-24 00:00"
+    ]
+   ],
+   "requests": [
+    "059"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -23,
+   "centre": 0,
+   "start": "1972-03-08 00:00",
+   "stop": "2049-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 112,
+   "keyframes": 815,
+   "fourStateSegments": 111,
+   "worstErrorMeasured": 6.419122725428689e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1973-08-02 00:00",
+     "1974-04-15 00:00"
+    ]
+   ],
+   "requests": [
+    "015"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -21,
+   "centre": 399,
+   "start": "1995-12-02 00:01",
+   "stop": "1995-12-05 00:00",
+   "exportStepS": 120,
+   "segments": 9,
+   "keyframes": 408,
+   "fourStateSegments": 8,
+   "worstErrorMeasured": 7.673007668290862e-05,
+   "segmentsAtExportStep": 2,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1995-12-02 08:34",
+     "1995-12-02 17:05"
+    ]
+   ],
+   "requests": [
+    "051"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -21,
+   "centre": 399,
+   "start": "1995-12-05 00:00",
+   "stop": "2026-11-02 18:00",
+   "exportStepS": 21600,
+   "segments": 177,
+   "keyframes": 5644,
+   "fourStateSegments": 170,
+   "worstErrorMeasured": 9.823373257308143e-05,
+   "segmentsAtExportStep": 11,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [
+    [
+     "1998-07-22 00:00",
+     "1998-09-24 00:00"
+    ],
+    [
+     "1998-09-24 00:00",
+     "1998-11-27 00:00"
+    ],
+    [
+     "1998-11-27 00:00",
+     "1999-01-30 00:00"
+    ],
+    [
+     "1999-01-30 00:00",
+     "1999-04-04 00:00"
+    ],
+    [
+     "1999-12-16 00:00",
+     "2000-02-18 00:00"
+    ],
+    [
+     "2001-05-11 00:00",
+     "2001-07-14 00:00"
+    ],
+    [
+     "2012-05-25 00:00",
+     "2012-07-28 00:00"
+    ],
+    [
+     "2013-10-19 00:00",
+     "2013-12-22 00:00"
+    ],
+    [
+     "2013-12-22 00:00",
+     "2014-02-24 00:00"
+    ],
+    [
+     "2016-01-29 00:00",
+     "2016-04-02 00:00"
+    ]
+   ],
+   "requests": [
+    "002"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -3,
+   "centre": 399,
+   "start": "2013-11-05 09:54",
+   "stop": "2013-12-01 00:00",
+   "exportStepS": 120,
+   "segments": 72,
+   "keyframes": 2495,
+   "fourStateSegments": 69,
+   "worstErrorMeasured": 7.06373080285393e-05,
+   "segmentsAtExportStep": 4,
+   "worstErrorAtExportStepEstimated": 4.133368228607511e-05,
+   "jumpsInTheData": [
+    [
+     "2013-11-06 20:01",
+     "2013-11-07 04:34"
+    ],
+    [
+     "2013-11-07 13:05",
+     "2013-11-07 21:38"
+    ]
+   ],
+   "requests": [
+    "049"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -3,
+   "centre": 499,
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "exportStepS": 300,
+   "segments": 51,
+   "keyframes": 2772,
+   "fourStateSegments": 49,
+   "worstErrorMeasured": 8.914190343123971e-05,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 0.00025933369111742294,
+   "jumpsInTheData": [
+    [
+     "2014-09-23 21:20",
+     "2014-09-24 18:40"
+    ],
+    [
+     "2014-09-26 13:20",
+     "2014-09-27 10:39"
+    ]
+   ],
+   "requests": [
+    "133"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -3,
+   "centre": 499,
+   "start": "2021-11-26 00:00",
+   "stop": "2022-11-26 00:00",
+   "exportStepS": 600,
+   "segments": 206,
+   "keyframes": 37152,
+   "fourStateSegments": 201,
+   "worstErrorMeasured": 8.899048792565031e-05,
+   "segmentsAtExportStep": 139,
+   "worstErrorAtExportStepEstimated": 0.0003914776772267759,
+   "jumpsInTheData": [
+    [
+     "2021-12-26 05:19",
+     "2021-12-28 00:00"
+    ],
+    [
+     "2022-01-04 02:39",
+     "2022-01-05 21:20"
+    ],
+    [
+     "2022-01-09 10:39",
+     "2022-01-11 05:19"
+    ],
+    [
+     "2022-01-23 16:00",
+     "2022-01-25 10:39"
+    ],
+    [
+     "2022-03-03 18:40",
+     "2022-03-05 13:20"
+    ],
+    [
+     "2022-03-09 02:39",
+     "2022-03-10 21:20"
+    ],
+    [
+     "2022-03-19 18:40",
+     "2022-03-21 13:20"
+    ]
+   ],
+   "requests": [
+    "134"
+   ]
+  },
+  {
+   "file": "spacecraft.bin",
+   "target": -3,
+   "centre": 0,
+   "start": "2013-12-01 00:00",
+   "stop": "2014-09-15 00:00",
+   "exportStepS": 86400,
+   "segments": 2,
+   "keyframes": 70,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 9.080626620538037e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "031"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 401,
+   "centre": 499,
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "exportStepS": 3600,
+   "segments": 5,
+   "keyframes": 1085,
+   "fourStateSegments": 5,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 3.6304947261024086e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "135"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 401,
+   "centre": 499,
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "exportStepS": 3600,
+   "segments": 5,
+   "keyframes": 1085,
+   "fourStateSegments": 5,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 5,
+   "worstErrorAtExportStepEstimated": 3.577363825464248e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "136"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 401,
+   "centre": 499,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 3600,
+   "segments": 583,
+   "keyframes": 149599,
+   "fourStateSegments": 583,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 583,
+   "worstErrorAtExportStepEstimated": 3.781880818413506e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "137",
+    "138"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 402,
+   "centre": 499,
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "exportStepS": 7200,
+   "segments": 3,
+   "keyframes": 273,
+   "fourStateSegments": 3,
+   "worstErrorMeasured": 4.8218747768219205e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "139"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 402,
+   "centre": 499,
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "exportStepS": 7200,
+   "segments": 3,
+   "keyframes": 273,
+   "fourStateSegments": 3,
+   "worstErrorMeasured": 4.791573442404628e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "140"
+   ]
+  },
+  {
+   "file": "moons-mars.bin",
+   "target": 402,
+   "centre": 499,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 292,
+   "keyframes": 37546,
+   "fourStateSegments": 292,
+   "worstErrorMeasured": 4.888304130899534e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "141"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 501,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 7200,
+   "segments": 19,
+   "keyframes": 1871,
+   "fourStateSegments": 19,
+   "worstErrorMeasured": 9.83574684487537e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "142"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 501,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 7200,
+   "segments": 8,
+   "keyframes": 698,
+   "fourStateSegments": 8,
+   "worstErrorMeasured": 9.98987255322646e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "143"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 501,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 705,
+   "keyframes": 72041,
+   "fourStateSegments": 705,
+   "worstErrorMeasured": 9.997004324254117e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "144",
+    "145",
+    "146"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 502,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 14400,
+   "segments": 10,
+   "keyframes": 1158,
+   "fourStateSegments": 10,
+   "worstErrorMeasured": 9.216020697768793e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "147"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 502,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 14400,
+   "segments": 4,
+   "keyframes": 445,
+   "fourStateSegments": 4,
+   "worstErrorMeasured": 9.063304376574679e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "148"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 502,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 14400,
+   "segments": 353,
+   "keyframes": 43157,
+   "fourStateSegments": 353,
+   "worstErrorMeasured": 9.937556085994119e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "149",
+    "150"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 503,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 28800,
+   "segments": 5,
+   "keyframes": 308,
+   "fourStateSegments": 5,
+   "worstErrorMeasured": 7.798325154607852e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "151"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 503,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 28800,
+   "segments": 2,
+   "keyframes": 187,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 7.370248872770122e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "152"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 503,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 28800,
+   "segments": 177,
+   "keyframes": 11454,
+   "fourStateSegments": 177,
+   "worstErrorMeasured": 9.283951452257129e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "153"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 504,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 86400,
+   "segments": 2,
+   "keyframes": 204,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 2.9181335657177733e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "154"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 504,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 86400,
+   "segments": 1,
+   "keyframes": 84,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 4.3531589170379e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "155"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 504,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 59,
+   "keyframes": 7577,
+   "fourStateSegments": 59,
+   "worstErrorMeasured": 5.175196003220811e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "156"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 599,
+   "centre": 5,
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "exportStepS": 28800,
+   "segments": 5,
+   "keyframes": 611,
+   "fourStateSegments": 5,
+   "worstErrorMeasured": 4.978778994986264e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "157"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 599,
+   "centre": 5,
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "exportStepS": 28800,
+   "segments": 2,
+   "keyframes": 251,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 4.952998295541072e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "158"
+   ]
+  },
+  {
+   "file": "moons-jupiter.bin",
+   "target": 599,
+   "centre": 5,
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 28800,
+   "segments": 177,
+   "keyframes": 22731,
+   "fourStateSegments": 177,
+   "worstErrorMeasured": 5.028003993784911e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "159"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 601,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 7200,
+   "segments": 36,
+   "keyframes": 7284,
+   "fourStateSegments": 36,
+   "worstErrorMeasured": 9.41273434496093e-05,
+   "segmentsAtExportStep": 21,
+   "worstErrorAtExportStepEstimated": 1.6890638402039261e-06,
+   "jumpsInTheData": [],
+   "requests": [
+    "160"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 601,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 558,
+   "keyframes": 113052,
+   "fourStateSegments": 558,
+   "worstErrorMeasured": 9.95064926707117e-05,
+   "segmentsAtExportStep": 321,
+   "worstErrorAtExportStepEstimated": 1.707016704968153e-06,
+   "jumpsInTheData": [],
+   "requests": [
+    "161",
+    "162"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 602,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 7200,
+   "segments": 36,
+   "keyframes": 4620,
+   "fourStateSegments": 36,
+   "worstErrorMeasured": 3.877242879994601e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "163"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 602,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 558,
+   "keyframes": 71964,
+   "fourStateSegments": 558,
+   "worstErrorMeasured": 3.952086675846324e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "164",
+    "165"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 603,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 7200,
+   "segments": 36,
+   "keyframes": 2328,
+   "fourStateSegments": 36,
+   "worstErrorMeasured": 4.73124050407823e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "166"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 603,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 558,
+   "keyframes": 36261,
+   "fourStateSegments": 558,
+   "worstErrorMeasured": 4.758019378975745e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "167",
+    "168"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 604,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 14400,
+   "segments": 18,
+   "keyframes": 2310,
+   "fourStateSegments": 18,
+   "worstErrorMeasured": 3.1140240170012e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "169"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 604,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 14400,
+   "segments": 279,
+   "keyframes": 35982,
+   "fourStateSegments": 279,
+   "worstErrorMeasured": 3.239098540096119e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "170"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 605,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 21600,
+   "segments": 12,
+   "keyframes": 1540,
+   "fourStateSegments": 12,
+   "worstErrorMeasured": 1.2932946164644702e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "171"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 605,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 21600,
+   "segments": 186,
+   "keyframes": 23988,
+   "fourStateSegments": 186,
+   "worstErrorMeasured": 1.365571604450111e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "172"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 606,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 86400,
+   "segments": 3,
+   "keyframes": 385,
+   "fourStateSegments": 3,
+   "worstErrorMeasured": 1.0685966198184342e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "173"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 606,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 47,
+   "keyframes": 6060,
+   "fourStateSegments": 47,
+   "worstErrorMeasured": 1.9497271795299703e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "174"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 608,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 345600,
+   "segments": 1,
+   "keyframes": 192,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "175"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 608,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-30 00:00",
+   "exportStepS": 345600,
+   "segments": 12,
+   "keyframes": 1579,
+   "fourStateSegments": 12,
+   "worstErrorMeasured": 4.340877525446449e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "176"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 699,
+   "centre": 6,
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "exportStepS": 86400,
+   "segments": 3,
+   "keyframes": 385,
+   "fourStateSegments": 3,
+   "worstErrorMeasured": 4.0436551810256496e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "177"
+   ]
+  },
+  {
+   "file": "moons-saturn.bin",
+   "target": 699,
+   "centre": 6,
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 47,
+   "keyframes": 5740,
+   "fourStateSegments": 47,
+   "worstErrorMeasured": 9.987447912612594e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "178"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 701,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 14400,
+   "segments": 1,
+   "keyframes": 121,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 5.886725550350136e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "181"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 701,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 14400,
+   "segments": 146,
+   "keyframes": 18773,
+   "fourStateSegments": 146,
+   "worstErrorMeasured": 5.234289309116739e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "182"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 702,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 21600,
+   "segments": 1,
+   "keyframes": 81,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 3.45822254436471e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "183"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 702,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 21600,
+   "segments": 98,
+   "keyframes": 12518,
+   "fourStateSegments": 98,
+   "worstErrorMeasured": 3.883408698316326e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "184"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 703,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 43200,
+   "segments": 1,
+   "keyframes": 41,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 1.9942294161026954e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "185"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 703,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 43200,
+   "segments": 49,
+   "keyframes": 6258,
+   "fourStateSegments": 49,
+   "worstErrorMeasured": 2.006304291931624e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "186"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 704,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 86400,
+   "segments": 1,
+   "keyframes": 21,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 1.2731523461629786e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "187"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 704,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 25,
+   "keyframes": 3162,
+   "fourStateSegments": 25,
+   "worstErrorMeasured": 1.5972580236015436e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "188"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 705,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 7200,
+   "segments": 2,
+   "keyframes": 242,
+   "fourStateSegments": 2,
+   "worstErrorMeasured": 2.2544015792647286e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "179"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 705,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 7200,
+   "segments": 292,
+   "keyframes": 37546,
+   "fourStateSegments": 292,
+   "worstErrorMeasured": 2.2592216791969397e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "180"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 799,
+   "centre": 7,
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "exportStepS": 86400,
+   "segments": 1,
+   "keyframes": 41,
+   "fourStateSegments": 0,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": 3.512409539647436e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "189"
+   ]
+  },
+  {
+   "file": "moons-uranus.bin",
+   "target": 799,
+   "centre": 7,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 25,
+   "keyframes": 6234,
+   "fourStateSegments": 0,
+   "worstErrorMeasured": null,
+   "segmentsAtExportStep": 25,
+   "worstErrorAtExportStepEstimated": 3.7325305455677224e-05,
+   "jumpsInTheData": [],
+   "requests": [
+    "190"
+   ]
+  },
+  {
+   "file": "moons-neptune.bin",
+   "target": 801,
+   "centre": 8,
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "exportStepS": 28800,
+   "segments": 1,
+   "keyframes": 61,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 1.4342370395821583e-06,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "191"
+   ]
+  },
+  {
+   "file": "moons-neptune.bin",
+   "target": 801,
+   "centre": 8,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 28800,
+   "segments": 73,
+   "keyframes": 9484,
+   "fourStateSegments": 73,
+   "worstErrorMeasured": 1.4565847152895164e-06,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "192"
+   ]
+  },
+  {
+   "file": "moons-neptune.bin",
+   "target": 899,
+   "centre": 8,
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "exportStepS": 86400,
+   "segments": 1,
+   "keyframes": 21,
+   "fourStateSegments": 1,
+   "worstErrorMeasured": 2.6631106005054404e-05,
+   "segmentsAtExportStep": 0,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "193"
+   ]
+  },
+  {
+   "file": "moons-neptune.bin",
+   "target": 899,
+   "centre": 8,
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "exportStepS": 86400,
+   "segments": 25,
+   "keyframes": 3162,
+   "fourStateSegments": 25,
+   "worstErrorMeasured": 3.2657520183343905e-05,
+   "segmentsAtExportStep": 1,
+   "worstErrorAtExportStepEstimated": null,
+   "jumpsInTheData": [],
+   "requests": [
+    "194"
+   ]
+  }
+ ],
+ "requests": [
+  {
+   "n": "001",
+   "target": "-170",
+   "centre": "399",
+   "start": "2021-12-25 13:02",
+   "stop": "2031-09-27 23:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T19:44:35.498Z",
+   "rows": 85522
+  },
+  {
+   "n": "002",
+   "target": "-21",
+   "centre": "399",
+   "start": "1995-12-05",
+   "stop": "2026-11-02 18:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T19:44:55.354Z",
+   "rows": 45164
+  },
+  {
+   "n": "003",
+   "target": "-78",
+   "centre": "399",
+   "start": "2015-02-14",
+   "stop": "2026-10-18 18:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T19:45:10.232Z",
+   "rows": 17060
+  },
+  {
+   "n": "004",
+   "target": "-85",
+   "centre": "301",
+   "start": "2009-06-18 22:18",
+   "stop": "2009-07-24",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:45:28.605Z",
+   "rows": 10101
+  },
+  {
+   "n": "005",
+   "target": "-85",
+   "centre": "301",
+   "start": "2025-10-07",
+   "stop": "2027-01-07",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:45:49.911Z",
+   "rows": 65809
+  },
+  {
+   "n": "006",
+   "target": "-152",
+   "centre": "399",
+   "start": "2019-07-22 09:31",
+   "stop": "2019-08-14",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:45:52.288Z",
+   "rows": 6510
+  },
+  {
+   "n": "007",
+   "target": "-152",
+   "centre": "301",
+   "start": "2019-08-14",
+   "stop": "2019-09-20",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:45:54.539Z",
+   "rows": 10657
+  },
+  {
+   "n": "008",
+   "target": "-152",
+   "centre": "301",
+   "start": "2025-10-07",
+   "stop": "2026-11-08 17:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:46:03.053Z",
+   "rows": 57271
+  },
+  {
+   "n": "009",
+   "target": "-1023",
+   "centre": "399",
+   "start": "2022-11-16 08:47",
+   "stop": "2022-12-11 17:20",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:46:36.364Z",
+   "rows": 7303
+  },
+  {
+   "n": "010",
+   "target": "-1023",
+   "centre": "301",
+   "start": "2022-11-16 08:47",
+   "stop": "2022-12-11 17:20",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:46:38.045Z",
+   "rows": 7303
+  },
+  {
+   "n": "011",
+   "target": "-1024",
+   "centre": "399",
+   "start": "2026-04-02 01:59",
+   "stop": "2026-04-10 23:54",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:46:39.213Z",
+   "rows": 2568
+  },
+  {
+   "n": "012",
+   "target": "-1024",
+   "centre": "301",
+   "start": "2026-04-02 01:59",
+   "stop": "2026-04-10 23:54",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:46:40.383Z",
+   "rows": 2568
+  },
+  {
+   "n": "013",
+   "target": "-31",
+   "centre": "0",
+   "start": "1977-09-10",
+   "stop": "2053-10-09",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:46:44.040Z",
+   "rows": 27789
+  },
+  {
+   "n": "014",
+   "target": "-32",
+   "centre": "0",
+   "start": "1977-08-25",
+   "stop": "2053-10-09",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:46:47.417Z",
+   "rows": 27805
+  },
+  {
+   "n": "015",
+   "target": "-23",
+   "centre": "0",
+   "start": "1972-03-08",
+   "stop": "2049-12-31",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:07.429Z",
+   "rows": 28423
+  },
+  {
+   "n": "016",
+   "target": "-24",
+   "centre": "0",
+   "start": "1973-04-11",
+   "stop": "2049-12-31",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:11.741Z",
+   "rows": 28024
+  },
+  {
+   "n": "017",
+   "target": "-98",
+   "centre": "0",
+   "start": "2006-01-24",
+   "stop": "2049-12-31",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:14.503Z",
+   "rows": 16048
+  },
+  {
+   "n": "018",
+   "target": "-82",
+   "centre": "0",
+   "start": "1997-10-20",
+   "stop": "2004-06-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:15.689Z",
+   "rows": 2417
+  },
+  {
+   "n": "019",
+   "target": "-77",
+   "centre": "0",
+   "start": "1989-10-24",
+   "stop": "1995-11-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:16.838Z",
+   "rows": 2200
+  },
+  {
+   "n": "020",
+   "target": "-61",
+   "centre": "0",
+   "start": "2011-08-10",
+   "stop": "2016-06-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:18.000Z",
+   "rows": 1758
+  },
+  {
+   "n": "021",
+   "target": "-159",
+   "centre": "0",
+   "start": "2024-10-19",
+   "stop": "2030-03-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:34.539Z",
+   "rows": 1960
+  },
+  {
+   "n": "022",
+   "target": "-28",
+   "centre": "0",
+   "start": "2023-04-19",
+   "stop": "2031-07-21",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:35.678Z",
+   "rows": 3016
+  },
+  {
+   "n": "023",
+   "target": "-96",
+   "centre": "0",
+   "start": "2018-08-17",
+   "stop": "2024-05-01",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T19:47:42.790Z",
+   "rows": 50017
+  },
+  {
+   "n": "024",
+   "target": "-96",
+   "centre": "0",
+   "start": "2024-05-01",
+   "stop": "2029-12-31 23:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T19:47:49.400Z",
+   "rows": 49704
+  },
+  {
+   "n": "025",
+   "target": "-121",
+   "centre": "0",
+   "start": "2018-10-25",
+   "stop": "2026-10-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:51.223Z",
+   "rows": 2899
+  },
+  {
+   "n": "026",
+   "target": "-255",
+   "centre": "0",
+   "start": "2023-10-18",
+   "stop": "2029-02-11",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:47:52.377Z",
+   "rows": 1944
+  },
+  {
+   "n": "027",
+   "target": "-49",
+   "centre": "0",
+   "start": "2021-10-21",
+   "stop": "2033-04-02",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:48:05.848Z",
+   "rows": 4182
+  },
+  {
+   "n": "028",
+   "target": "-64",
+   "centre": "0",
+   "start": "2016-09-13",
+   "stop": "2030-03-22",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:48:10.018Z",
+   "rows": 4939
+  },
+  {
+   "n": "029",
+   "target": "-74",
+   "centre": "0",
+   "start": "2005-08-17",
+   "stop": "2006-03-01",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:44:00.764Z",
+   "rows": 197
+  },
+  {
+   "n": "030",
+   "target": "-202",
+   "centre": "0",
+   "start": "2013-11-23",
+   "stop": "2014-09-15",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:51:26.275Z",
+   "rows": 297
+  },
+  {
+   "n": "031",
+   "target": "-3",
+   "centre": "0",
+   "start": "2013-12-01",
+   "stop": "2014-09-15",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T19:51:12.189Z",
+   "rows": 289
+  },
+  {
+   "n": "032",
+   "target": "-31",
+   "centre": "399",
+   "start": "1977-09-05 14:00",
+   "stop": "1977-09-10 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:03.828Z",
+   "rows": 3181
+  },
+  {
+   "n": "033",
+   "target": "-32",
+   "centre": "399",
+   "start": "1977-08-20 15:33",
+   "stop": "1977-08-25 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:04.973Z",
+   "rows": 3134
+  },
+  {
+   "n": "034",
+   "target": "-23",
+   "centre": "399",
+   "start": "1972-03-03 02:05",
+   "stop": "1972-03-08 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:06.134Z",
+   "rows": 3538
+  },
+  {
+   "n": "035",
+   "target": "-24",
+   "centre": "399",
+   "start": "1973-04-06 02:26",
+   "stop": "1973-04-11 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:07.293Z",
+   "rows": 3528
+  },
+  {
+   "n": "036",
+   "target": "-98",
+   "centre": "399",
+   "start": "2006-01-19 19:52",
+   "stop": "2006-01-24 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:08.454Z",
+   "rows": 3005
+  },
+  {
+   "n": "037",
+   "target": "-82",
+   "centre": "399",
+   "start": "1997-10-15 09:28",
+   "stop": "1997-10-20 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:09.623Z",
+   "rows": 3317
+  },
+  {
+   "n": "038",
+   "target": "-77",
+   "centre": "399",
+   "start": "1989-10-19 01:30",
+   "stop": "1989-10-24 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:28.405Z",
+   "rows": 3556
+  },
+  {
+   "n": "039",
+   "target": "-61",
+   "centre": "399",
+   "start": "2011-08-05 17:20",
+   "stop": "2011-08-10 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:29.551Z",
+   "rows": 3081
+  },
+  {
+   "n": "040",
+   "target": "-159",
+   "centre": "399",
+   "start": "2024-10-14 16:16",
+   "stop": "2024-10-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:30.722Z",
+   "rows": 3113
+  },
+  {
+   "n": "041",
+   "target": "-28",
+   "centre": "399",
+   "start": "2023-04-14 12:44",
+   "stop": "2023-04-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:31.879Z",
+   "rows": 3219
+  },
+  {
+   "n": "042",
+   "target": "-96",
+   "centre": "399",
+   "start": "2018-08-12 08:17",
+   "stop": "2018-08-17 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:33.023Z",
+   "rows": 3352
+  },
+  {
+   "n": "043",
+   "target": "-121",
+   "centre": "399",
+   "start": "2018-10-20 02:14",
+   "stop": "2018-10-25 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:34.168Z",
+   "rows": 3534
+  },
+  {
+   "n": "044",
+   "target": "-255",
+   "centre": "399",
+   "start": "2023-10-13 15:23",
+   "stop": "2023-10-18 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:35.316Z",
+   "rows": 3139
+  },
+  {
+   "n": "045",
+   "target": "-49",
+   "centre": "399",
+   "start": "2021-10-16 10:34",
+   "stop": "2021-10-21 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:36.464Z",
+   "rows": 3284
+  },
+  {
+   "n": "046",
+   "target": "-64",
+   "centre": "399",
+   "start": "2016-09-08 23:07",
+   "stop": "2016-09-13 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:53.613Z",
+   "rows": 2907
+  },
+  {
+   "n": "047",
+   "target": "-74",
+   "centre": "399",
+   "start": "2005-08-12 12:42",
+   "stop": "2005-08-17 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:54.766Z",
+   "rows": 3220
+  },
+  {
+   "n": "048",
+   "target": "-202",
+   "centre": "399",
+   "start": "2013-11-18 19:22",
+   "stop": "2013-11-23 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:55.927Z",
+   "rows": 3020
+  },
+  {
+   "n": "049",
+   "target": "-3",
+   "centre": "399",
+   "start": "2013-11-05 09:54",
+   "stop": "2013-12-01 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:55:59.084Z",
+   "rows": 18424
+  },
+  {
+   "n": "050",
+   "target": "-170",
+   "centre": "399",
+   "start": "2021-12-25 13:02",
+   "stop": "2021-12-27 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:57:39.518Z",
+   "rows": 1050
+  },
+  {
+   "n": "051",
+   "target": "-21",
+   "centre": "399",
+   "start": "1995-12-02 00:02",
+   "stop": "1995-12-05 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:57:42.677Z",
+   "rows": 2160
+  },
+  {
+   "n": "052",
+   "target": "-78",
+   "centre": "399",
+   "start": "2015-02-11 23:46",
+   "stop": "2015-02-14 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:57:44.329Z",
+   "rows": 1448
+  },
+  {
+   "n": "053",
+   "target": "-31",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-03-26 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:57:47.980Z",
+   "rows": 5761
+  },
+  {
+   "n": "054",
+   "target": "-31",
+   "centre": "6",
+   "start": "1980-10-24 00:00",
+   "stop": "1980-12-03 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:08.999Z",
+   "rows": 5761
+  },
+  {
+   "n": "055",
+   "target": "-32",
+   "centre": "5",
+   "start": "1979-06-20 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:10.751Z",
+   "rows": 5761
+  },
+  {
+   "n": "056",
+   "target": "-32",
+   "centre": "6",
+   "start": "1981-08-06 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:12.514Z",
+   "rows": 5761
+  },
+  {
+   "n": "057",
+   "target": "-32",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:14.179Z",
+   "rows": 5761
+  },
+  {
+   "n": "058",
+   "target": "-32",
+   "centre": "8",
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:16.372Z",
+   "rows": 11521
+  },
+  {
+   "n": "059",
+   "target": "-23",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1973-12-24 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:17.592Z",
+   "rows": 5761
+  },
+  {
+   "n": "060",
+   "target": "-24",
+   "centre": "5",
+   "start": "1974-11-13 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:18.784Z",
+   "rows": 5761
+  },
+  {
+   "n": "061",
+   "target": "-24",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1979-09-22 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T19:58:19.946Z",
+   "rows": 5761
+  },
+  {
+   "n": "062",
+   "target": "-98",
+   "centre": "5",
+   "start": "2007-02-08 00:00",
+   "stop": "2007-03-20 00:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:00:00.316Z",
+   "rows": 961
+  },
+  {
+   "n": "063",
+   "target": "-82",
+   "centre": "299",
+   "start": "1998-04-24 00:00",
+   "stop": "1998-04-30 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:20.009Z",
+   "rows": 4321
+  },
+  {
+   "n": "064",
+   "target": "-82",
+   "centre": "299",
+   "start": "1999-06-22 00:00",
+   "stop": "1999-06-28 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:21.177Z",
+   "rows": 4321
+  },
+  {
+   "n": "065",
+   "target": "-82",
+   "centre": "399",
+   "start": "1999-08-15 00:00",
+   "stop": "1999-08-21 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:22.333Z",
+   "rows": 4321
+  },
+  {
+   "n": "066",
+   "target": "-77",
+   "centre": "299",
+   "start": "1990-02-07 00:00",
+   "stop": "1990-02-13 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:23.504Z",
+   "rows": 4321
+  },
+  {
+   "n": "067",
+   "target": "-77",
+   "centre": "399",
+   "start": "1990-12-06 00:00",
+   "stop": "1990-12-12 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:24.679Z",
+   "rows": 4321
+  },
+  {
+   "n": "068",
+   "target": "-77",
+   "centre": "399",
+   "start": "1992-12-06 00:00",
+   "stop": "1992-12-12 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:25.828Z",
+   "rows": 4321
+  },
+  {
+   "n": "069",
+   "target": "-61",
+   "centre": "399",
+   "start": "2013-10-07 00:00",
+   "stop": "2013-10-13 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:26.989Z",
+   "rows": 4321
+  },
+  {
+   "n": "070",
+   "target": "-159",
+   "centre": "499",
+   "start": "2025-02-27 00:00",
+   "stop": "2025-03-05 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:28.145Z",
+   "rows": 4321
+  },
+  {
+   "n": "071",
+   "target": "-159",
+   "centre": "399",
+   "start": "2026-12-01 00:00",
+   "stop": "2026-12-07 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:29.313Z",
+   "rows": 4321
+  },
+  {
+   "n": "072",
+   "target": "-28",
+   "centre": "399",
+   "start": "2024-08-18 00:00",
+   "stop": "2024-08-24 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:50.730Z",
+   "rows": 4321
+  },
+  {
+   "n": "073",
+   "target": "-28",
+   "centre": "301",
+   "start": "2024-08-18 00:00",
+   "stop": "2024-08-21 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:51.885Z",
+   "rows": 2161
+  },
+  {
+   "n": "074",
+   "target": "-28",
+   "centre": "299",
+   "start": "2025-08-28 00:00",
+   "stop": "2025-09-03 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:53.026Z",
+   "rows": 4321
+  },
+  {
+   "n": "075",
+   "target": "-28",
+   "centre": "399",
+   "start": "2026-09-25 00:00",
+   "stop": "2026-10-01 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:54.170Z",
+   "rows": 4321
+  },
+  {
+   "n": "076",
+   "target": "-28",
+   "centre": "399",
+   "start": "2029-01-15 00:00",
+   "stop": "2029-01-21 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:55.320Z",
+   "rows": 4321
+  },
+  {
+   "n": "077",
+   "target": "-96",
+   "centre": "299",
+   "start": "2018-09-30 00:00",
+   "stop": "2018-10-06 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:56.487Z",
+   "rows": 4321
+  },
+  {
+   "n": "078",
+   "target": "-96",
+   "centre": "299",
+   "start": "2019-12-23 00:00",
+   "stop": "2019-12-29 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:57.662Z",
+   "rows": 4321
+  },
+  {
+   "n": "079",
+   "target": "-96",
+   "centre": "299",
+   "start": "2020-07-08 00:00",
+   "stop": "2020-07-14 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:58.819Z",
+   "rows": 4321
+  },
+  {
+   "n": "080",
+   "target": "-96",
+   "centre": "299",
+   "start": "2021-02-17 00:00",
+   "stop": "2021-02-23 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:00:59.982Z",
+   "rows": 4321
+  },
+  {
+   "n": "081",
+   "target": "-96",
+   "centre": "299",
+   "start": "2021-10-13 00:00",
+   "stop": "2021-10-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:01.156Z",
+   "rows": 4321
+  },
+  {
+   "n": "082",
+   "target": "-96",
+   "centre": "299",
+   "start": "2023-08-18 00:00",
+   "stop": "2023-08-24 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:20.197Z",
+   "rows": 4321
+  },
+  {
+   "n": "083",
+   "target": "-96",
+   "centre": "299",
+   "start": "2024-11-03 00:00",
+   "stop": "2024-11-09 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:21.354Z",
+   "rows": 4321
+  },
+  {
+   "n": "084",
+   "target": "-121",
+   "centre": "399",
+   "start": "2020-04-07 00:00",
+   "stop": "2020-04-13 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:22.506Z",
+   "rows": 4321
+  },
+  {
+   "n": "085",
+   "target": "-121",
+   "centre": "299",
+   "start": "2020-10-12 00:00",
+   "stop": "2020-10-18 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:23.661Z",
+   "rows": 4321
+  },
+  {
+   "n": "086",
+   "target": "-121",
+   "centre": "299",
+   "start": "2021-08-08 00:00",
+   "stop": "2021-08-14 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:24.821Z",
+   "rows": 4321
+  },
+  {
+   "n": "087",
+   "target": "-121",
+   "centre": "199",
+   "start": "2021-09-29 00:00",
+   "stop": "2021-10-05 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:25.993Z",
+   "rows": 4321
+  },
+  {
+   "n": "088",
+   "target": "-121",
+   "centre": "199",
+   "start": "2022-06-20 00:00",
+   "stop": "2022-06-26 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:27.152Z",
+   "rows": 4321
+  },
+  {
+   "n": "089",
+   "target": "-121",
+   "centre": "199",
+   "start": "2023-06-17 00:00",
+   "stop": "2023-06-23 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:28.325Z",
+   "rows": 4321
+  },
+  {
+   "n": "090",
+   "target": "-121",
+   "centre": "199",
+   "start": "2024-09-02 00:00",
+   "stop": "2024-09-08 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:29.493Z",
+   "rows": 4321
+  },
+  {
+   "n": "091",
+   "target": "-121",
+   "centre": "199",
+   "start": "2024-11-29 00:00",
+   "stop": "2024-12-05 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:30.654Z",
+   "rows": 4321
+  },
+  {
+   "n": "092",
+   "target": "-121",
+   "centre": "199",
+   "start": "2025-01-05 00:00",
+   "stop": "2025-01-11 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:50.101Z",
+   "rows": 4321
+  },
+  {
+   "n": "093",
+   "target": "-255",
+   "centre": "499",
+   "start": "2026-05-13 00:00",
+   "stop": "2026-05-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:51.249Z",
+   "rows": 4321
+  },
+  {
+   "n": "094",
+   "target": "-49",
+   "centre": "399",
+   "start": "2022-10-13 00:00",
+   "stop": "2022-10-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:52.403Z",
+   "rows": 4321
+  },
+  {
+   "n": "095",
+   "target": "-49",
+   "centre": "399",
+   "start": "2024-12-10 00:00",
+   "stop": "2024-12-16 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:53.565Z",
+   "rows": 4321
+  },
+  {
+   "n": "096",
+   "target": "-49",
+   "centre": "399",
+   "start": "2030-12-24 00:00",
+   "stop": "2030-12-30 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:54.724Z",
+   "rows": 4321
+  },
+  {
+   "n": "097",
+   "target": "-64",
+   "centre": "399",
+   "start": "2017-09-20 00:00",
+   "stop": "2017-09-26 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:01:57.397Z",
+   "rows": 4321
+  },
+  {
+   "n": "098",
+   "target": "-64",
+   "centre": "399",
+   "start": "2023-09-22 00:00",
+   "stop": "2023-09-28 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:00.050Z",
+   "rows": 4321
+  },
+  {
+   "n": "099",
+   "target": "-64",
+   "centre": "399",
+   "start": "2025-09-21 00:00",
+   "stop": "2025-09-27 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:02.711Z",
+   "rows": 4321
+  },
+  {
+   "n": "100",
+   "target": "-64",
+   "centre": "399",
+   "start": "2027-03-13 00:00",
+   "stop": "2027-03-19 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:05.370Z",
+   "rows": 4321
+  },
+  {
+   "n": "101",
+   "target": "-64",
+   "centre": "399",
+   "start": "2029-04-11 00:00",
+   "stop": "2029-04-17 00:00",
+   "step": 2,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:08.031Z",
+   "rows": 4321
+  },
+  {
+   "n": "102",
+   "target": "-82",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2006-01-30 07:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:29.449Z",
+   "rows": 87600
+  },
+  {
+   "n": "103",
+   "target": "-82",
+   "centre": "6",
+   "start": "2006-01-30 07:50",
+   "stop": "2007-09-30 15:40",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:39.373Z",
+   "rows": 87600
+  },
+  {
+   "n": "104",
+   "target": "-82",
+   "centre": "6",
+   "start": "2007-09-30 15:40",
+   "stop": "2009-05-30 23:30",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:02:49.930Z",
+   "rows": 87600
+  },
+  {
+   "n": "105",
+   "target": "-82",
+   "centre": "6",
+   "start": "2009-05-30 23:30",
+   "stop": "2011-01-29 07:20",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:03:01.390Z",
+   "rows": 87600
+  },
+  {
+   "n": "106",
+   "target": "-82",
+   "centre": "6",
+   "start": "2011-01-29 07:20",
+   "stop": "2012-09-28 15:10",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:03:21.260Z",
+   "rows": 87600
+  },
+  {
+   "n": "107",
+   "target": "-82",
+   "centre": "6",
+   "start": "2012-09-28 15:10",
+   "stop": "2014-05-29 23:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:03:32.708Z",
+   "rows": 87600
+  },
+  {
+   "n": "108",
+   "target": "-82",
+   "centre": "6",
+   "start": "2014-05-29 23:00",
+   "stop": "2016-01-28 06:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:03:43.619Z",
+   "rows": 87600
+  },
+  {
+   "n": "109",
+   "target": "-82",
+   "centre": "6",
+   "start": "2016-01-28 06:50",
+   "stop": "2017-09-15 11:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:03:55.739Z",
+   "rows": 85855
+  },
+  {
+   "n": "110",
+   "target": "-77",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "1997-07-01 07:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:04:19.575Z",
+   "rows": 87600
+  },
+  {
+   "n": "111",
+   "target": "-77",
+   "centre": "5",
+   "start": "1997-07-01 07:50",
+   "stop": "1999-03-01 15:40",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:04:29.209Z",
+   "rows": 87600
+  },
+  {
+   "n": "112",
+   "target": "-77",
+   "centre": "5",
+   "start": "1999-03-01 15:40",
+   "stop": "2000-10-29 23:30",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:04:41.951Z",
+   "rows": 87600
+  },
+  {
+   "n": "113",
+   "target": "-77",
+   "centre": "5",
+   "start": "2000-10-29 23:30",
+   "stop": "2002-06-30 07:20",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:04:55.051Z",
+   "rows": 87600
+  },
+  {
+   "n": "114",
+   "target": "-77",
+   "centre": "5",
+   "start": "2002-06-30 07:20",
+   "stop": "2003-09-30 11:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:05:03.798Z",
+   "rows": 65836
+  },
+  {
+   "n": "115",
+   "target": "-61",
+   "centre": "5",
+   "start": "2016-06-01 00:00",
+   "stop": "2018-01-30 07:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:05:21.870Z",
+   "rows": 87600
+  },
+  {
+   "n": "116",
+   "target": "-61",
+   "centre": "5",
+   "start": "2018-01-30 07:50",
+   "stop": "2019-09-30 15:40",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:05:32.903Z",
+   "rows": 87600
+  },
+  {
+   "n": "117",
+   "target": "-61",
+   "centre": "5",
+   "start": "2019-09-30 15:40",
+   "stop": "2021-05-30 23:30",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:05:47.237Z",
+   "rows": 87600
+  },
+  {
+   "n": "118",
+   "target": "-61",
+   "centre": "5",
+   "start": "2021-05-30 23:30",
+   "stop": "2023-01-29 07:20",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:05:59.571Z",
+   "rows": 87600
+  },
+  {
+   "n": "119",
+   "target": "-61",
+   "centre": "5",
+   "start": "2023-01-29 07:20",
+   "stop": "2024-09-28 15:10",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:06:20.659Z",
+   "rows": 87600
+  },
+  {
+   "n": "120",
+   "target": "-61",
+   "centre": "5",
+   "start": "2024-09-28 15:10",
+   "stop": "2026-05-29 23:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:06:29.430Z",
+   "rows": 87600
+  },
+  {
+   "n": "121",
+   "target": "-61",
+   "centre": "5",
+   "start": "2026-05-29 23:00",
+   "stop": "2028-01-28 06:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:06:38.488Z",
+   "rows": 87600
+  },
+  {
+   "n": "122",
+   "target": "-61",
+   "centre": "5",
+   "start": "2028-01-28 06:50",
+   "stop": "2028-09-02 01:30",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:06:43.752Z",
+   "rows": 31361
+  },
+  {
+   "n": "123",
+   "target": "-159",
+   "centre": "5",
+   "start": "2030-03-01 00:00",
+   "stop": "2031-10-30 07:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:06:52.616Z",
+   "rows": 87600
+  },
+  {
+   "n": "124",
+   "target": "-159",
+   "centre": "5",
+   "start": "2031-10-30 07:50",
+   "stop": "2033-06-29 15:40",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:02.573Z",
+   "rows": 87600
+  },
+  {
+   "n": "125",
+   "target": "-159",
+   "centre": "5",
+   "start": "2033-06-29 15:40",
+   "stop": "2034-09-03 04:40",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:10.990Z",
+   "rows": 61999
+  },
+  {
+   "n": "126",
+   "target": "-28",
+   "centre": "5",
+   "start": "2031-06-21 00:00",
+   "stop": "2031-07-21 06:20",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:33.902Z",
+   "rows": 4359
+  },
+  {
+   "n": "127",
+   "target": "-121",
+   "centre": "199",
+   "start": "2026-10-01 00:00",
+   "stop": "2027-04-10 23:50",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:37.631Z",
+   "rows": 27648
+  },
+  {
+   "n": "128",
+   "target": "-74",
+   "centre": "499",
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:40.362Z",
+   "rows": 12961
+  },
+  {
+   "n": "129",
+   "target": "-74",
+   "centre": "499",
+   "start": "2025-10-07 00:00",
+   "stop": "2026-10-27 13:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:49.156Z",
+   "rows": 55519
+  },
+  {
+   "n": "130",
+   "target": "-202",
+   "centre": "499",
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:07:52.513Z",
+   "rows": 12961
+  },
+  {
+   "n": "131",
+   "target": "-202",
+   "centre": "499",
+   "start": "2025-03-01 00:00",
+   "stop": "2025-12-30 03:55",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:08:05.007Z",
+   "rows": 87600
+  },
+  {
+   "n": "132",
+   "target": "-202",
+   "centre": "499",
+   "start": "2025-12-30 03:55",
+   "stop": "2026-03-01 00:55",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:08:09.536Z",
+   "rows": 17533
+  },
+  {
+   "n": "133",
+   "target": "-3",
+   "centre": "499",
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "step": 5,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:08:11.763Z",
+   "rows": 12961
+  },
+  {
+   "n": "134",
+   "target": "-3",
+   "centre": "499",
+   "start": "2021-11-26 00:00",
+   "stop": "2022-11-26 00:00",
+   "step": 10,
+   "unit": "MINUTES",
+   "exportedUtc": "2026-10-06T20:08:18.480Z",
+   "rows": 52561
+  },
+  {
+   "n": "135",
+   "target": "401",
+   "centre": "499",
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:08:41.195Z",
+   "rows": 1081
+  },
+  {
+   "n": "136",
+   "target": "401",
+   "centre": "499",
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:08:42.336Z",
+   "rows": 1081
+  },
+  {
+   "n": "137",
+   "target": "401",
+   "centre": "499",
+   "start": "2020-01-01 00:00",
+   "stop": "2029-12-28 23:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:08:52.685Z",
+   "rows": 87600
+  },
+  {
+   "n": "138",
+   "target": "401",
+   "centre": "499",
+   "start": "2029-12-28 23:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:09:00.632Z",
+   "rows": 61418
+  },
+  {
+   "n": "139",
+   "target": "402",
+   "centre": "499",
+   "start": "2006-03-01 00:00",
+   "stop": "2006-04-15 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:10:41.196Z",
+   "rows": 541
+  },
+  {
+   "n": "140",
+   "target": "402",
+   "centre": "499",
+   "start": "2014-09-15 00:00",
+   "stop": "2014-10-30 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:10:43.352Z",
+   "rows": 541
+  },
+  {
+   "n": "141",
+   "target": "402",
+   "centre": "499",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:10:58.060Z",
+   "rows": 74509
+  },
+  {
+   "n": "142",
+   "target": "501",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:11:00.447Z",
+   "rows": 4849
+  },
+  {
+   "n": "143",
+   "target": "501",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:12:40.835Z",
+   "rows": 1993
+  },
+  {
+   "n": "144",
+   "target": "501",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "2015-10-26 22:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:12:58.334Z",
+   "rows": 87600
+  },
+  {
+   "n": "145",
+   "target": "501",
+   "centre": "5",
+   "start": "2015-10-26 22:00",
+   "stop": "2035-10-21 20:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:13:27.646Z",
+   "rows": 87600
+  },
+  {
+   "n": "146",
+   "target": "501",
+   "centre": "5",
+   "start": "2035-10-21 20:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:13:30.086Z",
+   "rows": 5235
+  },
+  {
+   "n": "147",
+   "target": "502",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:13:31.252Z",
+   "rows": 2425
+  },
+  {
+   "n": "148",
+   "target": "502",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:15:11.634Z",
+   "rows": 997
+  },
+  {
+   "n": "149",
+   "target": "502",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "2035-10-21 20:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:15:23.519Z",
+   "rows": 87600
+  },
+  {
+   "n": "150",
+   "target": "502",
+   "centre": "5",
+   "start": "2035-10-21 20:00",
+   "stop": "2036-12-31 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:15:25.498Z",
+   "rows": 2618
+  },
+  {
+   "n": "151",
+   "target": "503",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:15:26.654Z",
+   "rows": 1213
+  },
+  {
+   "n": "152",
+   "target": "503",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:17:06.998Z",
+   "rows": 499
+  },
+  {
+   "n": "153",
+   "target": "503",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:17:18.538Z",
+   "rows": 45109
+  },
+  {
+   "n": "154",
+   "target": "504",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:18:59.086Z",
+   "rows": 405
+  },
+  {
+   "n": "155",
+   "target": "504",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:19:19.129Z",
+   "rows": 167
+  },
+  {
+   "n": "156",
+   "target": "504",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:19:25.788Z",
+   "rows": 15037
+  },
+  {
+   "n": "157",
+   "target": "599",
+   "centre": "5",
+   "start": "1973-11-14 00:00",
+   "stop": "1974-12-23 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:26.971Z",
+   "rows": 1213
+  },
+  {
+   "n": "158",
+   "target": "599",
+   "centre": "5",
+   "start": "1979-02-14 00:00",
+   "stop": "1979-07-30 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:28.121Z",
+   "rows": 499
+  },
+  {
+   "n": "159",
+   "target": "599",
+   "centre": "5",
+   "start": "1995-11-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:35.936Z",
+   "rows": 45109
+  },
+  {
+   "n": "160",
+   "target": "601",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:38.255Z",
+   "rows": 9169
+  },
+  {
+   "n": "161",
+   "target": "601",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2024-05-26 22:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:47.225Z",
+   "rows": 87600
+  },
+  {
+   "n": "162",
+   "target": "601",
+   "centre": "6",
+   "start": "2024-05-26 22:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:54.455Z",
+   "rows": 55214
+  },
+  {
+   "n": "163",
+   "target": "602",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:19:56.812Z",
+   "rows": 9169
+  },
+  {
+   "n": "164",
+   "target": "602",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2024-05-26 22:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:06.185Z",
+   "rows": 87600
+  },
+  {
+   "n": "165",
+   "target": "602",
+   "centre": "6",
+   "start": "2024-05-26 22:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:34.134Z",
+   "rows": 55214
+  },
+  {
+   "n": "166",
+   "target": "603",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:36.489Z",
+   "rows": 9169
+  },
+  {
+   "n": "167",
+   "target": "603",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2024-05-26 22:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:47.502Z",
+   "rows": 87600
+  },
+  {
+   "n": "168",
+   "target": "603",
+   "centre": "6",
+   "start": "2024-05-26 22:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:55.173Z",
+   "rows": 55214
+  },
+  {
+   "n": "169",
+   "target": "604",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:20:57.000Z",
+   "rows": 4585
+  },
+  {
+   "n": "170",
+   "target": "604",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:21:06.221Z",
+   "rows": 71407
+  },
+  {
+   "n": "171",
+   "target": "605",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:21:07.635Z",
+   "rows": 3057
+  },
+  {
+   "n": "172",
+   "target": "605",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:21:12.930Z",
+   "rows": 47605
+  },
+  {
+   "n": "173",
+   "target": "606",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:22:53.489Z",
+   "rows": 765
+  },
+  {
+   "n": "174",
+   "target": "606",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:23:01.163Z",
+   "rows": 11902
+  },
+  {
+   "n": "175",
+   "target": "608",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 4,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:23:19.289Z",
+   "rows": 192
+  },
+  {
+   "n": "176",
+   "target": "608",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 4,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:23:21.445Z",
+   "rows": 2976
+  },
+  {
+   "n": "177",
+   "target": "699",
+   "centre": "6",
+   "start": "1979-08-13 00:00",
+   "stop": "1981-09-15 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:23:22.591Z",
+   "rows": 765
+  },
+  {
+   "n": "178",
+   "target": "699",
+   "centre": "6",
+   "start": "2004-06-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:23:25.740Z",
+   "rows": 11902
+  },
+  {
+   "n": "179",
+   "target": "705",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:25:06.173Z",
+   "rows": 481
+  },
+  {
+   "n": "180",
+   "target": "705",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 2,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:25:22.137Z",
+   "rows": 74509
+  },
+  {
+   "n": "181",
+   "target": "701",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:27:02.764Z",
+   "rows": 241
+  },
+  {
+   "n": "182",
+   "target": "701",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 4,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:27:14.641Z",
+   "rows": 37255
+  },
+  {
+   "n": "183",
+   "target": "702",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:28:55.113Z",
+   "rows": 161
+  },
+  {
+   "n": "184",
+   "target": "702",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 6,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:29:02.467Z",
+   "rows": 24837
+  },
+  {
+   "n": "185",
+   "target": "703",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 12,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:29:21.512Z",
+   "rows": 81
+  },
+  {
+   "n": "186",
+   "target": "703",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 12,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:29:25.157Z",
+   "rows": 12419
+  },
+  {
+   "n": "187",
+   "target": "704",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:31:05.407Z",
+   "rows": 41
+  },
+  {
+   "n": "188",
+   "target": "704",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:31:10.118Z",
+   "rows": 6210
+  },
+  {
+   "n": "189",
+   "target": "799",
+   "centre": "7",
+   "start": "1986-01-05 00:00",
+   "stop": "1986-02-14 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:32:50.471Z",
+   "rows": 41
+  },
+  {
+   "n": "190",
+   "target": "799",
+   "centre": "7",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:32:56.647Z",
+   "rows": 6210
+  },
+  {
+   "n": "191",
+   "target": "801",
+   "centre": "8",
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:34:37.066Z",
+   "rows": 121
+  },
+  {
+   "n": "192",
+   "target": "801",
+   "centre": "8",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 8,
+   "unit": "HOURS",
+   "exportedUtc": "2026-10-06T20:34:44.728Z",
+   "rows": 18628
+  },
+  {
+   "n": "193",
+   "target": "899",
+   "centre": "8",
+   "start": "1989-08-05 00:00",
+   "stop": "1989-09-14 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:36:25.141Z",
+   "rows": 41
+  },
+  {
+   "n": "194",
+   "target": "899",
+   "centre": "8",
+   "start": "2020-01-01 00:00",
+   "stop": "2036-12-31 00:00",
+   "step": 1,
+   "unit": "DAYS",
+   "exportedUtc": "2026-10-06T20:36:29.285Z",
+   "rows": 6210
+  }
+ ]
+}
