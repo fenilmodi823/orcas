@@ -1,6 +1,9 @@
 import { Vector3 } from 'three';
 import type { PlanetEphemeris } from '../data/planet-ephemeris.js';
+import type { HorizonsManifest } from '../data/horizons-manifest.js';
+import type { CameraView } from '../renderer/camera/camera-status.js';
 import type { DetailGroup } from '../ui/object-detail-model.js';
+import { moonDetailGroups } from './moon-detail.js';
 import { BODY_KIND_LABEL, bodyById, bodyPositionKm, type Body } from '../renderer/solar/bodies.js';
 import { NO_MAP_NOTE, PLANET_MAPS } from '../renderer/solar/planet-maps.js';
 import { RING_INNER_KM, RING_OUTER_KM } from '../renderer/solar/saturn-rings.js';
@@ -17,8 +20,10 @@ export interface BodyReadout {
   readonly precision: number;
 }
 
+// From 10⁶ km the readout turns scientific, where precision counts decimals of the mantissa: 0 would show Titan's
+// 1.2018 × 10⁶ km as 1 × 10⁶. Four keeps five figures, as the AU rows have.
 const distance = (label: string, km: number): BodyReadout =>
-  km < KM_LIMIT ? { label, value: km, unit: 'km', precision: 0 } : { label, value: km / AU_KM, unit: 'AU', precision: 4 };
+  km < KM_LIMIT ? { label, value: km, unit: 'km', precision: km < 1e6 ? 0 : 4 } : { label, value: km / AU_KM, unit: 'AU', precision: 4 };
 
 const lightTime = (km: number): BodyReadout => {
   const s = km / C_KM_S;
@@ -28,6 +33,7 @@ const lightTime = (km: number): BodyReadout => {
 const SUN = bodyById('sun');
 const _body = new Vector3();
 const _sun = new Vector3();
+const _parent = new Vector3();
 
 /**
  * A body's live numbers at an instant (S5a): its distance from the Earth and from the Sun, and the light time
@@ -39,7 +45,9 @@ export function bodyReadouts(body: Body, epochMs: number, ephemeris: PlanetEphem
   const sun = SUN && bodyPositionKm(SUN, epochMs, ephemeris, _sun);
   if (!at || !sun) return null;
   const fromEarthKm = at.length();
-  const rows: BodyReadout[] = [];
+  const parent = body.horizons && body.parent ? bodyById(body.parent) : undefined;
+  const parentKm = parent && bodyPositionKm(parent, epochMs, ephemeris, _parent);
+  const rows: BodyReadout[] = parent && parentKm ? [distance(parent.name, at.distanceTo(parentKm))] : [];
   if (body.id !== 'earth') rows.push(distance('Earth', fromEarthKm));
   if (body.id !== 'sun') rows.push(distance('Sun', at.distanceTo(sun)));
   rows.push(lightTime(body.id === 'earth' ? at.distanceTo(sun) : fromEarthKm));
@@ -47,7 +55,7 @@ export function bodyReadouts(body: Body, epochMs: number, ephemeris: PlanetEphem
 }
 
 /** Where a body's position comes from, and what it is worth (Rules §7: every number carries its source). */
-function provenanceNote(body: Body, ephemerisLoaded: boolean): string {
+function provenanceNote(body: Body, ephemerisLoaded: boolean, centreFromHorizons: boolean): string {
   if (body.id === 'earth') return 'The scene’s origin: every position here is geocentric, in J2000 axes.';
   if (body.id === 'moon') {
     return 'Meeus, Astronomical Algorithms ch. 47, truncated: within 0.0127° and 22.3 km of JPL DE421 at the tested epochs.';
@@ -55,7 +63,9 @@ function provenanceNote(body: Body, ephemerisLoaded: boolean): string {
   const de421 = 'JPL DE421, interpolated to within 1″ as seen from the Earth.';
   if (body.id === 'sun' && !ephemerisLoaded) return `${de421} Until it loads, an analytic Sun good to about 0.01°.`;
   if (body.ephemerisNaifId !== null && body.ephemerisNaifId < 10) {
-    return `${de421} The position is the ${body.name} system’s barycentre, not the planet’s centre.`;
+    return centreFromHorizons
+      ? `${de421} DE421 gives the ${body.name} system’s barycentre; the planet’s offset from it is JPL Horizons’ (its dated export), so this is the planet’s centre.`
+      : `${de421} The position is the ${body.name} system’s barycentre, not the planet’s centre.`;
   }
   return de421;
 }
@@ -82,7 +92,11 @@ const RINGS: DetailGroup = {
 };
 
 /** The panel's groups for a body. There is no description: none is written until one is sourced from NASA (B.23). */
-export function bodyDetailGroups(body: Body, ephemerisLoaded: boolean): DetailGroup[] {
+export function bodyDetailGroups(
+  body: Body,
+  facts: { ephemerisLoaded: boolean; centreFromHorizons: boolean; manifest: HorizonsManifest | null | undefined },
+): DetailGroup[] {
+  if (body.horizons) return moonDetailGroups(body, facts.manifest);
   const extra = [mapGroup(body), body.id === 'saturn' ? RINGS : null].filter((g): g is DetailGroup => g !== null);
   return [
     {
@@ -101,8 +115,14 @@ export function bodyDetailGroups(body: Body, ephemerisLoaded: boolean): DetailGr
       id: 'provenance',
       title: 'Position',
       fields: [{ label: 'Source', value: body.id === 'moon' ? 'Meeus ch. 47' : body.id === 'earth' ? 'Origin' : 'JPL DE421' }],
-      note: provenanceNote(body, ephemerisLoaded),
+      note: provenanceNote(body, facts.ephemerisLoaded, facts.centreFromHorizons),
     },
     ...extra,
   ];
+}
+
+/** NASA Eyes' camera options (CameraViewBlock): Nearby and System for planets and moons; the Sun's Inner and Outer. */
+export function cameraViewOptions(body: Body): { id: CameraView; label: string }[] {
+  if (body.kind === 'star') return [{ id: 'nearby', label: 'Nearby' }, { id: 'inner', label: 'Inner' }, { id: 'outer', label: 'Outer' }];
+  return [{ id: 'nearby', label: 'Nearby' }, { id: 'system', label: 'System' }];
 }

@@ -29,6 +29,9 @@ export interface BodyFlyOpts {
   readonly swing?: boolean;
   /** NASA's slow orbit after arriving (`cinematic: true`). Default true. */
   readonly spin?: boolean;
+  /** NASA's System view: turn in place this long, s, then travel `travelSec` (S6b). */
+  readonly aimSec?: number;
+  readonly travelSec?: number;
 }
 
 /** The camera stays this far out from a body's centre, × its equatorial radius. */
@@ -112,6 +115,8 @@ export class BodyCamera {
       arrivalOffsetKm: arrival,
       swingOffsetKm: sunKm ? sunKm.clone().sub(bodyKm).setLength(arrival.length()) : null,
       endRefUp: opts.refUp?.clone() ?? target.poleJ2000(epochMs, new Vector3()),
+      aimSec: opts.aimSec,
+      travelSec: opts.travelSec,
     };
     this.cancel();
     this.target = target;

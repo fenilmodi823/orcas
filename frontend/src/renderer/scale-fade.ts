@@ -1,6 +1,6 @@
 /** The satellites' extent: the GEO ring, km. */
 export const SATELLITE_LAYER_RADIUS_KM = 42_164;
-/** The Moon trail's extent: the Moon's mean distance, km. */
+/** The Moon's orbit's extent: the Moon's mean distance, km. */
 export const MOON_LAYER_RADIUS_KM = 384_400;
 
 /** B.21: the satellite layers start to fade at ~2 × 10⁶ km, where the GEO ring is ~1.2° across. */

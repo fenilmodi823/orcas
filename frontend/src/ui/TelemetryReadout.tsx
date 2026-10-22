@@ -6,6 +6,7 @@ export interface TelemetryReadoutProps {
   value: number | string;
   unit?: string;
   precision?: number;
+  wide?: boolean;
 }
 
 /**
@@ -13,11 +14,11 @@ export interface TelemetryReadoutProps {
  * tabular value, unit in --text-lo. Every measurement in ORCAS renders
  * through this.
  */
-export function TelemetryReadout({ label, value, unit, precision = 2 }: TelemetryReadoutProps) {
+export function TelemetryReadout({ label, value, unit, precision = 2, wide = false }: TelemetryReadoutProps) {
   const display = typeof value === 'number' ? formatTelemetryValue(value, precision) : value;
 
   return (
-    <div className="telemetry-readout">
+    <div className={wide ? 'telemetry-readout telemetry-readout--wide' : 'telemetry-readout'}>
       <span className="telemetry-readout__label">{label}</span>
       <span className="telemetry-readout__value">
         {display}

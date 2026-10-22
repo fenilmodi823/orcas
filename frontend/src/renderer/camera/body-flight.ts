@@ -39,6 +39,13 @@ export interface BodyFlightSpec {
   readonly swingOffsetKm: Vector3 | null;
   /** The body's north pole, unit: "up" on arrival, as NASA's `destinationUp`. */
   readonly endRefUp: Vector3;
+  /**
+   * NASA's System view first turns to face the body from where the camera is (`goToEntity` to its current
+   * offset, then to the destination, 1 s each): this long, s. Absent: no turn, S5a's flight.
+   */
+  readonly aimSec?: number;
+  /** Stage 1's length, s: NASA's goToCelestialObject is 0.75 (the default), its System view 1. */
+  readonly travelSec?: number;
 }
 
 const _look0 = new Vector3();
@@ -77,6 +84,7 @@ function slerpDir(a: Vector3, b: Vector3, u: number, axis: Vector3, out: Vector3
 export class BodyFlight {
   private elapsedSec = 0;
   private readonly swingSec: number;
+  private startOffsetKm: Vector3 | null = null;
 
   constructor(private readonly spec: BodyFlightSpec) {
     this.swingSec = spec.swingOffsetKm ? swingDurationSec(spec.arrivalOffsetKm, spec.swingOffsetKm) : 0;
@@ -86,22 +94,42 @@ export class BodyFlight {
   tick(dtSec: number, bodyKm: Vector3, out: FlightSample): boolean {
     this.elapsedSec += dtSec;
     const { spec } = this;
-    if (this.elapsedSec < TRAVEL_SEC || !spec.swingOffsetKm) {
-      const u = clamp(this.elapsedSec / TRAVEL_SEC, 0, 1);
+    const aimSec = spec.aimSec ?? 0;
+    const travelSec = spec.travelSec ?? TRAVEL_SEC;
+    // The camera's place relative to the body when the flight began: the aim leg keeps it, as NASA's does.
+    const startOffset = (this.startOffsetKm ??= spec.startPositionKm.clone().sub(bodyKm));
+    if (this.elapsedSec < aimSec) {
+      const u = clamp(this.elapsedSec / aimSec, 0, 1);
+      out.positionKm.copy(bodyKm).add(startOffset);
+      _look0.copy(spec.startPivotKm).sub(spec.startPositionKm).normalize();
+      _look1.copy(startOffset).negate().normalize();
+      slerpDir(_look0, _look1, u, spec.startRefUp, _look);
+      out.pivotKm.copy(out.positionKm).addScaledVector(_look, Math.max(startOffset.length(), 1e-6));
+      out.refUp.copy(spec.startRefUp).lerp(spec.endRefUp, u);
+      if (out.refUp.lengthSq() < 1e-12) out.refUp.copy(spec.endRefUp);
+      out.refUp.normalize();
+      return false;
+    }
+    const t = this.elapsedSec - aimSec;
+    if (t < travelSec || !spec.swingOffsetKm) {
+      const u = clamp(t / travelSec, 0, 1);
       _dest.copy(bodyKm).add(spec.arrivalOffsetKm);
-      out.positionKm.copy(spec.startPositionKm).lerp(_dest, u);
+      const from = aimSec > 0 ? _a.copy(bodyKm).add(startOffset) : _a.copy(spec.startPositionKm);
+      out.positionKm.copy(from).lerp(_dest, u);
       const norm = ellipsoidNormalizedDistance(out.positionKm);
       if (norm > 0 && norm < EARTH_CLEARANCE) out.positionKm.multiplyScalar(EARTH_CLEARANCE / norm);
-      _look0.copy(spec.startPivotKm).sub(spec.startPositionKm).normalize();
+      if (aimSec > 0) _look0.copy(startOffset).negate().normalize();
+      else _look0.copy(spec.startPivotKm).sub(spec.startPositionKm).normalize();
       _look1.copy(spec.arrivalOffsetKm).negate().normalize();
       slerpDir(_look0, _look1, u, spec.startRefUp, _look);
       out.pivotKm.copy(out.positionKm).addScaledVector(_look, Math.max(out.positionKm.distanceTo(bodyKm), 1e-6));
-      out.refUp.copy(spec.startRefUp).lerp(spec.endRefUp, u);
+      const upFrom = aimSec > 0 ? spec.endRefUp : spec.startRefUp;
+      out.refUp.copy(upFrom).lerp(spec.endRefUp, u);
       if (out.refUp.lengthSq() < 1e-12) out.refUp.copy(spec.endRefUp);
       out.refUp.normalize();
       return u >= 1;
     }
-    const v = clamp((this.elapsedSec - TRAVEL_SEC) / this.swingSec, 0, 1);
+    const v = clamp((t - travelSec) / this.swingSec, 0, 1);
     const radiusKm = spec.arrivalOffsetKm.length();
     _a.copy(spec.arrivalOffsetKm).normalize();
     _b.copy(spec.swingOffsetKm).normalize();

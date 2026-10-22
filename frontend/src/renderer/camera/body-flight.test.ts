@@ -107,3 +107,39 @@ describe('BodyFlight', () => {
     }
   });
 });
+
+describe("NASA's System-view move (S6b): turn in place, then travel, 1 s each", () => {
+  const spec = (startPositionKm: Vector3) => ({
+    startPositionKm,
+    startPivotKm: startPositionKm.clone().add(new Vector3(0, 1e5, 0)), // looking away from the body
+    startRefUp: new Vector3(0, 0, 1),
+    arrivalOffsetKm: new Vector3(-7e6, 0, 3e6),
+    swingOffsetKm: null,
+    endRefUp: new Vector3(0, 0.3, 0.95).normalize(),
+    aimSec: 1,
+    travelSec: 1,
+  });
+
+  it('stays put relative to the body while it turns to face it, then travels', () => {
+    const body = new Vector3(0, 0, 0);
+    const f = new BodyFlight(spec(new Vector3(4e5, 0, 0)));
+    const out = sample();
+    expect(f.tick(0.5, body, out)).toBe(false);
+    expect(out.positionKm.distanceTo(new Vector3(4e5, 0, 0))).toBeLessThan(1e-6);
+    body.set(13, 0, 0); // the body moves; the camera moves with it
+    expect(f.tick(0.5, body, out)).toBe(false);
+    expect(out.positionKm.distanceTo(new Vector3(4e5 + 13, 0, 0))).toBeLessThan(1e-6);
+    const look = out.pivotKm.clone().sub(out.positionKm).normalize();
+    expect(look.dot(body.clone().sub(out.positionKm).normalize())).toBeCloseTo(1, 9); // facing the body now
+    expect(out.refUp.angleTo(spec(new Vector3()).endRefUp)).toBeLessThan(1e-9);
+    expect(f.tick(1, body, out)).toBe(true);
+    expect(out.positionKm.distanceTo(body.clone().add(new Vector3(-7e6, 0, 3e6)))).toBeLessThan(1e-6);
+  });
+
+  it('lands in whole-second ticks too, as reduced motion drives it', () => {
+    const f = new BodyFlight(spec(new Vector3(4e5, 0, 0)));
+    let ticks = 0;
+    while (!f.tick(1, new Vector3(), sample())) ticks += 1;
+    expect(ticks).toBe(1); // aim, then travel
+  });
+});

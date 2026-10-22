@@ -9,6 +9,9 @@ import { create } from 'zustand';
  * because these are not tunables. Written only on CHANGE, never per frame
  * (Rules.md: React state must not be updated every frame).
  */
+/** NASA Eyes' camera views (CameraViewBlock): Nearby / System, and the Sun's Inner / Outer (S6b). */
+export type CameraView = 'nearby' | 'system' | 'inner' | 'outer';
+
 interface CameraStatus {
   /** True while a focus flight or an exit is playing. Picking is suppressed
    * for the duration (brief §D.3): the cursor is not aimed at anything
@@ -20,7 +23,13 @@ interface CameraStatus {
   resetRequests: number;
   /** Bumped by the breadcrumb's root: NASA Eyes' home view, the Sun from above the ecliptic (S5a). */
   homeRequests: number;
+  /** The view the panel shows as current: Nearby on each new selection, as NASA's `defaultSelectionIndex` 0. */
+  view: CameraView;
+  /** Bumped with each request, so asking for the same view again still flies. */
+  viewRequests: number;
   setFlying(flying: boolean): void;
+  requestView(view: CameraView): void;
+  setView(view: CameraView): void;
   requestReset(): void;
   requestHome(): void;
 }
@@ -29,7 +38,11 @@ export const useCameraStatus = create<CameraStatus>((set) => ({
   flying: false,
   resetRequests: 0,
   homeRequests: 0,
+  view: 'nearby',
+  viewRequests: 0,
   setFlying: (flying) => set((s) => (s.flying === flying ? s : { flying })),
+  requestView: (view) => set((s) => ({ view, viewRequests: s.viewRequests + 1 })),
+  setView: (view) => set((s) => (s.view === view ? s : { view })),
   requestReset: () => set((s) => ({ resetRequests: s.resetRequests + 1 })),
   requestHome: () => set((s) => ({ homeRequests: s.homeRequests + 1 })),
 }));

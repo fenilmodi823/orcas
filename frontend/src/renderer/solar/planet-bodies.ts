@@ -1,14 +1,21 @@
 import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, Points, SphereGeometry, Vector3, type Camera } from 'three';
-import type { InterleavedBufferAttribute, Texture } from 'three';
-import { Line2, LineGeometry, LineMaterial } from 'three-stdlib';
+import type { Texture } from 'three';
 import { iauBodyAxesJ2000, writeOsculatingEllipse } from '@orcas/physics';
 import { bodyStateKm, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { readColorToken } from '../scene-colors.js';
 import type { Occluder } from '../earth/body-label-layout.js';
 import { EARTH_NAIF_ID, PLANETS, SUN_NAIF_ID } from './planets.js';
-import { ORBIT_LINE_HOVER_WIDTH_PX, ORBIT_LINE_WIDTH_PX, ORBIT_SAMPLES, writeOffsetPositions, writeOrbitColours } from './orbit-line.js';
+import {
+  ORBIT_LINE_HOVER_WIDTH_PX,
+  ORBIT_LINE_WIDTH_PX,
+  ORBIT_SAMPLES,
+  createFatLine,
+  writeOffsetPositions,
+  writeOrbitColours,
+  writeSegments,
+} from './orbit-line.js';
+import { applyPlanetCentre } from './system-centres.js';
 import { createPlanetDotMaterial, createPlanetMaterial } from './planet-materials.js';
-import { patchLineMaterial } from '../live/line-trim.js';
 import { loadPlanetMap, PLANET_MAPS } from './planet-maps.js';
 import { createSaturnRings, ringDistanceKm } from './saturn-rings.js';
 
@@ -55,16 +62,6 @@ export interface PlanetBodies {
     selectedIndex?: number,
   ): void;
   dispose(): void;
-}
-
-/** Write a line's consecutive points into its existing segment buffer, rather than re-allocating it each frame. */
-function writeSegments(geometry: LineGeometry, points: Float32Array, count: number): void {
-  const data = (geometry.getAttribute('instanceStart') as InterleavedBufferAttribute).data;
-  const segments = data.array as Float32Array;
-  for (let i = 0; i < count - 1; i++) {
-    segments.set(points.subarray(i * 3, i * 3 + 6), i * 6);
-  }
-  data.needsUpdate = true;
 }
 
 /**
@@ -124,22 +121,10 @@ export function createPlanetBodies(anisotropy = 1): PlanetBodies {
   const ellipse = new Float64Array(ORBIT_SAMPLES * 3);
   const linePoints = new Float32Array(ORBIT_SAMPLES * 3);
   const lines = PLANETS.map((planet) => {
-    const geometry = new LineGeometry();
-    geometry.setPositions(linePoints); // sizes the segment buffer once
     const colours = new Float32Array(ORBIT_SAMPLES * 4);
     const c = readColorToken(planet.token, planet.fallback);
     writeOrbitColours({ r: c.r, g: c.g, b: c.b }, colours);
-    geometry.setColors(colours, 4);
-    const material = new LineMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: ORBIT_OPACITY,
-      linewidth: ORBIT_LINE_WIDTH_PX,
-      depthWrite: false, // depth-tested, so a body hides the far side; never hides another line (Reference §4.3)
-    });
-    patchLineMaterial(material);
-    const line = new Line2(geometry, material);
-    line.frustumCulled = false; // the segment buffer is rewritten every frame
+    const line = createFatLine(ORBIT_SAMPLES, colours, ORBIT_OPACITY, ORBIT_LINE_WIDTH_PX);
     group.add(line);
     return line;
   });
@@ -190,6 +175,7 @@ export function createPlanetBodies(anisotropy = 1): PlanetBodies {
         const line = lines[i];
         if (!state || !at || !line) return; // every body shares the Earth's span
         at.set(state.position.x - earth.position.x, state.position.y - earth.position.y, state.position.z - earth.position.z);
+        applyPlanetCentre(planet.bodyNaifId, epochMs, at); // its own centre where its moons have loaded (S6b)
         dotPositions[i * 3] = at.x - cam.x;
         dotPositions[i * 3 + 1] = at.y - cam.y;
         dotPositions[i * 3 + 2] = at.z - cam.z;

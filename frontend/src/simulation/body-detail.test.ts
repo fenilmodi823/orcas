@@ -1,9 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { parseHorizonsEphemeris } from '../data/horizons-ephemeris.js';
+import { createHorizonsIndex } from '../data/horizons-index.js';
+import { resetMoonSystems } from '../data/moon-systems.js';
 import { parsePlanetEphemeris } from '../data/planet-ephemeris.js';
+import { formatTelemetryValue } from '../ui/telemetry-format.js';
 import { bodyById } from '../renderer/solar/bodies.js';
-import { bodyDetailGroups, bodyReadouts } from './body-detail.js';
+import { bodyDetailGroups, bodyReadouts, cameraViewOptions } from './body-detail.js';
 
 const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/planets-de421.bin'));
 const ephemeris = parsePlanetEphemeris(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength));
@@ -15,6 +19,8 @@ const body = (id: string) => {
 };
 
 describe('bodyReadouts (S5a)', () => {
+  afterEach(() => resetMoonSystems());
+
   it('gives a planet its distance from the Earth and the Sun in AU, and its light time in minutes', () => {
     const rows = bodyReadouts(body('jupiter'), AT_MS, ephemeris);
     expect(rows?.map((r) => [r.label, r.unit])).toEqual([
@@ -42,6 +48,15 @@ describe('bodyReadouts (S5a)', () => {
     expect(bodyReadouts(body('sun'), AT_MS, ephemeris)?.map((r) => r.label)).toEqual(['Earth', 'Light']);
   });
 
+  it('keeps five figures for a moon over 10⁶ km from its planet, never 1 × 10⁶', () => {
+    const f = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/moons-saturn.bin'));
+    resetMoonSystems({ saturn: createHorizonsIndex(parseHorizonsEphemeris(f.buffer.slice(f.byteOffset, f.byteOffset + f.byteLength))) });
+    const row = bodyReadouts(body('titan'), AT_MS, ephemeris)?.[0];
+    expect(row?.label).toBe('Saturn');
+    expect(row?.value).toBeGreaterThan(1e6); // Titan is 1.19–1.26 × 10⁶ km from Saturn
+    expect(formatTelemetryValue(row!.value, row!.precision)).toMatch(/^1\.2\d{3} × 10⁶$/);
+  });
+
   it('says nothing about a planet before its data has loaded', () => {
     expect(bodyReadouts(body('mars'), AT_MS, null)).toBeNull();
   });
@@ -49,25 +64,25 @@ describe('bodyReadouts (S5a)', () => {
 
 describe('bodyDetailGroups', () => {
   it('names the barycentre where DE421 gives only that', () => {
-    const groups = bodyDetailGroups(body('saturn'), true);
+    const groups = bodyDetailGroups(body('saturn'), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null });
     expect(groups.find((g) => g.id === 'provenance')?.note).toContain('barycentre');
-    expect(bodyDetailGroups(body('mars'), true).find((g) => g.id === 'provenance')?.note).not.toContain('barycentre');
+    expect(bodyDetailGroups(body('mars'), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null }).find((g) => g.id === 'provenance')?.note).not.toContain('barycentre');
   });
 
   it('states the Moon’s measured error rather than DE421’s', () => {
-    const note = bodyDetailGroups(body('moon'), true).find((g) => g.id === 'provenance')?.note ?? '';
+    const note = bodyDetailGroups(body('moon'), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null }).find((g) => g.id === 'provenance')?.note ?? '';
     expect(note).toContain('0.0127°');
     expect(note).toContain('22.3 km');
   });
 
   it('says when the Sun is the analytic stand-in', () => {
-    const note = bodyDetailGroups(body('sun'), false).find((g) => g.id === 'provenance')?.note ?? '';
+    const note = bodyDetailGroups(body('sun'), { ephemerisLoaded: false, centreFromHorizons: false, manifest: null }).find((g) => g.id === 'provenance')?.note ?? '';
     expect(note).toMatch(/until it loads/i);
   });
 });
 
 describe('bodyDetailGroups: maps and rings (S5b)', () => {
-  const group = (id: string, groupId: string) => bodyDetailGroups(body(id), true).find((g) => g.id === groupId);
+  const group = (id: string, groupId: string) => bodyDetailGroups(body(id), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null }).find((g) => g.id === groupId);
 
   it('names a planet’s map, its date, and that its clouds have moved', () => {
     const map = group('jupiter', 'map');
@@ -92,5 +107,21 @@ describe('bodyDetailGroups: maps and rings (S5b)', () => {
     expect(group('earth', 'identity')?.note).not.toContain('spin');
     expect(group('moon', 'identity')?.note).not.toContain('spin');
     expect(group('earth', 'map')).toBeUndefined();
+  });
+});
+
+describe('the panel for a planet with moons, and the view options (S6b)', () => {
+  it("says where Jupiter's centre comes from", () => {
+    const jupiter = bodyById('jupiter')!;
+    const note = (centreFromHorizons: boolean) =>
+      bodyDetailGroups(jupiter, { ephemerisLoaded: true, centreFromHorizons, manifest: null }).find((g) => g.id === 'provenance')?.note;
+    expect(note(false)).toContain('barycentre, not the planet’s centre');
+    expect(note(true)).toContain('JPL Horizons’ (its dated export)');
+    expect(note(true)).not.toContain('S6a'); // no milestone names on screen
+  });
+
+  it("offers NASA's views: Nearby and System, or the Sun's Nearby, Inner and Outer", () => {
+    expect(cameraViewOptions(bodyById('io')!).map((o) => o.label)).toEqual(['Nearby', 'System']);
+    expect(cameraViewOptions(bodyById('sun')!).map((o) => o.label)).toEqual(['Nearby', 'Inner', 'Outer']);
   });
 });

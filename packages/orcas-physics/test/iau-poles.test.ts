@@ -111,3 +111,33 @@ describe('IAU_PRIME_MERIDIANS rates', () => {
     expect(Math.abs(360 / Math.abs(m.wDegPerDay) - days) / days).toBeLessThan(2e-5);
   });
 });
+
+describe("the major moons' poles (S6b, pck00011, every term)", () => {
+  const at = new Date(Date.UTC(2026, 9, 12));
+  const raDecDeg = (naifId: number) => {
+    const p = iauPoleJ2000(naifId, at);
+    if (!p) throw new Error(`no pole for ${naifId}`);
+    const ra = (Math.atan2(p.y, p.x) * 180) / Math.PI;
+    return { ra: ra < 0 ? ra + 360 : ra, dec: (Math.asin(p.z) * 180) / Math.PI };
+  };
+
+  // Computed from pck00011.tpc by script on 2026-10-12, Mars's angles read as triples (BODY4_MAX_PHASE_DEGREE = 2).
+  it.each([
+    [401, 316.306684, 53.595811], // Phobos
+    [402, 314.022499, 54.439871], // Deimos
+    [501, 268.087395, 64.476694], // Io
+    [601, 52.134714, 84.33244], // Mimas
+    [705, 253.103542, -14.309121], // Miranda
+    [801, 304.342873, 20.664529], // Triton: its first term alone is 2.21° out
+  ])('NAIF %i points where pck00011 puts it on 2026-10-12', (naifId, ra, dec) => {
+    const got = raDecDeg(naifId);
+    expect(got.ra).toBeCloseTo(ra, 5);
+    expect(got.dec).toBeCloseTo(dec, 5);
+  });
+
+  it('covers all 19 major moons, and gives none a body frame before its prime meridian is added', () => {
+    const ids = [401, 402, 501, 502, 503, 504, 601, 602, 603, 604, 605, 606, 608, 701, 702, 703, 704, 705, 801];
+    expect(ids.every((id) => IAU_POLES[id] !== undefined)).toBe(true);
+    expect(iauBodyAxesJ2000(501, at)).toBeNull();
+  });
+});

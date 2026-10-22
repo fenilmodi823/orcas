@@ -1,3 +1,6 @@
+import type { InterleavedBufferAttribute } from 'three';
+import { Line2, LineGeometry, LineMaterial } from 'three-stdlib';
+import { patchLineMaterial } from '../live/line-trim.js';
 import { TRAIL_FLOOR } from '../paths/path-geometry.js';
 
 /** Points per orbit line, the first and last both at the planet. NASA draws 360. */
@@ -43,4 +46,28 @@ export function writeOffsetPositions(
     out[i * 3 + 1] = points[i * 3 + 1] + offset.y;
     out[i * 3 + 2] = points[i * 3 + 2] + offset.z;
   }
+}
+
+/** Write a line's consecutive points into its existing segment buffer, rather than re-allocating it each frame. */
+export function writeSegments(geometry: LineGeometry, points: Float32Array, count: number): void {
+  const data = (geometry.getAttribute('instanceStart') as InterleavedBufferAttribute).data;
+  const segments = data.array as Float32Array;
+  for (let i = 0; i < count - 1; i++) segments.set(points.subarray(i * 3, i * 3 + 6), i * 6);
+  data.needsUpdate = true;
+}
+
+/**
+ * A fat line rebuilt every frame (planet orbits S4, moon trails S6b): per-vertex RGBA, depth-tested so a body
+ * hides what is behind it but never writing depth, so it never hides another line (Reference §4.3); patched for
+ * reversed depth (`line-trim.ts`); its segment buffer sized once for `points`.
+ */
+export function createFatLine(points: number, colours: Float32Array, opacity: number, widthPx: number): Line2 {
+  const geometry = new LineGeometry();
+  geometry.setPositions(new Float32Array(points * 3));
+  geometry.setColors(colours, 4);
+  const material = new LineMaterial({ vertexColors: true, transparent: true, opacity, linewidth: widthPx, depthWrite: false });
+  patchLineMaterial(material);
+  const line = new Line2(geometry, material);
+  line.frustumCulled = false; // the segment buffer is rewritten every frame
+  return line;
 }

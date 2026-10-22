@@ -29,6 +29,7 @@ export function ObjectDetail({ groups }: ObjectDetailProps) {
                 value={field.value}
                 unit={field.unit}
                 precision={field.precision}
+                wide={field.wide}
               />
             ))}
           </div>

@@ -1,4 +1,5 @@
 import { julianCenturiesTTFromUtc, wrapDeg } from './ecliptic.js';
+import { IAU_MOON_POLES } from './iau-moon-poles.js';
 
 const DEG = Math.PI / 180;
 
@@ -7,15 +8,15 @@ export type PeriodicTerm = readonly [ampDeg: number, theta0Deg: number, thetaDeg
 
 /**
  * A body's north pole as the IAU gives it, degrees, T in Julian centuries TDB:
- * α = α₀ + α₁·T + a·sin θa, δ = δ₀ + δ₁·T + d·cos θd.
+ * α = α₀ + α₁·T + Σ a·sin θ, δ = δ₀ + δ₁·T + Σ d·cos θ.
  */
 export interface IauPole {
   readonly ra0Deg: number;
   readonly raDegPerCentury: number;
   readonly dec0Deg: number;
   readonly decDegPerCentury: number;
-  readonly raTerm?: PeriodicTerm;
-  readonly decTerm?: PeriodicTerm;
+  readonly raTerms: readonly PeriodicTerm[];
+  readonly decTerms: readonly PeriodicTerm[];
 }
 
 const pole = (
@@ -23,9 +24,9 @@ const pole = (
   raDegPerCentury: number,
   dec0Deg: number,
   decDegPerCentury: number,
-  raTerm?: PeriodicTerm,
-  decTerm?: PeriodicTerm,
-): IauPole => ({ ra0Deg, raDegPerCentury, dec0Deg, decDegPerCentury, raTerm, decTerm });
+  raTerms: readonly PeriodicTerm[] = [],
+  decTerms: readonly PeriodicTerm[] = [],
+): IauPole => ({ ra0Deg, raDegPerCentury, dec0Deg, decDegPerCentury, raTerms, decTerms });
 
 /**
  * North poles in ICRF (≈ J2000 equatorial), keyed by NAIF body id. IAU WGCCRE 2015 (Archinal et al. 2018,
@@ -36,29 +37,36 @@ const pole = (
  * Each body keeps only its largest periodic term, from the same file (BODYnnn_NUT_PREC_RA/DEC with the
  * BODYn_NUT_PREC_ANGLES they multiply): Mars's long-period pair, Neptune's N and the Moon's E1. ⚠️ What is left out
  * is at most 0.12° (the Moon's E2), and under 0.003° for every planet.
+ *
+ * The 19 major moons (S6b) are merged in from `iau-moon-poles.ts` with every term.
  */
-export const IAU_POLES: Readonly<Record<number, IauPole>> = {
+const PLANET_POLES: Readonly<Record<number, IauPole>> = {
   10: pole(286.13, 0, 63.87, 0), // Sun
   199: pole(281.0103, -0.0328, 61.4155, -0.0049), // Mercury
   299: pole(272.76, 0, 67.16, 0), // Venus
   399: pole(0, -0.641, 90, -0.557), // Earth
-  301: pole(269.9949, 0.0031, 66.5392, 0.013, [-3.8787, 125.045, -1935.5364525], [1.5419, 125.045, -1935.5364525]), // Moon
-  499: pole(317.269202, -0.10927547, 54.432516, -0.05827105, [0.419057, 79.398797, 0.5042615], [1.591274, 166.325722, 0.5042615]), // Mars
+  301: pole(269.9949, 0.0031, 66.5392, 0.013, [[-3.8787, 125.045, -1935.5364525]], [[1.5419, 125.045, -1935.5364525]]), // Moon
+  499: pole(317.269202, -0.10927547, 54.432516, -0.05827105, [[0.419057, 79.398797, 0.5042615]], [[1.591274, 166.325722, 0.5042615]]), // Mars
   599: pole(268.056595, -0.006499, 64.495303, 0.002413), // Jupiter
   699: pole(40.589, -0.036, 83.537, -0.004), // Saturn
   799: pole(257.311, 0, -15.175, 0), // Uranus
-  899: pole(299.36, 0, 43.46, 0, [0.7, 357.85, 52.316], [-0.51, 357.85, 52.316]), // Neptune
+  899: pole(299.36, 0, 43.46, 0, [[0.7, 357.85, 52.316]], [[-0.51, 357.85, 52.316]]), // Neptune
 };
+
+export const IAU_POLES: Readonly<Record<number, IauPole>> = { ...PLANET_POLES, ...IAU_MOON_POLES };
 
 type Vec3 = { x: number; y: number; z: number };
 
 const term = (q: PeriodicTerm | undefined, t: number, f: (rad: number) => number) => (q ? q[0] * f((q[1] + q[2] * t) * DEG) : 0);
 
+const series = (terms: readonly PeriodicTerm[], t: number, f: (rad: number) => number) =>
+  terms.reduce((sum, [a, theta0, theta1]) => sum + a * f((theta0 + theta1 * t) * DEG), 0);
+
 /** The pole's right ascension and declination, radians, at T Julian centuries TDB. */
 function poleRaDecRad(p: IauPole, t: number): { ra: number; dec: number } {
   return {
-    ra: (p.ra0Deg + p.raDegPerCentury * t + term(p.raTerm, t, Math.sin)) * DEG,
-    dec: (p.dec0Deg + p.decDegPerCentury * t + term(p.decTerm, t, Math.cos)) * DEG,
+    ra: (p.ra0Deg + p.raDegPerCentury * t + series(p.raTerms, t, Math.sin)) * DEG,
+    dec: (p.dec0Deg + p.decDegPerCentury * t + series(p.decTerms, t, Math.cos)) * DEG,
   };
 }
 

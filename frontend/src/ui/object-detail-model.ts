@@ -16,6 +16,8 @@ export interface DetailField {
   readonly value: number | string;
   readonly unit?: string;
   readonly precision?: number;
+  /** Spans the whole row: a value too long for one column (a moon's radii, its requested spans). */
+  readonly wide?: boolean;
 }
 
 export type DetailGroupId = 'identity' | 'kinematics' | 'orbit' | 'provenance' | 'conjunction' | 'map' | 'rings';

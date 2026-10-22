@@ -10,6 +10,7 @@ import type { BodyScreenPosition } from './body-screen.js';
 import type { BodyLabelRefs } from './BodyLabels.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { createPlanetBodies } from '../solar/planet-bodies.js';
+import { createMoonBodies } from '../solar/moon-bodies.js';
 import { createSceneLabelWriter } from '../solar/scene-labels.js';
 import { clampNearToBodies } from '../solar/near-clamp.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
@@ -39,7 +40,8 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const { gl } = useThree();
   const system = useMemo(() => createEarthSunMoon(), []);
   const planets = useMemo(() => createPlanetBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
-  const labelWriter = useMemo(() => createSceneLabelWriter(planets), [planets]);
+  const moons = useMemo(() => createMoonBodies(), []);
+  const labelWriter = useMemo(() => createSceneLabelWriter(planets, moons), [planets, moons]);
   const analyticSunKm = useMemo(() => new Vector3(), []);
   const ephemerisRef = usePlanetEphemeris();
 
@@ -48,8 +50,9 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     return () => {
       system.dispose();
       planets.dispose();
+      moons.dispose();
     };
-  }, [gl, system, planets]);
+  }, [gl, system, planets, moons]);
 
   useFrame(({ camera, size }) => {
     const epochMs = frameStateRef.current.epochMs;
@@ -68,7 +71,8 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
       const s = sunPositionJ2000Km(at);
       sunKm = analyticSunKm.set(s.x, s.y, s.z);
     }
-    system.update(epochMs, camera, fov, viewport, sunKm);
+    moons.update(epochMs, ephemerisRef.current, planets.placed ? planets.planetKm : null, sunKm, camera, viewport, hoveredBody, selectedBody);
+    system.update(epochMs, camera, fov, viewport, sunKm, hoveredBody === 'moon');
     labelWriter.write(at, camera, size.width, size.height, sunKm, system.moonKm);
     if (camera instanceof PerspectiveCamera) clampNearToBodies(camera, labelWriter.occluders, planets.ringDistanceKm);
 
@@ -79,6 +83,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     labels.planets.forEach((p, i) => place(refs.planets[i] ?? null, p));
     // The Lagrange labels belong to the Earth-scale layers, which fade out past ~2 × 10⁶ km (B.21).
     const fade = layerFade(SATELLITE_LAYER_RADIUS_KM, camera.position.length());
+    labels.moons.forEach((p, i) => place(refs.moons[i] ?? null, p, moons.fade[i] ?? 0));
     labels.lagrange.forEach((p, i) => place(refs.lagrange[i] ?? null, p, fade));
   });
 
@@ -86,6 +91,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     <>
       <primitive object={system.group} />
       <primitive object={planets.group} />
+      <primitive object={moons.group} />
     </>
   );
 }

@@ -34,9 +34,9 @@ export function bodyTarget(body: Body, ephemeris: { readonly current: PlanetEphe
 /**
  * Home: where the camera goes relative to the Sun, km, J2000 equatorial. 7.0 × 10⁸ km out and 25° above the
  * ecliptic, as NASA's is, at the ecliptic longitude the camera already has about the Sun, so the move is a
- * pull-back rather than a swing round.
+ * pull-back rather than a swing round. NASA's Outer view passes 10¹⁰ km.
  */
-export function homeOffsetKm(cameraKm: Vector3, sunKm: Vector3, out: Vector3): Vector3 {
+export function homeOffsetKm(cameraKm: Vector3, sunKm: Vector3, out: Vector3, distanceKm = HOME_DISTANCE_KM): Vector3 {
   _p.copy(cameraKm).sub(sunKm);
   _p.addScaledVector(ECLIPTIC_NORTH_J2000, -_p.dot(ECLIPTIC_NORTH_J2000)); // into the ecliptic plane
   if (_p.lengthSq() < 1e-6) _p.set(1, 0, 0); // straight over the pole: the equinox, which lies in the ecliptic
@@ -46,5 +46,5 @@ export function homeOffsetKm(cameraKm: Vector3, sunKm: Vector3, out: Vector3): V
     .copy(_e1)
     .multiplyScalar(Math.cos(HOME_ELEVATION_RAD))
     .addScaledVector(_e2, Math.sin(HOME_ELEVATION_RAD))
-    .multiplyScalar(HOME_DISTANCE_KM);
+    .multiplyScalar(distanceKm);
 }

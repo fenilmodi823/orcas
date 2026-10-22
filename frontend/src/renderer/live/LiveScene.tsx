@@ -82,7 +82,7 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const contextLoss = useContextLoss(canvasEl);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
-  const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, planets: [], lagrange: [] });
+  const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, planets: [], moons: [], lagrange: [] });
   const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);

@@ -1,5 +1,4 @@
 import { DirectionalLight, Group, Matrix4, Mesh, SphereGeometry, Vector3, type Camera } from 'three';
-import { Line2, LineGeometry, LineMaterial } from 'three-stdlib';
 import { MOON_RADIUS_KM, moonPositionJ2000Km, WGS84_A_KM } from '@orcas/physics';
 import { readColorToken } from '../scene-colors.js';
 import { earthOrientationMatrix } from './earth-orientation.js';
@@ -11,14 +10,9 @@ import {
   loadSceneTextures,
 } from './earth-materials.js';
 import { createSunSprite, sunSpriteSize } from './sun-sprite.js';
-import { MOON_TRAIL_SAMPLES, writeMoonTrail } from './moon-trail.js';
+import { createFatLine, ORBIT_SAMPLES, writeOffsetPositions, writeOrbitColours, writeSegments } from '../solar/orbit-line.js';
+import { MOON_ORBIT_HOVER_WIDTH_PX, MOON_ORBIT_OPACITY, MOON_ORBIT_WIDTH_PX, writeMoonOrbit } from './moon-orbit.js';
 import { layerFade, MOON_LAYER_RADIUS_KM, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
-import { patchLineMaterial } from '../live/line-trim.js';
-
-/** Resample the Moon's trail once the clock has moved this far. The Moon covers
- * ~0.09° (~600 km) in 10 simulated minutes, so the trail never visibly lags it. */
-const TRAIL_RESAMPLE_MS = 10 * 60_000;
-const MOON_TRAIL_WIDTH_PX = 2.5; // thicker than a satellite path (1.5 / 2 px) — item 13
 
 const _poleToZ = new Matrix4().makeRotationX(Math.PI / 2);
 const _moonScale = new Matrix4().makeScale(MOON_RADIUS_KM, MOON_RADIUS_KM, MOON_RADIUS_KM);
@@ -56,7 +50,7 @@ export interface EarthSunMoonSystem {
    * camera is final. `sunKm` is the Sun's true geocentric position (km): it
    * places the Sun's disc and lights the Earth and the Moon.
    */
-  update(epochMs: number, camera: Camera, fovDeg: number, viewport: Viewport, sunKm: Vector3): void;
+  update(epochMs: number, camera: Camera, fovDeg: number, viewport: Viewport, sunKm: Vector3, moonHovered?: boolean): void;
   loadTextures(anisotropy: number): void;
   dispose(): void;
 }
@@ -82,19 +76,18 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
   const sun = createSunSprite();
   const light = new DirectionalLight(undefined, 2.2);
 
-  const trailGeometry = new LineGeometry();
-  const trailMaterial = new LineMaterial({ vertexColors: true, transparent: true, linewidth: MOON_TRAIL_WIDTH_PX });
-  patchLineMaterial(trailMaterial);
-  const trail = new Line2(trailGeometry, trailMaterial);
-  trail.frustumCulled = false;
-  trail.visible = false; // until the first sample
+  // NASA's Moon: the planets' orbit line, brightest at the Moon and fading to the far side (S6b, decision 15).
   const moonRgb = readColorToken('--moon', '#e6dcc6');
-  const trailPositions = new Float32Array(MOON_TRAIL_SAMPLES * 3);
-  const trailColours = new Float32Array(MOON_TRAIL_SAMPLES * 4);
-  let trailSampledAtMs = Number.NaN;
+  const orbitColours = new Float32Array(ORBIT_SAMPLES * 4);
+  writeOrbitColours({ r: moonRgb.r, g: moonRgb.g, b: moonRgb.b }, orbitColours);
+  const orbit = createFatLine(ORBIT_SAMPLES, orbitColours, MOON_ORBIT_OPACITY, MOON_ORBIT_WIDTH_PX);
+  orbit.visible = false;
+  const orbitKm = new Float64Array(ORBIT_SAMPLES * 3);
+  const orbitPoints = new Float32Array(ORBIT_SAMPLES * 3);
+  const minusCamera = new Vector3();
 
   const group = new Group();
-  group.add(light, sun, earth, atmosphere, moon, trail);
+  group.add(light, sun, earth, atmosphere, moon, orbit);
 
   const sunDir = new Vector3();
   const moonPosition = new Vector3();
@@ -106,7 +99,7 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
     loadTextures(anisotropy) {
       disposeTextures = loadSceneTextures(surface, moonMaterial, anisotropy);
     },
-    update(epochMs, camera, fovDeg, viewport, sunKm) {
+    update(epochMs, camera, fovDeg, viewport, sunKm, moonHovered = false) {
       const at = new Date(epochMs);
       const widthPx = viewport.cssWidth * viewport.dpr;
       const heightPx = viewport.cssHeight * viewport.dpr;
@@ -132,23 +125,24 @@ export function createEarthSunMoon(): EarthSunMoonSystem {
       // Earth-scale layers fade as they shrink onto the Earth's pixel (B.21).
       const camDistKm = camera.position.length();
       atmosphere.visible = layerFade(SATELLITE_LAYER_RADIUS_KM, camDistKm) > 0;
-      trailMaterial.opacity = layerFade(MOON_LAYER_RADIUS_KM, camDistKm);
-      trailMaterial.resolution.set(widthPx, heightPx);
-      if (!(Math.abs(epochMs - trailSampledAtMs) < TRAIL_RESAMPLE_MS)) {
-        writeMoonTrail(epochMs, moonRgb, trailPositions, trailColours);
-        trailGeometry.setPositions(trailPositions);
-        trailGeometry.setColors(trailColours, 4);
-        trail.computeLineDistances();
-        trailSampledAtMs = epochMs;
+      // The Moon's orbit outlasts the satellites by exactly its size (S4's rule); it is camera-relative, as the planets' are.
+      const fade = layerFade(MOON_LAYER_RADIUS_KM, camDistKm);
+      orbit.visible = fade > 0 && writeMoonOrbit(epochMs, orbitKm);
+      if (orbit.visible) {
+        writeOffsetPositions(orbitKm, ORBIT_SAMPLES, minusCamera.copy(camera.position).negate(), orbitPoints);
+        writeSegments(orbit.geometry, orbitPoints, ORBIT_SAMPLES);
+        orbit.position.copy(camera.position);
+        orbit.material.opacity = fade * (moonHovered ? 1 : MOON_ORBIT_OPACITY); // hover: full, as NASA's
+        orbit.material.linewidth = moonHovered ? MOON_ORBIT_HOVER_WIDTH_PX : MOON_ORBIT_WIDTH_PX;
+        orbit.material.resolution.set(widthPx, heightPx);
       }
-      trail.visible = trailMaterial.opacity > 0; // the block above has always sampled it by now
     },
     dispose() {
       disposeTextures();
       for (const mesh of [earth, atmosphere, moon]) mesh.geometry.dispose();
-      for (const material of [surface, atmosphereMaterial, moonMaterial, trailMaterial, sun.material]) material.dispose();
+      for (const material of [surface, atmosphereMaterial, moonMaterial, orbit.material, sun.material]) material.dispose();
       sun.geometry.dispose();
-      trailGeometry.dispose();
+      orbit.geometry.dispose();
     },
   };
 }

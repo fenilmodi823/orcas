@@ -29,6 +29,13 @@ describe('ObjectDetail', () => {
     expect(screen.getByText('2009-02-10 16:56:00 UTC')).toBeTruthy();
   });
 
+  it('gives a field marked wide the whole row, for values too long for a column', () => {
+    render(<ObjectDetail groups={[{ id: 'identity', title: 'Body', fields: [{ label: 'Radii', value: '1829.4 × 1819.4 × 1815.7', unit: 'km', wide: true }, { label: 'Type', value: 'Moon' }] }]} />);
+
+    expect(screen.getByText('Radii').closest('.telemetry-readout')?.classList.contains('telemetry-readout--wide')).toBe(true);
+    expect(screen.getByText('Type').closest('.telemetry-readout')?.classList.contains('telemetry-readout--wide')).toBe(false);
+  });
+
   it('draws nothing for a group that is not there, rather than blanks', () => {
     render(<ObjectDetail groups={GROUPS} />);
 

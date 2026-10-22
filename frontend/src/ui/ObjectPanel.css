@@ -75,9 +75,11 @@
   padding-top: var(--space-4);
 }
 
+/* Wraps: a moon's four readouts (its planet, the Earth, the Sun, light time) overflow one row. */
 .object-panel__summary {
   display: flex;
-  gap: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
   padding: 0 var(--space-4) var(--space-4);
 }
 

@@ -22,6 +22,7 @@ const SPHERE_FRAGMENT = /* glsl */ `
   uniform sampler2D uMap;
   uniform float uHasMap;
   uniform vec3 uSunDir;   // unit vector from this planet toward the Sun, scene frame
+  uniform float uSunlit;  // the fraction of the Sun this body sees (S6b: a moon in its planet's shadow)
   uniform vec3 uPole;     // the planet's IAU north, scene frame
   uniform sampler2D uRingTransmission; // Saturn: exp(-tau) at normal incidence, linear
   uniform float uHasRings;
@@ -35,7 +36,7 @@ const SPHERE_FRAGMENT = /* glsl */ `
     vec3 base = uHasMap > 0.5 ? texture2D(uMap, vUv).rgb : uColour;
     // Lambert from the Sun, so each planet shows its true phase; the night side
     // stays dark, as the Earth's does (brief §F.1).
-    float lit = max(dot(normalize(vNormalW), uSunDir), 0.0);
+    float lit = max(dot(normalize(vNormalW), uSunDir), 0.0) * uSunlit;
     if (uHasRings > 0.5 && lit > 0.0) {
       // The rings' shadow: follow the ray to the Sun to the ring plane, and dim by
       // the light the rings let through on that slant, exp(-tau / mu0).
@@ -66,6 +67,7 @@ export function createPlanetMaterial(colour: Color): ShaderMaterial {
       uMap: { value: null },
       uHasMap: { value: 0 },
       uSunDir: { value: new Vector3(1, 0, 0) },
+      uSunlit: { value: 1 },
       uPole: { value: new Vector3(0, 0, 1) },
       uRingTransmission: { value: null },
       uHasRings: { value: 0 },

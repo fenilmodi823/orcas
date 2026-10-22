@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ORBIT_SAMPLES, writeOrbitColours, writeOffsetPositions } from './orbit-line.js';
+import { ORBIT_SAMPLES, createFatLine, writeOrbitColours, writeOffsetPositions, writeSegments } from './orbit-line.js';
 import { TRAIL_FLOOR } from '../paths/path-geometry.js';
 
 describe('planet orbit lines (S4, NASA Eyes §4.3)', () => {
@@ -26,5 +26,21 @@ describe('planet orbit lines (S4, NASA Eyes §4.3)', () => {
     writeOffsetPositions(sunRelative, 1, sunMinusCamera, out);
     expect(out[0]).toBeCloseTo(1, 6);
     expect(out[1]).toBeCloseTo(0.25, 6);
+  });
+});
+
+describe('createFatLine (S4, shared with the moon trails in S6b)', () => {
+  it('is depth-tested without writing depth, patched for reversed depth, and sized once', () => {
+    const colours = new Float32Array(5 * 4).fill(1);
+    const line = createFatLine(5, colours, 0.75, 1.2);
+    expect(line.material.depthWrite).toBe(false);
+    expect(line.material.opacity).toBe(0.75);
+    expect(line.material.linewidth).toBe(1.2);
+    expect(line.material.vertexShader).toContain('USE_REVERSED_DEPTH_BUFFER');
+    expect(line.frustumCulled).toBe(false);
+    const points = Float32Array.from({ length: 15 }, (_, i) => i);
+    writeSegments(line.geometry, points, 5);
+    const start = line.geometry.getAttribute('instanceStart');
+    expect([start.getX(1), start.getY(1), start.getZ(1)]).toEqual([3, 4, 5]); // the second segment starts at point 1
   });
 });

@@ -1,6 +1,7 @@
 import type { MutableRefObject } from 'react';
 import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { LAGRANGE_LABELS } from './lagrange-labels.js';
+import { MOONS } from '../solar/moons.js';
 import { PLANETS } from '../solar/planets.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 
@@ -9,6 +10,7 @@ export interface BodyLabelRefs {
   moon: ObjectLabelHandle | null;
   /** In `PLANETS` order (S4). */
   planets: (ObjectLabelHandle | null)[];
+  moons: (ObjectLabelHandle | null)[]; // in MOONS order (S6b)
   /** In `LAGRANGE_LABELS` order (S2). */
   lagrange: (ObjectLabelHandle | null)[];
 }
@@ -52,6 +54,17 @@ export function BodyLabels({ labelsRef }: { readonly labelsRef: MutableRefObject
         name="Moon"
         {...controls('moon')}
       />
+      {/* NASA's moons: secondary tier, a label a control (S6b). */}
+      {MOONS.map((m, i) => (
+        <ObjectLabel
+          key={m.id}
+          ref={(handle) => {
+            labelsRef.current.moons[i] = handle;
+          }}
+          name={m.name}
+          {...controls(m.id)}
+        />
+      ))}
       {LAGRANGE_LABELS.map((l, i) => (
         <ObjectLabel
           key={l.name}

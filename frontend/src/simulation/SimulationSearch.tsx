@@ -4,7 +4,7 @@ import { GlassSurface } from '../ui/GlassSurface.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore } from '../state/selection-store.js';
 import type { ObjectMeta } from '../data/catalog-types.js';
-import { BODIES, BODY_KIND_LABEL, isBodyId } from '../renderer/solar/bodies.js';
+import { BODIES, bodySubtitle, isBodyId } from '../renderer/solar/bodies.js';
 import './SimulationSearch.css';
 
 /**
@@ -24,7 +24,7 @@ export function SimulationSearch({ objects }: { objects: readonly ObjectMeta[] }
   // The Sun, the planets and the Moon first, then the catalogue: search crosses scales (Cosmic-Scales §6.3).
   const items = useMemo<SearchableObject[]>(
     () => [
-      ...BODIES.map((b) => ({ id: b.id, name: b.name, detail: BODY_KIND_LABEL[b.kind] })),
+      ...BODIES.map((b) => ({ id: b.id, name: b.name, detail: bodySubtitle(b) })),
       ...objects.map((o) => ({ id: o.norad, name: o.name, detail: o.norad })),
     ],
     [objects],

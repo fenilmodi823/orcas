@@ -12,6 +12,8 @@ export interface Planet {
   readonly polarRadiusKm: number;
   /** The body's own NAIF id, for its IAU pole: Jupiter's 599, where `naifId` is its system's 5. */
   readonly bodyNaifId: number;
+  /** The system's GM, km³/s² (DE440): μ for its moons' orbits (S6b). */
+  readonly gmKm3S2: number;
   /** μ for the heliocentric orbit, G(M_sun + M_system), km³/s². */
   readonly muKm3S2: number;
   /** The orbit-line colour token in tokens.css, and its own value for JSDOM. */
@@ -39,6 +41,7 @@ const planet = (
   radiusKm,
   equatorialRadiusKm,
   polarRadiusKm,
+  gmKm3S2,
   muKm3S2: GM_SUN + gmKm3S2,
   token: `--${name.toLowerCase()}`,
   fallback,
@@ -63,4 +66,4 @@ export const EARTH_NAIF_ID = 399;
 
 /** Said on screen where the planets are drawn (Rules §7, Cosmic-Scales §3.4: each scale states what its positions are worth). */
 export const PLANET_CREDIT =
-  'Sun and planets: JPL DE421, interpolated to within 1″; Jupiter to Neptune at their system barycentres.';
+  'Sun and planets: JPL DE421, interpolated to within 1″; Jupiter to Neptune at their centres from JPL Horizons where its export covers them, otherwise at their system barycentres.';

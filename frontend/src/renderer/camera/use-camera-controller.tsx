@@ -6,11 +6,12 @@ import { hasPosition, type FrameState } from '../../simulation/frame-state.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { usePlanetEphemeris } from '../../data/use-planet-ephemeris.js';
 import { bodyById } from '../solar/bodies.js';
-import { bodyTarget, ECLIPTIC_NORTH_J2000, homeOffsetKm } from '../solar/body-target.js';
+import { bodyTarget } from '../solar/body-target.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
 import { dragToManualInput, wheelToManualInput } from './manual-input.js';
 import { useCameraTunables } from './camera-tunables.js';
 import { useCameraStatus } from './camera-status.js';
+import { subscribeCameraViews } from './camera-views.js';
 import { useReducedMotion } from '../../state/use-reduced-motion.js';
 
 const CROSSFADE_CLASS = 'live-scene--crossfade';
@@ -112,21 +113,25 @@ export function useCameraController({
     if (initial.selectedBody !== null) followBody(initial.selectedBody);
     else if (initial.selectedNorad !== null) follow(initial.selectedNorad);
 
-    // The breadcrumb's root: NASA Eyes' home, the Sun from 7 × 10⁸ km, 25° above the ecliptic.
-    const unsubHome = useCameraStatus.subscribe((state, prev) => {
-      const sun = bodyById('sun');
-      const epochMs = frameStateRef.current.epochMs;
-      if (state.homeRequests === prev.homeRequests || !sun || epochMs <= 0) return;
-      const target = { ...bodyTarget(sun, ephemerisRef), key: 'home' };
-      const sunKm = target.positionKm(epochMs, new Vector3());
-      if (!sunKm) return;
+    const clearPending = () => {
+      pendingTargetRef.current = -1;
+      pendingBodyRef.current = null;
+    };
+    const clearSelectionQuietly = () => {
       homing = true;
       useSelectionStore.getState().clearSelection();
       homing = false;
-      pendingTargetRef.current = -1;
-      pendingBodyRef.current = null;
-      const arrivalOffsetKm = homeOffsetKm(camera.position, sunKm, new Vector3());
-      sys.flyToBody(target, { arrivalOffsetKm, refUp: ECLIPTIC_NORTH_J2000.clone(), spin: false }).catch(() => undefined);
+      clearPending();
+    };
+    // NASA Eyes' camera views and the breadcrumb's home (S6b): camera-views.ts.
+    const unsubViews = subscribeCameraViews({
+      sys,
+      camera: camera as PerspectiveCamera,
+      epochMs: () => frameStateRef.current.epochMs,
+      ephemerisRef,
+      followBody,
+      clearSelectionQuietly,
+      clearPending,
     });
 
     // "Reset view & tunables" → actually reset the view. The selection
@@ -179,7 +184,7 @@ export function useCameraController({
     return () => {
       unsub();
       unsubReset();
-      unsubHome();
+      unsubViews();
       window.removeEventListener('keydown', onKey);
       el.removeEventListener('pointerdown', onPointerDown as EventListener);
       el.removeEventListener('pointermove', onPointerMove as EventListener);
