@@ -11,7 +11,7 @@ const manifest = parseHorizonsManifest(JSON.parse(readFileSync(resolve(process.c
 afterEach(() => resetMoonSystems());
 
 describe("a moon's panel (S6b)", () => {
-  it('names its planet, its IAU radii and the sphere it is drawn as', () => {
+  it('names its planet, its IAU radii and the ellipsoid it is drawn as', () => {
     const body = moonDetailGroups(bodyById('phobos')!, manifest).find((g) => g.id === 'identity');
     expect(body?.fields).toEqual(
       expect.arrayContaining([
@@ -20,6 +20,25 @@ describe("a moon's panel (S6b)", () => {
       ]),
     );
     expect(body?.note).toContain('irregular');
+    expect(body?.note).toContain('turned by its IAU pole and prime meridian');
+    expect(body?.note).not.toContain('sphere');
+  });
+
+  it('names its map, says it is greyscale and where the data stops (S6b2)', () => {
+    const map = (id: string) => moonDetailGroups(bodyById(id)!, manifest).find((g) => g.id === 'map');
+    expect(map('io')?.fields[0]?.value).toBe('Galileo SSI, Voyager');
+    expect(map('io')?.note).toContain('greyscale');
+    expect(map('io')?.note).toContain('colour version is enhanced');
+    expect(map('umbriel')?.note).toContain('southern hemisphere only');
+    expect(map('iapetus')?.note).toContain('far darker than it looks here'); // mapping mosaics flatten the dichotomy
+  });
+
+  it('says why Deimos and Titan have no map, rather than leaving it out (S6b2)', () => {
+    const map = (id: string) => moonDetailGroups(bodyById(id)!, manifest).find((g) => g.id === 'map');
+    expect(map('deimos')?.fields[0]?.value).toBe('None');
+    expect(map('deimos')?.note).toContain('airbrushed');
+    expect(map('titan')?.fields[0]?.value).toBe('None');
+    expect(map('titan')?.note).toContain('PIA06230');
   });
 
   it('cites the export: source, date, trajectory, spans and accuracy, in its own words', () => {

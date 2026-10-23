@@ -1,13 +1,15 @@
 // frontend/src/renderer/solar/moon-bodies.ts
-import { BufferAttribute, BufferGeometry, Group, Mesh, Points, SphereGeometry, Vector3, type Camera } from 'three';
-import { SUN_RADIUS_KM, visibleDiskFraction } from '@orcas/physics';
+import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, Points, SphereGeometry, Vector3, type Camera, type Texture } from 'three';
+import { iauBodyAxesJ2000, SUN_RADIUS_KM, visibleDiskFraction } from '@orcas/physics';
 import type { PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { MOON_SYSTEMS, moonSystem, requestMoonSystem, type MoonSystemId } from '../../data/moon-systems.js';
 import { readColorToken } from '../scene-colors.js';
 import { layerFade } from '../scale-fade.js';
 import { taperLine } from '../live/line-taper.js';
 import type { Occluder } from '../earth/body-label-layout.js';
-import { meanRadiusKm, MOONS, moonSystemOf, SYSTEM_RADIUS_KM } from './moons.js';
+import { MOONS, moonSystemOf, SYSTEM_RADIUS_KM } from './moons.js';
+import { MOON_MAPS } from './moon-maps.js';
+import { loadPlanetMap } from './planet-maps.js';
 import { PLANETS } from './planets.js';
 import { horizonsGeocentricKm } from './system-centres.js';
 import { createFatLine, writeOffsetPositions, writeSegments } from './orbit-line.js';
@@ -16,9 +18,19 @@ import { createPlanetDotMaterial, createPlanetMaterial } from './planet-material
 import type { Viewport } from './planet-bodies.js';
 
 const DOT_CSS_PX = 2;
-/** Natural bodies' token (P4.D30): a moon is flat in it until S6b2 gives it a real map. */
+/** Natural bodies' token (P4.D30): a moon is flat in it until its map loads, and Deimos always (S6b2). */
 const MOON_TOKEN = '--moon';
 const MOON_FALLBACK = '#e6dcc6';
+/** Titan's haze, measured from Cassini's natural-colour PIA06230 by scripts/data/bake_moon_textures.py (B.29). */
+const TITAN_TOKEN = '--titan';
+const TITAN_FALLBACK = '#c09d3c';
+/** As the planets: a map is fetched once a moon covers a pixel, or is hovered or selected. */
+const MAP_LOAD_PX = 1;
+const _poleToZ = new Matrix4().makeRotationX(Math.PI / 2); // three's sphere has its pole on +Y
+const _basis = new Matrix4();
+const _x = new Vector3();
+const _y = new Vector3();
+const _z = new Vector3();
 /** NASA's `DefaultVisibleFar` fades over half its size again (blur 0.5); ORCAS starts at its 20 px label rule. */
 const OWN_TRAIL_FROM_PX = 20;
 const OWN_TRAIL_TO_PX = 30;
@@ -78,29 +90,49 @@ export interface MoonBodies {
 }
 
 /**
- * S6b: the major moons. Each is a lit sphere of its mean radius in the `--moon` token, dimmed in its planet's
- * shadow; a 2 px dot when smaller; and NASA's trail, one orbit in its planet's hue, tapered. A system is drawn
- * by S4's fade rule from its planet, and its file is fetched when it fades in or one of its bodies is hovered
- * or selected. Everything reaches the GPU camera-relative (B.21).
+ * S6b: the major moons. Each is its IAU ellipsoid turned by its IAU pole and prime meridian, lit and dimmed in
+ * its planet's shadow, with its real map once approached (S6b2) and flat until then; a 2 px dot when smaller;
+ * and NASA's trail, one orbit in its planet's hue, tapered. A system is drawn by S4's fade rule from its planet,
+ * and its file is fetched when it fades in or one of its bodies is hovered or selected. Everything reaches the
+ * GPU camera-relative (B.21). `loadMap` is injected so tests can see the map requests.
  */
-export function createMoonBodies(): MoonBodies {
+export function createMoonBodies(anisotropy = 1, loadMap: typeof loadPlanetMap = loadPlanetMap): MoonBodies {
   const group = new Group();
   const sphere = new SphereGeometry(1, 48, 24);
   const colour = readColorToken(MOON_TOKEN, MOON_FALLBACK);
   const moonKm = MOONS.map(() => new Vector3());
   const drawn = MOONS.map(() => false);
   const fade = MOONS.map(() => 0);
-  const occluderOf: Occluder[] = MOONS.map((m, i) => ({ centreKm: moonKm[i] ?? new Vector3(), radiusKm: meanRadiusKm(m) }));
+  // The largest radius, so a label or the near plane never cuts the long axis (S6b2).
+  const occluderOf: Occluder[] = MOONS.map((m, i) => ({ centreKm: moonKm[i] ?? new Vector3(), radiusKm: m.radiiKm[0] }));
   const occluders: Occluder[] = [];
   const systemFade = new Map<MoonSystemId, number>();
+  const textures: Texture[] = [];
+  const mapRequested = MOONS.map(() => false);
 
-  const meshes = MOONS.map(() => {
-    const mesh = new Mesh(sphere, createPlanetMaterial(colour.clone()));
+  const meshes = MOONS.map((m) => {
+    const flat = m.id === 'titan' ? readColorToken(TITAN_TOKEN, TITAN_FALLBACK) : colour.clone();
+    const mesh = new Mesh(sphere, createPlanetMaterial(flat));
     mesh.matrixAutoUpdate = false;
     mesh.visible = false;
     group.add(mesh);
     return mesh;
   });
+  // The unit sphere to the IAU ellipsoid: a along its x (to body x), c along its pole (to body z), b along its z.
+  const scales = MOONS.map((m) => new Matrix4().makeScale(m.radiiKm[0], m.radiiKm[2], m.radiiKm[1]));
+
+  function requestMap(i: number): void {
+    const moon = MOONS[i];
+    const material = meshes[i]?.material;
+    const map = moon && MOON_MAPS[moon.id];
+    if (mapRequested[i] || !map || !material) return;
+    mapRequested[i] = true;
+    loadMap(map.url, anisotropy, (texture) => {
+      textures.push(texture);
+      material.uniforms.uMap.value = texture;
+      material.uniforms.uHasMap.value = 1;
+    });
+  }
   const trails = MOONS.map((m) => {
     const planet = PLANETS[planetIndexOf(m.system)];
     const c = readColorToken(planet?.token ?? MOON_TOKEN, planet?.fallback ?? MOON_FALLBACK);
@@ -119,7 +151,7 @@ export function createMoonBodies(): MoonBodies {
   const dotPositions = new Float32Array(MOONS.length * 3);
   dotGeometry.setAttribute('position', new BufferAttribute(dotPositions, 3));
   const dotColours = new Float32Array(MOONS.length * 3);
-  MOONS.forEach((_, i) => colour.toArray(dotColours, i * 3));
+  meshes.forEach((mesh, i) => mesh.material.uniforms.uColour.value.toArray(dotColours, i * 3)); // Titan's: its haze
   dotGeometry.setAttribute('colour', new BufferAttribute(dotColours, 3));
   const dots = new Points(dotGeometry, createPlanetDotMaterial());
   dots.frustumCulled = false;
@@ -134,6 +166,7 @@ export function createMoonBodies(): MoonBodies {
     occluders,
     update(epochMs, planets, planetKm, sunKm, camera, viewport, hoveredId, selectedId) {
       const cam = camera.position;
+      const when = new Date(epochMs);
       const pxPerRadian = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.cssHeight;
       const wanted = [moonSystemOf(hoveredId), moonSystemOf(selectedId)];
       for (const system of MOON_SYSTEMS) {
@@ -153,12 +186,13 @@ export function createMoonBodies(): MoonBodies {
         const occluder = occluderOf[i];
         const planet = PLANETS[planetIndexOf(moon.system)];
         const planetAt = planetKm?.[planetIndexOf(moon.system)];
+        const scale = scales[i];
         // Hidden first, so an early return never leaves a moon drawn at a stale place (B.26).
         drawn[i] = false;
         fade[i] = 0;
         if (mesh) mesh.visible = false;
         if (trail) trail.visible = false;
-        if (!at || !mesh || !trail || !occluder || !planet || !planetAt) return;
+        if (!at || !mesh || !trail || !occluder || !planet || !planetAt || !scale) return;
         const f = systemFade.get(moon.system) ?? 0;
         const placed = f > 0 && horizonsGeocentricKm(moon.system, moon.naifId, epochMs, planets, at) !== null;
         drawn[i] = placed;
@@ -169,8 +203,13 @@ export function createMoonBodies(): MoonBodies {
         occluders.push(occluder);
 
         const r = occluder.radiusKm;
-        mesh.matrix.makeScale(r, r, r).setPosition(at);
+        const axes = iauBodyAxesJ2000(moon.naifId, when);
+        if (axes) _basis.makeBasis(_x.copy(axes.x), _y.copy(axes.y), _z.copy(axes.z));
+        else _basis.identity();
+        mesh.matrix.copy(_basis.setPosition(at)).multiply(_poleToZ).multiply(scale);
         mesh.matrixWorldNeedsUpdate = true;
+        const discPx = (r / Math.max(cam.distanceTo(at), r)) * pxPerRadian;
+        if (discPx > MAP_LOAD_PX || moon.id === hoveredId || moon.id === selectedId) requestMap(i);
         const u = mesh.material.uniforms;
         u.uSunDir.value.copy(sunKm).sub(at).normalize();
         u.uSunlit.value = moonSunlitFraction(at, planetAt, planet.equatorialRadiusKm, sunKm);
@@ -187,7 +226,6 @@ export function createMoonBodies(): MoonBodies {
         writeSegments(trail.geometry, linePoints, TRAIL_SAMPLES);
         trail.position.copy(cam);
         const hovered = moon.id === hoveredId;
-        const discPx = (r / Math.max(cam.distanceTo(at), r)) * pxPerRadian;
         trail.material.opacity = f * ownTrailFade(discPx) * (hovered ? 1 / TRAIL_ALPHA : 1); // hover: full opacity, NASA's
         trail.material.linewidth = hovered ? TRAIL_HOVER_WIDTH_PX : TRAIL_WIDTH_PX;
         trail.material.resolution.set(viewport.cssWidth * viewport.dpr, viewport.cssHeight * viewport.dpr);
@@ -198,6 +236,7 @@ export function createMoonBodies(): MoonBodies {
     },
     dispose() {
       sphere.dispose();
+      for (const texture of textures) texture.dispose();
       for (const mesh of meshes) mesh.material.dispose();
       for (const line of trails) {
         line.geometry.dispose();

@@ -135,9 +135,38 @@ describe("the major moons' poles (S6b, pck00011, every term)", () => {
     expect(got.dec).toBeCloseTo(dec, 5);
   });
 
-  it('covers all 19 major moons, and gives none a body frame before its prime meridian is added', () => {
+  it('covers all 19 major moons, each with a body frame (S6b2)', () => {
     const ids = [401, 402, 501, 502, 503, 504, 601, 602, 603, 604, 605, 606, 608, 701, 702, 703, 704, 705, 801];
     expect(ids.every((id) => IAU_POLES[id] !== undefined)).toBe(true);
-    expect(iauBodyAxesJ2000(501, at)).toBeNull();
+    expect(ids.every((id) => iauBodyAxesJ2000(id, at) !== null)).toBe(true);
+  });
+});
+
+describe("the major moons' prime meridians (S6b2, pck00011, every term)", () => {
+  /** W, degrees: the angle from the equator's ascending node (α₀ + 90°) east to the body's x axis. */
+  const primeMeridianDeg = (naifId: number, at: Date) => {
+    const axes = iauBodyAxesJ2000(naifId, at);
+    const p = iauPoleJ2000(naifId, at);
+    if (!axes || !p) throw new Error(`no frame for ${naifId}`);
+    const ra = Math.atan2(p.y, p.x);
+    const sd = p.z;
+    const cd = Math.hypot(p.x, p.y);
+    const node = { x: -Math.sin(ra), y: Math.cos(ra), z: 0 };
+    const north = { x: -sd * Math.cos(ra), y: -sd * Math.sin(ra), z: cd };
+    const w = Math.atan2(dot(axes.x, north), dot(axes.x, node)) / DEG;
+    return w < 0 ? w + 360 : w;
+  };
+
+  // From pck00011.tpc by Python on 2026-10-22 (scripts/data/gen_moon_rotation.py's reader), on the code's time
+  // scale, TT = UTC + 69.184 s: W₀ + Ẇd + Ẅd² + Σ a sin(θ₀ + θ₁T + θ₂T²), Mars's angles read as triples.
+  it.each([
+    [401, 223.109531], // Phobos: a quadratic W and a quadratic libration angle
+    [501, 344.229801], // Io
+    [601, 295.271723], // Mimas: a 44.85° term
+    [608, 98.694028], // Iapetus
+    [705, 227.053835], // Miranda: turns west
+    [801, 207.124348], // Triton: turns west, nine terms
+  ])('NAIF %i faces where pck00011 puts it on 2026-10-12', (naifId, w) => {
+    expect(primeMeridianDeg(naifId, new Date(Date.UTC(2026, 9, 12)))).toBeCloseTo(w, 4);
   });
 });

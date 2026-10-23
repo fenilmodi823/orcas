@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { iauPoleJ2000 } from '@orcas/physics';
+import { iauBodyAxesJ2000, iauPoleJ2000 } from '@orcas/physics';
 import { parseHorizonsEphemeris, type HorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { etSecondsFromUtcMs } from '../../data/planet-ephemeris.js';
 import { MOON_SYSTEMS, type MoonSystemId } from '../../data/moon-systems.js';
 import { parseHorizonsManifest } from '../../data/horizons-manifest.js';
 import { PLANET_CREDIT } from './planets.js';
-import { meanRadiusKm, MOONS, MOON_CREDIT, moonSystemOf, SYSTEM_RADIUS_KM } from './moons.js';
+import { MOONS, MOON_CREDIT, moonSystemOf, SYSTEM_RADIUS_KM } from './moons.js';
 
 function load(system: MoonSystemId): HorizonsEphemeris {
   const file = readFileSync(resolve(process.cwd(), `public/ephemeris/horizons/moons-${system}.bin`));
@@ -24,14 +24,11 @@ describe('the major moons (S6b)', () => {
     expect(MOONS.every((m) => /^[a-z]+$/.test(m.id))).toBe(true);
   });
 
-  it('list their radii largest first, with the mean between', () => {
+  it('list their radii largest first', () => {
     for (const m of MOONS) {
       const [a, b, c] = m.radiiKm;
       expect(a >= b && b >= c, m.name).toBe(true);
-      expect(meanRadiusKm(m)).toBeLessThanOrEqual(a);
-      expect(meanRadiusKm(m)).toBeGreaterThanOrEqual(c);
     }
-    expect(meanRadiusKm(MOONS.find((m) => m.id === 'phobos') ?? MOONS[0]!)).toBeCloseTo(Math.cbrt(13 * 11.4 * 9.1), 9);
   });
 
   it('all have data in the export on 2026-10-12', () => {
@@ -71,6 +68,23 @@ describe('the major moons (S6b)', () => {
         const against = m.system === 'uranus' || m.id === 'triton';
         expect(against ? angle > 90 : angle < 90, `${m.name} ${iso}`).toBe(true);
         expect(Math.min(angle, 180 - angle), `${m.name} ${iso}`).toBeLessThan(0.85); // worst measured: Tethys 0.777°
+      }
+    }
+  });
+
+  it('keep one face to their planet: the planet sits near 0° longitude on each (S6b2, IAU prime meridians)', () => {
+    const out = new Float64Array(6);
+    for (const iso of ['2020-06-01T00:00:00Z', '2026-10-12T00:00:00Z', '2036-06-01T00:00:00Z']) {
+      const at = Date.parse(iso);
+      for (const m of MOONS) {
+        indexes[m.system].stateInto(m.naifId, etSecondsFromUtcMs(at), out);
+        const axes = iauBodyAxesJ2000(m.naifId, new Date(at));
+        if (!axes) throw new Error(`no body frame for ${m.name}`);
+        const [x = 0, y = 0, z = 0] = out; // the moon from its system's centre; the planet is the other way
+        const lonDeg = (Math.atan2(-(x * axes.y.x + y * axes.y.y + z * axes.y.z), -(x * axes.x.x + y * axes.x.y + z * axes.x.z)) * 180) / Math.PI;
+        // Measured 2020-2036: Mimas 6.4-10.8° (its 44.85° libration term against Horizons' orbit), every other moon
+        // within 5.61° (Iapetus). A sign error or a 180° flip would drift or sit near 180°.
+        expect(Math.abs(lonDeg), `${m.name} ${iso}`).toBeLessThan(m.id === 'mimas' ? 12 : 6);
       }
     }
   });

@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { PerspectiveCamera, Vector3 } from 'three';
+import { Mesh, PerspectiveCamera, Vector3, type ShaderMaterial } from 'three';
+import { iauBodyAxesJ2000 } from '@orcas/physics';
 import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { resetMoonSystems } from '../../data/moon-systems.js';
@@ -75,6 +76,70 @@ describe('moon systems on screen (S6b)', () => {
     expect(moons.drawn[io]).toBe(false);
     expect(moons.fade[io]).toBe(0);
     expect(moons.occluders).toHaveLength(0);
+    moons.dispose();
+  });
+
+});
+
+describe('moons as they look (S6b2)', () => {
+  const planets = parsePlanetEphemeris(read('public/ephemeris/planets-de421.bin'));
+  const t = Date.parse('2026-10-13T12:00:00Z');
+  const io = MOONS.findIndex((m) => m.id === 'io');
+  const viewport = { cssWidth: 800, cssHeight: 800, dpr: 1 };
+
+  /** Jupiter's moons placed, the camera `distanceKm` from Io; the moons updated once. */
+  function setUp(distanceKm: number, loads: string[]) {
+    resetMoonSystems({ jupiter: createHorizonsIndex(parseHorizonsEphemeris(read('public/ephemeris/horizons/moons-jupiter.bin'))) });
+    const planetKm = PLANETS.map((p) => bodyPositionKm(bodyById(p.name.toLowerCase())!, t, planets, new Vector3())!);
+    const sunKm = bodyPositionKm(bodyById('sun')!, t, planets, new Vector3())!;
+    const ioKm = bodyPositionKm(bodyById('io')!, t, planets, new Vector3())!;
+    const camera = new PerspectiveCamera(35, 1, 1, 1e10);
+    camera.position.copy(ioKm).add(new Vector3(0, 0, distanceKm));
+    camera.updateMatrixWorld();
+    const moons = createMoonBodies(1, (url) => loads.push(url));
+    moons.update(t, planets, planetKm, sunKm, camera, viewport, null, null);
+    const mesh = moons.group.children.find((c): c is Mesh => c instanceof Mesh && c.matrix.elements[12] === ioKm.x && c.matrix.elements[13] === ioKm.y);
+    return { moons, mesh, ioKm };
+  }
+
+  it("draws each moon as its IAU ellipsoid, its long axis on its prime meridian and its shortest on its pole", () => {
+    const { moons, mesh, ioKm } = setUp(1e5, []);
+    const axes = iauBodyAxesJ2000(501, new Date(t))!;
+    const local = (x: number, y: number, z: number) => new Vector3(x, y, z).applyMatrix4(mesh!.matrix).sub(ioKm);
+    const [a, b, c] = MOONS[io]!.radiiKm;
+    const near = (v: Vector3, d: { x: number; y: number; z: number }, r: number) => expect(v.distanceTo(new Vector3(d.x, d.y, d.z).multiplyScalar(r))).toBeLessThan(1e-6);
+    near(local(1, 0, 0), axes.x, a); // three's sphere: +x to the body's x (longitude 0)
+    near(local(0, 1, 0), axes.z, c); // its +y pole to the IAU north
+    near(local(0, 0, -1), axes.y, b); // and −z to 90° east
+    moons.dispose();
+  });
+
+  it('hides labels and bounds the near plane by its largest radius', () => {
+    const { moons } = setUp(1e5, []);
+    expect(moons.occluderOf[io]?.radiusKm).toBe(1829.4);
+    moons.dispose();
+  });
+
+  it("fetches a moon's map once it covers a pixel, and only once", () => {
+    const far: string[] = [];
+    setUp(1e9, far).moons.dispose(); // Io under a pixel at 10⁹ km
+    expect(far).not.toContain('/textures/io-2048.jpg');
+    const loads: string[] = [];
+    const { moons } = setUp(1e5, loads);
+    moons.update(t, planets, PLANETS.map((p) => bodyPositionKm(bodyById(p.name.toLowerCase())!, t, planets, new Vector3())!), bodyPositionKm(bodyById('sun')!, t, planets, new Vector3())!, new PerspectiveCamera(), viewport, 'io', null);
+    expect(loads.filter((u) => u === '/textures/io-2048.jpg')).toHaveLength(1);
+    moons.dispose();
+  });
+
+  it("draws Titan in its haze colour and Deimos, with no photomosaic, in the moons' flat colour", () => {
+    const moons = createMoonBodies(1, () => undefined);
+    const colourOf = (id: string) => {
+      const i = MOONS.findIndex((m) => m.id === id);
+      const mesh = moons.group.children.filter((c): c is Mesh => c instanceof Mesh)[i];
+      return (mesh!.material as ShaderMaterial).uniforms.uColour!.value.getHexString();
+    };
+    expect(colourOf('titan')).not.toBe(colourOf('deimos'));
+    expect(colourOf('deimos')).toBe(colourOf('io'));
     moons.dispose();
   });
 });

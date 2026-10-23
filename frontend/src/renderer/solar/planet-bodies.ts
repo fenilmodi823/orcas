@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, Points, SphereGeometry, Vector3, type Camera } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, Points, SphereGeometry, Vector3, type Camera, type ShaderMaterial } from 'three';
 import type { Texture } from 'three';
 import { iauBodyAxesJ2000, writeOsculatingEllipse } from '@orcas/physics';
 import { bodyStateKm, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
@@ -45,6 +45,8 @@ export interface PlanetBodies {
   readonly planetKm: readonly Vector3[];
   /** Every planet but the Earth, as spheres: what hides a label (S4) and bounds the near plane. */
   readonly occluders: readonly Occluder[];
+  /** Each planet's material in `PLANETS` order, null for the Earth: where its moons' shadows go (S6b2). */
+  readonly materials: readonly (ShaderMaterial | null)[];
   /** False before the ephemeris loads, or outside DE421's span: nothing above is current then. */
   readonly placed: boolean;
   /** The camera's distance from Saturn's rings as of the last `update`, km, for the near plane; Infinity unplaced. */
@@ -147,6 +149,7 @@ export function createPlanetBodies(anisotropy = 1): PlanetBodies {
     sunKm,
     planetKm,
     occluders,
+    materials: meshes.map((mesh) => mesh?.material ?? null),
     get placed() {
       return placed;
     },
@@ -187,6 +190,7 @@ export function createPlanetBodies(anisotropy = 1): PlanetBodies {
           else _basis.identity();
           const u = mesh.material.uniforms;
           u.uSunDir.value.copy(sunKm).sub(at).normalize();
+          u.uSunKm.value.copy(sunKm).sub(at);
           u.uPole.value.set(0, 0, 1).transformDirection(_basis);
           _basis.setPosition(at);
           if (planet.naifId === SATURN_NAIF_ID && rings) {

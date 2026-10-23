@@ -1,10 +1,13 @@
 import { julianCenturiesTTFromUtc, wrapDeg } from './ecliptic.js';
-import { IAU_MOON_POLES } from './iau-moon-poles.js';
+import { IAU_MOON_POLES, IAU_MOON_PRIME_MERIDIANS } from './iau-moon-poles.js';
 
 const DEG = Math.PI / 180;
 
-/** One periodic term: amplitude, degrees, of the angle θ = θ₀ + θ₁·T, degrees and degrees per century. */
-export type PeriodicTerm = readonly [ampDeg: number, theta0Deg: number, thetaDegPerCentury: number];
+/**
+ * One periodic term: amplitude, degrees, of the angle θ = θ₀ + θ₁·T + θ₂·T², degrees, per century and per century
+ * squared. θ₂ is 0 except in Phobos's forced libration (S6b2).
+ */
+export type PeriodicTerm = readonly [ampDeg: number, theta0Deg: number, thetaDegPerCentury: number, thetaDegPerCentury2?: number];
 
 /**
  * A body's north pole as the IAU gives it, degrees, T in Julian centuries TDB:
@@ -57,10 +60,8 @@ export const IAU_POLES: Readonly<Record<number, IauPole>> = { ...PLANET_POLES, .
 
 type Vec3 = { x: number; y: number; z: number };
 
-const term = (q: PeriodicTerm | undefined, t: number, f: (rad: number) => number) => (q ? q[0] * f((q[1] + q[2] * t) * DEG) : 0);
-
 const series = (terms: readonly PeriodicTerm[], t: number, f: (rad: number) => number) =>
-  terms.reduce((sum, [a, theta0, theta1]) => sum + a * f((theta0 + theta1 * t) * DEG), 0);
+  terms.reduce((sum, [a, theta0, theta1, theta2 = 0]) => sum + a * f((theta0 + theta1 * t + theta2 * t * t) * DEG), 0);
 
 /** The pole's right ascension and declination, radians, at T Julian centuries TDB. */
 function poleRaDecRad(p: IauPole, t: number): { ra: number; dec: number } {
@@ -81,22 +82,27 @@ export function iauPoleJ2000(naifId: number, at: Date): Vec3 | null {
   return { x: Math.cos(dec) * Math.cos(ra), y: Math.cos(dec) * Math.sin(ra), z: Math.sin(dec) };
 }
 
-/** A body's prime meridian, degrees, d in days TDB from J2000: W = W₀ + Ẇ·d + a·sin θ, θ as in `PeriodicTerm`. */
+/**
+ * A body's prime meridian, degrees, d in days TDB from J2000: W = W₀ + Ẇ·d + Ẅ·d² + Σ a·sin θ, θ as in
+ * `PeriodicTerm`. Ẅ is 0 except for Phobos, whose orbit is speeding up (S6b2).
+ */
 export interface IauPrimeMeridian {
   readonly w0Deg: number;
   readonly wDegPerDay: number;
-  readonly term?: PeriodicTerm;
+  readonly terms: readonly PeriodicTerm[];
+  readonly wDegPerDay2?: number;
 }
 
-const pm = (w0Deg: number, wDegPerDay: number, t?: PeriodicTerm): IauPrimeMeridian => ({ w0Deg, wDegPerDay, term: t });
+const pm = (w0Deg: number, wDegPerDay: number, t?: PeriodicTerm): IauPrimeMeridian => ({ w0Deg, wDegPerDay, terms: t ? [t] : [] });
 
 /**
  * Prime meridians, keyed by NAIF body id: pck00011 BODYnnn_PM (IAU WGCCRE 2015), transcribed 2026-10-06, each
  * with its largest periodic term (BODYnnn_NUT_PREC_PM): Mars's 0.585° and Neptune's 0.48°. ⚠️ Mercury's terms,
  * at most 0.011°, are left out. Ẇ is negative for Venus and Uranus, which turn against their IAU north. Not here:
- * the Earth, turned by GMST (`earth-orientation.ts`), and the Moon, tidally locked in the scene.
+ * the Earth, turned by GMST (`earth-orientation.ts`), and the Moon, tidally locked in the scene. The 19 major moons
+ * (S6b2) are merged in from `iau-moon-poles.ts` with every term.
  */
-export const IAU_PRIME_MERIDIANS: Readonly<Record<number, IauPrimeMeridian>> = {
+const PLANET_PRIME_MERIDIANS: Readonly<Record<number, IauPrimeMeridian>> = {
   10: pm(84.176, 14.1844), // Sun
   199: pm(329.5988, 6.1385108), // Mercury
   299: pm(160.2, -1.4813688), // Venus
@@ -106,6 +112,8 @@ export const IAU_PRIME_MERIDIANS: Readonly<Record<number, IauPrimeMeridian>> = {
   799: pm(203.81, -501.1600928), // Uranus
   899: pm(249.978, 541.1397757, [-0.48, 357.85, 52.316]), // Neptune
 };
+
+export const IAU_PRIME_MERIDIANS: Readonly<Record<number, IauPrimeMeridian>> = { ...PLANET_PRIME_MERIDIANS, ...IAU_MOON_PRIME_MERIDIANS };
 
 /** Body-fixed axes as unit vectors in ICRF (≈ J2000 equatorial). */
 export interface BodyAxes {
@@ -129,7 +137,8 @@ export function iauBodyAxesJ2000(naifId: number, at: Date): BodyAxes | null {
   if (!p || !m) return null;
   const t = julianCenturiesTTFromUtc(at);
   const { ra, dec } = poleRaDecRad(p, t);
-  const w = wrapDeg(m.w0Deg + m.wDegPerDay * t * 36525 + term(m.term, t, Math.sin)) * DEG;
+  const d = t * 36525;
+  const w = wrapDeg(m.w0Deg + m.wDegPerDay * d + (m.wDegPerDay2 ?? 0) * d * d + series(m.terms, t, Math.sin)) * DEG;
   const [ca, sa, cd, sd, cw, sw] = [Math.cos(ra), Math.sin(ra), Math.cos(dec), Math.sin(dec), Math.cos(w), Math.sin(w)];
   const z = { x: cd * ca, y: cd * sa, z: sd };
   const node = { x: -sa, y: ca, z: 0 }; // the ascending node, unit, on the ICRF equator

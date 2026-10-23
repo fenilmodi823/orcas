@@ -1,7 +1,8 @@
 import { moonSystemStatus } from '../data/moon-systems.js';
 import { moonAccuracy, requestedSpans, type HorizonsManifest } from '../data/horizons-manifest.js';
 import { bodyById, type Body } from '../renderer/solar/bodies.js';
-import { meanRadiusKm, MOONS } from '../renderer/solar/moons.js';
+import { MOON_MAPS, MOON_NO_MAP_NOTE } from '../renderer/solar/moon-maps.js';
+import { MOONS } from '../renderer/solar/moons.js';
 import type { DetailField, DetailGroup } from '../ui/object-detail-model.js';
 
 /** A major moon's panel groups (S6b). There is no description: none is written until one is sourced (B.23). */
@@ -11,7 +12,8 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
   const planet = body.parent ? bodyById(body.parent) : undefined;
   if (!moon || !planet || !body.horizons) return [];
   const [a, b, c] = moon.radiiKm;
-  const irregular = moon.system === 'mars' ? ' Phobos and Deimos are irregular bodies, not spheres.' : '';
+  const map = MOON_MAPS[moon.id];
+  const irregular = moon.system === 'mars' ? ' Phobos and Deimos are irregular bodies, which an ellipsoid only approximates.' : '';
   const centre = moon.system === 'mars' ? 'Mars’s centre' : `the ${planet.name} system’s barycentre`;
   const fields: DetailField[] = [{ label: 'Source', value: 'JPL Horizons' }];
   let note =
@@ -44,14 +46,14 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
         { label: 'Moon of', value: planet.name },
         { label: 'Radii', value: `${a} × ${b} × ${c}`, unit: 'km', wide: true },
       ],
-      note: `IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries them. Drawn as a sphere of its mean radius, ${meanRadiusKm(moon).toFixed(1)} km.${irregular}`,
+      note: `IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries them. Drawn as this ellipsoid, turned by its IAU pole and prime meridian.${irregular}`,
     },
     { id: 'provenance', title: 'Position', fields, note },
     {
       id: 'map',
       title: 'Map',
-      fields: [{ label: 'Source', value: 'None yet' }],
-      note: 'No real global map has been added for this moon yet, so it is drawn in one flat colour.',
+      fields: [{ label: 'Source', value: map?.source ?? 'None' }],
+      note: map?.note ?? MOON_NO_MAP_NOTE[moon.id] ?? 'No map.',
     },
   ];
 }

@@ -1,4 +1,8 @@
-import { Color, ShaderMaterial, Vector2, Vector3 } from 'three';
+import { Color, ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
+import { SUN_RADIUS_KM } from '@orcas/physics';
+
+/** The most moons one planet's shader shadows: Saturn's seven (S6b2). */
+export const MAX_SHADOW_MOONS = 7;
 
 // modelViewMatrix, not viewMatrix × modelMatrix: three forms it on the CPU in
 // float64, so a planet 30 AU out reaches the GPU camera-relative (B.21).
@@ -18,6 +22,7 @@ const SPHERE_VERTEX = /* glsl */ `
 `;
 
 const SPHERE_FRAGMENT = /* glsl */ `
+  #define MAX_SHADOW_MOONS ${MAX_SHADOW_MOONS}
   uniform vec3 uColour;
   uniform sampler2D uMap;
   uniform float uHasMap;
@@ -27,10 +32,25 @@ const SPHERE_FRAGMENT = /* glsl */ `
   uniform sampler2D uRingTransmission; // Saturn: exp(-tau) at normal incidence, linear
   uniform float uHasRings;
   uniform vec2 uRingKm;   // the rings' inner and outer radius
+  uniform vec3 uSunKm;    // the Sun's centre from this planet's, km, scene frame
+  uniform vec4 uMoons[MAX_SHADOW_MOONS]; // S6b2: a moon's centre from this planet's (xyz, km) and its radius (w, km)
+  uniform int uMoonCount;
 
   varying vec3 vNormalW;
   varying vec3 vOffsetW;
   varying vec2 vUv;
+
+  // The fraction of a disc of angular radius a left visible by a disc of radius b whose centre is c away, all
+  // radians: @orcas/physics visibleDiskFraction, the conical model, line for line.
+  float visibleDiskFraction(float a, float b, float c) {
+    if (c >= a + b) return 1.0;
+    if (c <= b - a) return 0.0;
+    if (c <= a - b) return 1.0 - (b * b) / (a * a);
+    float x = (c * c + a * a - b * b) / (2.0 * c);
+    float y = sqrt(max(0.0, a * a - x * x));
+    float overlap = a * a * acos(clamp(x / a, -1.0, 1.0)) + b * b * acos(clamp((c - x) / b, -1.0, 1.0)) - c * y;
+    return clamp(1.0 - overlap / (3.14159265 * a * a), 0.0, 1.0);
+  }
 
   void main() {
     vec3 base = uHasMap > 0.5 ? texture2D(uMap, vUv).rgb : uColour;
@@ -47,6 +67,18 @@ const SPHERE_FRAGMENT = /* glsl */ `
         lit *= pow(max(texture2D(uRingTransmission, vec2(u, 0.5)).r, 1e-4), 1.0 / abs(sinSun));
       }
     }
+    if (lit > 0.0) {
+      // The moons' shadows (S6b2): how much of the Sun each moon covers, seen from this point.
+      vec3 toSun = uSunKm - vOffsetW;
+      float a = asin(min(1.0, ${SUN_RADIUS_KM.toFixed(1)} / length(toSun)));
+      for (int i = 0; i < MAX_SHADOW_MOONS; i++) {
+        if (i >= uMoonCount) break;
+        vec3 toMoon = uMoons[i].xyz - vOffsetW;
+        float b = asin(min(1.0, uMoons[i].w / length(toMoon)));
+        float c = atan(length(cross(toSun, toMoon)), dot(toSun, toMoon)); // exact at small angles, unlike acos
+        lit *= visibleDiskFraction(a, b, c);
+      }
+    }
     gl_FragColor = vec4(base * (0.02 + 0.98 * lit), 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -54,8 +86,8 @@ const SPHERE_FRAGMENT = /* glsl */ `
 `;
 
 /**
- * A planet lit from the Sun (S4), with its global map once loaded (S5b) and, for
- * Saturn, its rings' shadow. Until a map arrives, or where none exists, it is
+ * A planet lit from the Sun (S4), with its global map once loaded (S5b), its
+ * moons' shadows (S6b2) and, for Saturn, its rings' shadow. Until a map arrives, or where none exists, it is
  * drawn in its flat token colour.
  */
 export function createPlanetMaterial(colour: Color): ShaderMaterial {
@@ -72,6 +104,9 @@ export function createPlanetMaterial(colour: Color): ShaderMaterial {
       uRingTransmission: { value: null },
       uHasRings: { value: 0 },
       uRingKm: { value: new Vector2(1, 2) },
+      uSunKm: { value: new Vector3(1, 0, 0) },
+      uMoons: { value: Array.from({ length: MAX_SHADOW_MOONS }, () => new Vector4()) },
+      uMoonCount: { value: 0 },
     },
   });
 }

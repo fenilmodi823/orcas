@@ -51,3 +51,42 @@ for Research in Astronomy, Inc., under NASA contract NAS 5-26555. All maps are a
 <http://dx.doi.org/10.17909/T9G593>." The colour maps are the OPAL team's own, "with slight contrast
 enhancement" (Neptune: "some"); ORCAS does not regrade them. The giants' clouds move, so a map shows
 them as they were on its date. Venus has no visible-light global map and is drawn in its flat colour.
+
+## The major moons' maps (S6b2, 2026-10-22)
+
+Made by `scripts/data/bake_moon_textures.py` from the sources below, which it downloads into
+`data/textures-src/moons/` (gitignored). Fetched 2026-10-22; rebuilt from the same files 2026-10-23,
+same coverage. Layout as the planets' maps: −180° E at the left edge, east to the right, north up,
+rows uniform in the IAU 2015 triaxial ellipsoid's parametric latitude. USGS sources are placed from
+their ISIS labels; the others by hand, as noted. Every map is greyscale, one visible-light filter
+(B.29): where a colour version exists it is enhanced colour. Where a source has no data the pixel is
+filled flat with the mean of the nearest clean rows. Latitudes are the rows the bake found at least
+half measured. Each map was checked by eye against two IAU Gazetteer features per moon
+(`data/textures-src/moons/checks/`, Mimas one).
+
+| File | Source (as downloaded) | What was done |
+| --- | --- | --- |
+| `phobos-1024.jpg` | USGS Astrogeology, Phobos Viking Mosaic 40 ppd, DLR control — `https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Phobos_Viking_Mosaic_40ppd_DLRcontrol.tif` | Pole to pole; 0.0 % filled. Checked: Stickney, Hall |
+| `io-2048.jpg` | USGS, Io Galileo SSI–Voyager Global Mosaic 1 km — `…/mosaic/Io_GalileoSSI-Voyager_Global_Mosaic_1km.tif` | Pole to pole; 0.0 % filled. Its `ClrMerge` version is enhanced (red 756 nm/green, blue violet/green). Checked: Loki Patera, Prometheus |
+| `europa-2048.jpg` | USGS, Europa Voyager–Galileo SSI global mosaic 500 m — `…/mosaic/Europa_Voyager_GalileoSSI_global_mosaic_500m.tif` | 90.0° N to 82.7° S; 4.3 % filled. Checked: Pwyll, Tyre |
+| `ganymede-2048.jpg` | USGS, Ganymede Voyager–Galileo SSI global mosaic 1 km — `…/mosaic/Ganymede_Voyager_GalileoSSI_global_mosaic_1km.tif` | 86.0° N to 89.9° S; 3.5 % filled. Checked: Osiris, Tros |
+| `callisto-2048.jpg` | USGS, Callisto Voyager–Galileo SSI global mosaic 1 km — `…/mosaic/Callisto_Voyager_GalileoSSI_global_mosaic_1km.tif` | 89.8° N to 90.0° S; 3.8 % filled. Checked: Valhalla, Asgard |
+| `mimas-1024.jpg` | NASA Photojournal PIA14926, “Map of Mimas, June 2012” (Cassini, Voyager filling gaps) — `https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia14/pia14926/PIA14926.tif` | No label: left edge set to −180° E by eye, Herschel (248.24° E) landing on its crater. Pole to pole. USGS's own Mimas maps are airbrushed |
+| `enceladus-1024.jpg` | USGS, Enceladus Cassini mosaic global 110 m — `…/mosaic/Enceladus_Cassini_mosaic_global_110m.tif` | Not the `HPF` version, whose high-pass filter removes real brightness differences. Pole to pole. Checked: Ali Baba, Dunyazad |
+| `tethys-1024.jpg` | USGS, Tethys Cassini mosaic global 293 m — `…/mosaic/Tethys_Cassini_mosaic_global_293m.tif` | Pole to pole. Checked: Odysseus, Penelope |
+| `dione-1024.jpg` | USGS, Dione Cassini–Voyager mosaic global 154 m — `…/mosaic/Dione_Cassini_Voyager_mosaic_global_154m.tif` | Pole to pole; 0.1 % filled. Checked: Evander, Aeneas |
+| `rhea-1024.jpg` | USGS, Rhea Cassini–Voyager mosaic global 417 m — `…/mosaic/Rhea_Cassini_Voyager_mosaic_global_417m.tif` | Pole to pole. Checked: Inktomi, Mamaldi |
+| `iapetus-1024.jpg` | USGS, Iapetus Cassini–Voyager mosaic global 783 m — `…/mosaic/Iapetus_Cassini_Voyager_mosaic_global_783m.tif` | Pole to pole. Checked: Turgis, Engelier. ⚠️ Brightness is evened out between images for mapping: across the equator the leading half averages 86.5 and the trailing 111.4 (8-bit), so Cassini Regio is far darker in reality than here. The Cassini team's own map, PIA11116 (May 2008), measured 2026-10-23, is flattened the same way |
+| `miranda-1024.jpg` | Voyager 2 mosaic (Caltech/JPL/USGS) as JPL's Solar System Simulator hosts it — `https://space.jpl.nasa.gov/tmaps/pix/ura5vuu2.tif` | No label: left edge −180° E, set by the check sheets (Umbriel's bright Wunda, 273.6° E, at 26 %). South pole to 11.4° S; 56.7 % filled. Checked: Elsinore and Arden Coronae |
+| `ariel-1024.jpg` | As Miranda — `…/tmaps/pix/ura1vuu2.tif` | South pole to 12.4° S; 61.1 % filled. Checked: Yangoor, Kachina Chasmata |
+| `umbriel-1024.jpg` | As Miranda — `…/tmaps/pix/ura2vuu2.tif` | South pole to 12.4° S; 58.7 % filled. Checked: Wunda, Vuver |
+| `titania-1024.jpg` | As Miranda — `…/tmaps/pix/ura3vuu2.tif` | South pole to 17.1° S; 62.2 % filled. Checked: Gertrude, Ursula |
+| `oberon-1024.jpg` | As Miranda — `…/tmaps/pix/ura4vuu2.tif` | South pole to 13.4° S; 61.0 % filled. Checked: Hamlet, Mommur Chasma |
+| `triton-1024.jpg` | USGS, Triton Voyager 2 colour mosaic, global fill, 600 m — `…/mosaic/Triton_Voyager2_ClrMosaic_GlobalFill_600m.tif` | Its first band alone, the orange filter (the mosaic is orange, violet and ultraviolet, so enhanced). 13.3° N to the south pole; 38.5 % filled. Checked: Mazomba, Ruach Planitia |
+
+Voyager 2 saw Uranus's moons in January 1986 with only their southern hemispheres lit. In 2026 the Sun
+stands over their north (72.85° N on Ariel, 2026-08-14), so the lit face is the flat fill and the mapped
+south is mostly on the night side. **Deimos** has no map: its only global map is an airbrushed drawing
+from Viking images. **Titan** has none in visible light: it is drawn flat in `--titan`, #C09D3C, the
+median of the inner half of its disc in NASA/JPL/Space Science Institute's natural-colour Cassini
+composite PIA06230 — `https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia06/pia06230/PIA06230.tif`.

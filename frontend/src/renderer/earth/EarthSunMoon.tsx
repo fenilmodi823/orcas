@@ -11,6 +11,7 @@ import type { BodyLabelRefs } from './BodyLabels.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { createPlanetBodies } from '../solar/planet-bodies.js';
 import { createMoonBodies } from '../solar/moon-bodies.js';
+import { writeMoonShadows } from '../solar/moon-shadows.js';
 import { createSceneLabelWriter } from '../solar/scene-labels.js';
 import { clampNearToBodies } from '../solar/near-clamp.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
@@ -40,7 +41,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const { gl } = useThree();
   const system = useMemo(() => createEarthSunMoon(), []);
   const planets = useMemo(() => createPlanetBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
-  const moons = useMemo(() => createMoonBodies(), []);
+  const moons = useMemo(() => createMoonBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
   const labelWriter = useMemo(() => createSceneLabelWriter(planets, moons), [planets, moons]);
   const analyticSunKm = useMemo(() => new Vector3(), []);
   const ephemerisRef = usePlanetEphemeris();
@@ -72,6 +73,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
       sunKm = analyticSunKm.set(s.x, s.y, s.z);
     }
     moons.update(epochMs, ephemerisRef.current, planets.placed ? planets.planetKm : null, sunKm, camera, viewport, hoveredBody, selectedBody);
+    writeMoonShadows(planets.materials, planets.planetKm, moons.moonKm, moons.drawn);
     system.update(epochMs, camera, fov, viewport, sunKm, hoveredBody === 'moon');
     labelWriter.write(at, camera, size.width, size.height, sunKm, system.moonKm);
     if (camera instanceof PerspectiveCamera) clampNearToBodies(camera, labelWriter.occluders, planets.ringDistanceKm);

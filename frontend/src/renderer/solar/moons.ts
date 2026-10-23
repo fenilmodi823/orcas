@@ -45,11 +45,6 @@ export const MOONS: readonly Moon[] = [
   moon('triton', 'Triton', 801, 'neptune', [1352.6, 1352.6, 1352.6]),
 ];
 
-/** The volumetric mean radius (abc)^⅓, km: the sphere a moon is drawn as until S6b2 gives it its shape. */
-export function meanRadiusKm(m: Moon): number {
-  return Math.cbrt(m.radiiKm[0] * m.radiiKm[1] * m.radiiKm[2]);
-}
-
 /**
  * Each system's extent, km: its outermost major moon's greatest distance from the export's centre over every
  * keyframe of the S6a export, rounded up (measured 2026-10-12). What the system fades by (S4's rule) and what
