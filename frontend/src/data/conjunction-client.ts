@@ -103,11 +103,10 @@ function parseRun(raw: unknown): ScreeningRun | null | undefined {
   return { completedAtMs, windowStartMs, windowEndMs, reportingDistanceKm };
 }
 
-/** The latest screening run's close approaches for one object. */
-export async function fetchConjunctions(noradId: string, signal?: AbortSignal): Promise<ConjunctionReport> {
+async function fetchReport(query: string, signal?: AbortSignal): Promise<ConjunctionReport> {
   let res: Response;
   try {
-    res = await fetch(`${apiBaseUrl()}/api/v1/conjunctions?norad_id=${encodeURIComponent(noradId)}&limit=200`, { signal });
+    res = await fetch(`${apiBaseUrl()}/api/v1/conjunctions?${query}`, { signal });
   } catch (err) {
     throw new CatalogFetchError('network request for /conjunctions failed', err);
   }
@@ -119,4 +118,21 @@ export async function fetchConjunctions(noradId: string, signal?: AbortSignal): 
   }
   const items = body.items.map(parseConjunction).filter((c): c is Conjunction => c !== undefined);
   return { run, items, rejected: body.items.length - items.length };
+}
+
+/** The latest screening run's close approaches for one object. */
+export function fetchConjunctions(noradId: string, signal?: AbortSignal): Promise<ConjunctionReport> {
+  return fetchReport(`norad_id=${encodeURIComponent(noradId)}&limit=200`, signal);
+}
+
+/** How many of the run's encounters the warning ranks (SOCRATES's top-10 format). */
+export const TOP_CONJUNCTION_LIMIT = 10;
+
+/**
+ * The latest run's top encounters by maximum P_c. Without `norad_id` the
+ * backend already orders by maximum P_c descending, nulls last
+ * (`services/screening_service.py: list_conjunctions`).
+ */
+export function fetchTopConjunctions(signal?: AbortSignal): Promise<ConjunctionReport> {
+  return fetchReport(`limit=${TOP_CONJUNCTION_LIMIT}`, signal);
 }
