@@ -1,0 +1,78 @@
+/* Legally required attribution, styled as a map credit: present and legible
+   over any backdrop (--text-mid on --glass-fill clears 4.5:1 over white,
+   Design.md §9), at the type scale's smallest size, never competing with the
+   scene. The rest open above it from "Sources" (UI audit B.30). */
+.credit-line {
+  position: relative;
+  align-self: center;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  max-width: 100%;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--glass-fill);
+  color: var(--text-mid);
+  font: var(--t-caption);
+  font-weight: 400;
+}
+
+.credit-line__required {
+  margin: 0;
+  text-align: center;
+}
+
+.credit-line__sources {
+  flex: none;
+  pointer-events: auto;
+}
+
+.credit-line__toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-6); /* WCAG 2.5.8 */
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-hi);
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  transition: color var(--motion-quick) var(--ease-quick);
+}
+
+.credit-line__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.credit-line__toggle:hover {
+  color: var(--orca-cyan);
+}
+
+.credit-line__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Opens upward, over the scene, as a glass sheet right-aligned to the line. */
+.credit-line__list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  width: min(36rem, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius-md);
+  background: var(--glass-fill-solid);
+  box-shadow: var(--elev-2);
+  color: var(--text-mid);
+  font: var(--t-caption);
+  font-weight: 400;
+}
+
+.credit-line__list p {
+  margin: 0;
+}
+
+.credit-line__list p + p {
+  margin-top: var(--space-2);
+}

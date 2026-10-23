@@ -29,6 +29,7 @@ import { useSelectionStore, type FilterClass } from '../state/selection-store.js
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationSearch } from './SimulationSearch.js';
+import { CreditLine } from './CreditLine.js';
 import { SimulationPanels } from './SimulationPanels.js';
 import { useSelectedBody } from './use-selected-body.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
@@ -126,13 +127,14 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimul
             <OrbitClassLegend />
           </PanelErrorBoundary>
         </div>
-        {/* Map-credit style: small, persistent, out of the way. RA-14 §2.3 wants
-            a provenance line wherever catalogue data is shown, and both the
-            USSPACECOM citation (RA14.D3) and ESA's Gaia acknowledgement are
-            licence conditions — neither can wait to be summoned. */}
-        <p className="simulation__credit">
-          {formatCreditLine(provenance)} Stars: {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT} {PLANET_CREDIT} {MOON_CREDIT} {PLANET_MAP_CREDIT} {MOON_MAP_CREDIT} {LAGRANGE_CREDIT}
-        </p>
+        {/* RA-14 §2.3 wants a provenance line wherever catalogue data is shown,
+            and both the USSPACECOM citation (RA14.D3) and ESA's Gaia
+            acknowledgement are licence conditions: neither waits to be
+            summoned. The rest open from Sources (Fenil, 2026-10-23, B.30). */}
+        <CreditLine
+          required={`${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`}
+          sources={[EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT]}
+        />
       </div>
     </main>
   );

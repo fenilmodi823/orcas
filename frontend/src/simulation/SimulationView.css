@@ -56,21 +56,6 @@
   pointer-events: auto;
 }
 
-/* Legally required attribution, styled as a map credit: present and legible
-   over any backdrop (--text-mid on --glass-fill clears 4.5:1 over white,
-   Design.md §9), at the type scale's smallest size, never competing with the scene. */
-.simulation__credit {
-  align-self: center;
-  margin: 0;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--glass-fill);
-  color: var(--text-mid);
-  font: var(--t-caption);
-  font-weight: 400;
-  text-align: center;
-}
-
 .simulation__status {
   position: absolute;
   top: 50%;
