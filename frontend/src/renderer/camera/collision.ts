@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { AU_KM } from '@orcas/physics';
 
 export const R_EARTH_A_KM = 6378.137;
-export const R_EARTH_B_KM = 6356.752;
+const R_EARTH_B_KM = 6356.752;
 
 const FREE_ORBIT_MIN_ALT_KM = 120; // atmosphere shell inner boundary / near-plane clipping
 /** Zoom-out ceiling: 100 AU, past Neptune's 30 AU (S4, B.21). One continuous

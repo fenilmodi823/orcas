@@ -77,7 +77,7 @@ export function createInProcessRunner(satrecs: ReadonlyMap<string, SatRec>): Seg
 }
 
 /** Runs shards in a real Web Worker via postMessage. */
-export function createWorkerRunner(worker: Worker): SegmentRunner {
+function createWorkerRunner(worker: Worker): SegmentRunner {
   return (shard) =>
     new Promise((resolve, reject) => {
       const onMessage = (event: MessageEvent<PropagationSegment[]>) => {

@@ -12,14 +12,13 @@ import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import type { NoradId, ObjectMeta } from '../../data/catalog-types.js';
 
 /** Refs the scene writes each frame. Readouts poll them; nothing re-renders. */
-export interface LiveSceneRefs {
+interface LiveSceneRefs {
   readonly pointsHandleRef: MutableRefObject<TierZeroPointsHandle | null>;
   readonly tetherRef: MutableRefObject<ObjectTetherHandle | null>;
   readonly selectedTetherRef: MutableRefObject<ObjectTetherHandle | null>;
   readonly labelRefs: MutableRefObject<(ObjectLabelHandle | null)[]>;
   readonly viewportRef: MutableRefObject<HTMLDivElement | null>;
   readonly tier1CountRef: MutableRefObject<number>;
-  readonly tier1MembersRef: MutableRefObject<Uint32Array | null>;
   readonly activeCountRef: MutableRefObject<number>;
   readonly activeMembersRef: MutableRefObject<Uint32Array | null>;
   readonly camRadiusKmRef: MutableRefObject<number>;
@@ -99,7 +98,6 @@ export function useLiveScene(
     labelRefs: useRef<(ObjectLabelHandle | null)[]>([]),
     viewportRef: useRef<HTMLDivElement>(null),
     tier1CountRef: useRef(0),
-    tier1MembersRef: useRef<Uint32Array | null>(null),
     activeCountRef: useRef(0),
     activeMembersRef: useRef<Uint32Array | null>(null),
     camRadiusKmRef: useRef(0),

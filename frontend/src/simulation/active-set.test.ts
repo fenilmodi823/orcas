@@ -72,7 +72,7 @@ describe('buildActiveSet', () => {
     expect(n).toBe(1);
   });
 
-  it('a small cap (the trail-set use case) still keeps identity first', () => {
+  it('a small cap still keeps identity first', () => {
     const out = new Uint32Array(2); // e.g. a 64-cap trail set, shrunk for the test
     const n = buildActiveSet(
       {

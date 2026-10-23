@@ -1,5 +1,5 @@
 /**
- * Same geometry as public/brand/logo.svg / src/brand/Logo.tsx and
+ * Same geometry as public/brand/logo.svg and
  * public/brand/logo-tracks.svg's ring+star — duplicated here (not imported)
  * because the landing sequence needs stroke-dashoffset draw-on, which the
  * static brand assets don't.

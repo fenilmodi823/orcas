@@ -10,7 +10,7 @@ import type { PlanetBodies } from './planet-bodies.js';
 
 const hidden = (): BodyScreenPosition => ({ xPx: 0, yPx: 0, visible: false });
 
-export interface SceneLabels {
+interface SceneLabels {
   readonly sun: BodyScreenPosition;
   readonly moon: BodyScreenPosition;
   /** In `PLANETS` order. */

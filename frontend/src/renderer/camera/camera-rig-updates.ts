@@ -44,7 +44,7 @@ export function updateObjectRig(
 }
 
 /** NASA Eyes' slow orbit after arriving at a body: 0.0100 rad/s, measured (Reference - NASA Eyes §4.5). */
-export const BODY_SPIN_RAD_PER_S = 0.01;
+const BODY_SPIN_RAD_PER_S = 0.01;
 
 /**
  * body (S5a): the pivot rides the body's centre and "up" is its pole (`refUp`, set by the caller). The camera

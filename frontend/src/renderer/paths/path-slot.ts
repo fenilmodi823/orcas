@@ -5,7 +5,7 @@ import { DEFAULT_PATH_SAMPLES } from './orbit-path.js';
  * (Reference - NASA Eyes §4.3); ORCAS's featured paths keep their 1.5 px and
  * thicken by the same proportion on hover. */
 export const FEATURED_LINE_WIDTH_PX = 1.5;
-export const HOVERED_LINE_WIDTH_PX = 2.5;
+const HOVERED_LINE_WIDTH_PX = 2.5;
 export const SELECTION_LINE_WIDTH_PX = 2;
 
 /** A featured path's width: thicker while its object is hovered (S1). */

@@ -26,7 +26,7 @@ const _up = new Vector3();
  * centre) faces Earth; north is the scene pole projected perpendicular to
  * that. Libration (±8°) is not modelled. Output: `out`, km, J2000.
  */
-export function moonMatrix(positionKm: Vector3, out: Matrix4): Matrix4 {
+function moonMatrix(positionKm: Vector3, out: Matrix4): Matrix4 {
   _toEarth.copy(positionKm).negate().normalize();
   _up.copy(_north).addScaledVector(_toEarth, -_north.dot(_toEarth)).normalize();
   _east.crossVectors(_up, _toEarth);
@@ -34,7 +34,7 @@ export function moonMatrix(positionKm: Vector3, out: Matrix4): Matrix4 {
   return out.multiply(_poleToZ).multiply(_moonScale);
 }
 
-export interface Viewport {
+interface Viewport {
   readonly cssWidth: number;
   readonly cssHeight: number;
   /** Device pixels per CSS pixel. */

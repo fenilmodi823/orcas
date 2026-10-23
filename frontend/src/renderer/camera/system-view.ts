@@ -17,7 +17,7 @@ export const SYSTEM_MIN_DISTANCE_KM: Readonly<Record<string, number>> = {
 /** NASA's "Outer" view of the Solar System: the Sun from 10¹⁰ km, 25° above the Earth's orbit plane. */
 export const OUTER_SYSTEM_DISTANCE_KM = 1e10;
 /** NASA looks down on a system's plane from 25° (`_goToSystem`'s default angle). */
-export const SYSTEM_ELEVATION_DEG = 25;
+const SYSTEM_ELEVATION_DEG = 25;
 /** NASA frames the fitted system × 1.3, as it does a body on arrival (Reference §4.5). */
 const FIT_SCALE = 1.3;
 const DEG = Math.PI / 180;

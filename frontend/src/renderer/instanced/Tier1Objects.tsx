@@ -40,11 +40,6 @@ interface Props {
    * catalogue indices. M1.7b's ground tracks (`renderer/paths/GroundTracks.tsx`)
    * read this rather than recomputing the active set a second time. */
   readonly activeMembersRef?: MutableRefObject<Uint32Array | null>;
-  /** Written each frame with the SAME buffer `selectTier1` fills — the
-   * first `memberCountRef.current` entries are the live Tier 1 catalogue
-   * indices. M1.7b's trail focus set (`renderer/trails/Trails.tsx`)
-   * reads this rather than recomputing Tier 1 membership a second time. */
-  readonly membersRef?: MutableRefObject<Uint32Array | null>;
 }
 
 /**
@@ -71,7 +66,6 @@ export function Tier1Objects({
   memberCountRef,
   activeCountRef,
   activeMembersRef,
-  membersRef,
 }: Props): React.ReactElement {
   const { camera, size } = useThree();
   const meshRef = useRef<InstancedMesh>(null);
@@ -160,12 +154,9 @@ export function Tier1Objects({
       sunJ2000Km: sun.km,
     });
     if (memberCountRef) memberCountRef.current = memberCount;
-    if (membersRef) membersRef.current = members;
 
-    // ACTIVE SET = selected ∪ hovered ∪ tier 1 (brief §G.6). M1.7b's
-    // trails read Tier 1 membership directly (membersRef above) and
-    // build their own smaller-capped union; this one keeps running for
-    // whatever else reads the full 2048-cap set.
+    // ACTIVE SET = selected ∪ hovered ∪ tier 1 (brief §G.6), the full
+    // 2048-cap set the ground tracks read (activeMembersRef).
     const activeCount = buildActiveSet(
       {
         tier1: members,

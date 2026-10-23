@@ -15,7 +15,7 @@ interface PendingRead {
   fence: WebGLSync;
 }
 
-export interface PickHit {
+interface PickHit {
   readonly entityIndex: number;
   readonly tierTag: number;
 }
@@ -27,7 +27,7 @@ export interface PickHit {
  * pick pass genuinely found nothing under the cursor. Conflating the two
  * was the M1.5 Task 10 hover bug.
  */
-export type PickPollOutcome =
+type PickPollOutcome =
   | { readonly resolved: false }
   | { readonly resolved: true; readonly hit: PickHit | null };
 

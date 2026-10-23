@@ -21,7 +21,7 @@ export interface FilterOption {
   active: boolean;
 }
 
-export interface TimeDockTimeProps {
+interface TimeDockTimeProps {
   mode: 'time';
   playing: boolean;
   /** Signed: simulated seconds per real second (TimeTransport). */
@@ -45,7 +45,7 @@ export interface TimeDockTimeProps {
   layers?: ReactNode;
 }
 
-export interface TimeDockObjectProps {
+interface TimeDockObjectProps {
   mode: 'object';
   object: SelectableObject;
   /** The info panel's field groups (brief §13.4.2), from `buildDetailGroups`. */

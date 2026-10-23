@@ -4,7 +4,7 @@
  * note). `followOrbit` is deferred to M1.7.
  */
 /** What the camera is aimed at: a catalogue index, or a body's id (S5a, `renderer/solar/bodies.ts`). */
-export type CameraTargetKey = number | string;
+type CameraTargetKey = number | string;
 
 export type CameraState =
   | { readonly kind: 'freeOrbit' }

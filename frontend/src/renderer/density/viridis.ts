@@ -5,7 +5,7 @@
  * forbids a rainbow. The coefficients live here once: the GLSL is generated
  * from them, and the test checks them against viridis's published stops.
  */
-export const VIRIDIS_COEFFICIENTS: readonly (readonly [number, number, number])[] = [
+const VIRIDIS_COEFFICIENTS: readonly (readonly [number, number, number])[] = [
   [0.2777273272234177, 0.005407344544966578, 0.3340998053353061],
   [0.1050930431085774, 1.404613529898575, 1.384590162594685],
   [-0.3308618287255563, 0.214847559468213, 0.09509516302823659],

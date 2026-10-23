@@ -2,8 +2,8 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from
 import { useRef } from 'react';
 import './GlassSurface.css';
 
-export type GlassVariant = 'floating' | 'docked' | 'modal';
-export type GlassElevation = 1 | 2 | 3 | 4;
+type GlassVariant = 'floating' | 'docked' | 'modal';
+type GlassElevation = 1 | 2 | 3 | 4;
 
 export interface GlassSurfaceProps {
   variant: GlassVariant;

@@ -73,7 +73,6 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
     labelRefs,
     viewportRef,
     tier1CountRef,
-    tier1MembersRef,
     activeCountRef,
     activeMembersRef,
     camRadiusKmRef,
@@ -177,7 +176,6 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
             memberCountRef={tier1CountRef}
             activeCountRef={activeCountRef}
             activeMembersRef={activeMembersRef}
-            membersRef={tier1MembersRef}
           />
           {/* After Tier1Objects: reads the active set it just wrote into
               activeMembersRef this same frame. */}

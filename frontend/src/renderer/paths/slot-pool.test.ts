@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reconcilePool, type PoolSlot } from './trail-pool.js';
+import { reconcilePool, type PoolSlot } from './slot-pool.js';
 
 function slots(occupants: (string | null)[]): PoolSlot[] {
   return occupants.map((occupantNorad) => ({ occupantNorad }));

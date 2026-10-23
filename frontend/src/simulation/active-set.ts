@@ -32,9 +32,8 @@ export function createActiveSetBuffer(cap: number = ACTIVE_SET_CAP): Uint32Array
  * shows this in the frame budget.
  *
  * `featured` joined the union in M1.7b (orbit paths need every featured
- * object propagated, and trails read this same union at a much smaller
- * cap — see `renderer/trails/trail-set.ts`). `pinned` and `trailed` join
- * when sources for them exist.
+ * object propagated). `pinned` and `trailed` join when sources for them
+ * exist.
  */
 export function buildActiveSet(args: ActiveSetArgs, out: Uint32Array): number {
   const cap = out.length;

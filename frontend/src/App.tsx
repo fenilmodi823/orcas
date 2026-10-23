@@ -21,9 +21,8 @@ const PointsDebug = lazy(() =>
 // The 3D stack itself is lazy for the same reason the debug routes are:
 // three + R3F + drei were the whole of the eager payload otherwise.
 // `LandingSequence` below deliberately stays eager so the intro renders from
-// frame one while this chunk streams in behind it. M1.9: `/` now runs the
-// live catalogue scene; the Phase 3 placeholder (`scene/Scene.tsx`) is no
-// longer mounted, and is left in place until a phase-boundary deletion.
+// frame one while this chunk streams in behind it. M1.9: `/` runs the
+// live catalogue scene.
 const SimulationView = lazy(() =>
   import('./simulation/SimulationView.js').then((m) => ({ default: m.SimulationView })),
 );

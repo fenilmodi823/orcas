@@ -16,7 +16,7 @@ const LABEL_CAP = 12;
  * selection, if it isn't already featured" — mirrors OrbitPaths.tsx's own
  * "static featured slots + one selection slot" shape exactly; the
  * candidate set here only ever changes on a selection click, never per
- * frame, so it needs none of Trails.tsx's pool-reconciliation machinery. */
+ * frame, so it needs no slot reconciliation (renderer/paths/slot-pool.ts). */
 /** Exported so PointsDebug.tsx renders exactly this many DOM `<ObjectLabel>`
  * elements — one per slot this component writes into. */
 export const LABEL_SLOT_COUNT = FEATURED_OBJECT_IDS.size + 1;
@@ -81,8 +81,7 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
   const world = useMemo(() => new Vector3(), []);
   // useRef, not useMemo: these entries are mutated in place every frame
   // inside useFrame below, and the React Compiler's hooks-immutability
-  // rule forbids mutating a memoised value after render (see Trails.tsx's
-  // own note on hitting the identical rule for its head-marker buffer).
+  // rule forbids mutating a memoised value after render.
   const candidatesRef = useRef<MutableCandidate[]>(Array.from({ length: SLOT_COUNT }, makeCandidate));
 
   useFrame(() => {

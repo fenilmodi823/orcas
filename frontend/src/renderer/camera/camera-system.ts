@@ -19,7 +19,7 @@ const DT_CLAMP_SEC = 0.1;
 const EXIT_DURATION_SEC = 1.2;
 
 export { CancelledError };
-export type { CameraSystem, CameraSystemOpts, FlyOpts, ManualInput };
+export type { CameraSystem, CameraSystemOpts };
 
 const _tp = new Vector3();
 
@@ -244,4 +244,3 @@ export function createCameraSystem(camera: PerspectiveCamera, opts?: CameraSyste
   return new CameraSystemImpl(camera, opts ?? {});
 }
 
-export type { CameraState, CameraEvent };

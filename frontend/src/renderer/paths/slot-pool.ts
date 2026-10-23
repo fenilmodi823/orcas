@@ -7,12 +7,12 @@ export interface PoolSlot {
  * given the new focus set. Pure — no refs, no three.js, no React — so
  * the slot-assignment policy is unit-testable without a running scene.
  *
- * A norad already occupying a slot keeps that slot (its trail history
- * carries over unbroken); a norad newly entering the focus set claims
- * the lowest-indexed free slot; a slot whose occupant left the focus set
- * comes back `null` (the caller clears its ring and hides its line).
- * `slots.length` is the pool capacity — the trail focus set is built
- * with a buffer this size, so `focusSetNorads.length` never exceeds it.
+ * A norad already occupying a slot keeps that slot (its line carries over
+ * unbroken); a norad newly entering the focus set claims the lowest-indexed
+ * free slot; a slot whose occupant left the focus set comes back `null`
+ * (the caller hides its line). `slots.length` is the pool capacity — the
+ * caller builds the focus set with a buffer this size, so
+ * `focusSetNorads.length` never exceeds it.
  */
 export function reconcilePool(
   slots: readonly PoolSlot[],

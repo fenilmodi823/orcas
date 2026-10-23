@@ -22,7 +22,7 @@ export interface DetailField {
   readonly text?: boolean;
 }
 
-export type DetailGroupId = 'identity' | 'kinematics' | 'orbit' | 'provenance' | 'conjunction' | 'map' | 'rings';
+type DetailGroupId = 'identity' | 'kinematics' | 'orbit' | 'provenance' | 'conjunction' | 'map' | 'rings';
 
 export interface DetailGroup {
   readonly id: DetailGroupId;

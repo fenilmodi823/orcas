@@ -12,7 +12,7 @@ import { readOrbitClassColor } from './path-orbit-class-tint.js';
 import { readCyanToken } from '../scene-colors.js';
 import { sampleGroundTrack, DEFAULT_GROUND_TRACK_SAMPLES } from './ground-track.js';
 import { toGroundTrackSegments } from './ground-track-split.js';
-import { reconcilePool } from '../trails/trail-pool.js';
+import { reconcilePool } from './slot-pool.js';
 import { patchLineMaterial } from '../live/line-trim.js';
 
 interface Props {
@@ -25,8 +25,8 @@ interface Props {
 }
 
 /** Generous vs. today's realistic 0-4-object active set — Tier1Objects.tsx's
- * own note that Tier 1 promotion is rare. Bounds the React element count the
- * same way trail-pool.ts's 64-slot pool bounds Trails.tsx. */
+ * own note that Tier 1 promotion is rare. Bounds the React element count;
+ * slot-pool.ts decides which object each slot holds. */
 const POOL_CAP = 32;
 const RESAMPLE_INTERVAL_MS = 5_000;
 const RESAMPLE_EPOCH_DRIFT_MS = 60_000;
@@ -213,8 +213,11 @@ export function GroundTracks({
           key={k}
           segments
           ref={(l) => {
-            // Array bookkeeping ONLY — see Trails.tsx's own note on why an
-            // inline ref callback must never mutate the instance here.
+            // Array bookkeeping ONLY — never mutate the instance here. This
+            // inline callback is a new function every render, so React
+            // detaches and reattaches it (with the same instance) on every
+            // parent re-render; a mutation here would race the per-frame
+            // geometry writes.
             lineRefs.current[k] = l as LineSegments2 | null;
           }}
           points={BOOTSTRAP_POINTS}
