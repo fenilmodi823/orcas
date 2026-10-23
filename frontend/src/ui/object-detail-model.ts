@@ -18,6 +18,8 @@ export interface DetailField {
   readonly precision?: number;
   /** Spans the whole row: a value too long for one column (a moon's radii, its requested spans). */
   readonly wide?: boolean;
+  /** A word (a name, a type, a source), not a measurement: shown in the UI face. */
+  readonly text?: boolean;
 }
 
 export type DetailGroupId = 'identity' | 'kinematics' | 'orbit' | 'provenance' | 'conjunction' | 'map' | 'rings';
@@ -116,8 +118,8 @@ export function buildDetailGroups(
       fields: [
         { label: 'NORAD ID', value: object.norad },
         { label: 'Int’l designator', value: object.objectId },
-        { label: 'Type', value: TYPE_LABELS[object.type] },
-        { label: 'Orbit class', value: ORBIT_CLASS_LABELS[object.orbitClass] },
+        { label: 'Type', value: TYPE_LABELS[object.type], text: true },
+        { label: 'Orbit class', value: ORBIT_CLASS_LABELS[object.orbitClass], text: true },
       ],
     },
     {
@@ -144,8 +146,8 @@ export function buildDetailGroups(
         // The element-set epoch is always shown (Design.md §4).
         { label: 'Element-set epoch', value: formatEpochUtc(object.epochMs) },
         { label: 'Age', value: ahead ? 'published ahead of now' : formatAge(nowMs - object.epochMs) },
-        { label: 'Source', value: object.source },
-        { label: 'Coverage', value: covered ? 'Inside its trusted window' : 'Outside — extrapolated' },
+        { label: 'Source', value: object.source, text: true },
+        { label: 'Coverage', value: covered ? 'Inside its trusted window' : 'Outside — extrapolated', text: true },
       ],
       note: covered
         ? undefined

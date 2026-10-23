@@ -29,6 +29,7 @@
 }
 
 .time-transport__now {
+  min-height: var(--space-6); /* WCAG 2.5.8, UI audit B.30 */
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);

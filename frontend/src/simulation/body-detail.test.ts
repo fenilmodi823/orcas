@@ -62,7 +62,15 @@ describe('bodyReadouts (S5a)', () => {
   });
 });
 
+const textLabels = (groups: readonly { fields: readonly { label: string; text?: boolean }[] }[]) =>
+  groups.flatMap((g) => g.fields.filter((f) => f.text).map((f) => f.label));
+
 describe('bodyDetailGroups', () => {
+  it('marks its words as text and leaves its data mono (Design.md §4, UI audit B.30)', () => {
+    const groups = bodyDetailGroups(body('jupiter'), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null });
+    expect(textLabels(groups)).toEqual(['Type', 'Source', 'Source']);
+  });
+
   it('names the barycentre where DE421 gives only that', () => {
     const groups = bodyDetailGroups(body('saturn'), { ephemerisLoaded: true, centreFromHorizons: false, manifest: null });
     expect(groups.find((g) => g.id === 'provenance')?.note).toContain('barycentre');

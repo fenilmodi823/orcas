@@ -23,6 +23,11 @@
   animation: none;
 }
 
+/* The pulse is decoration; reduced motion (the OS's or ORCAS's own) stills it. */
+.status-pill[data-reduced-motion] .status-pill__dot {
+  animation: none;
+}
+
 .status-pill__value {
   font: var(--t-caption);
   font-family: var(--font-mono);

@@ -3,9 +3,12 @@
   padding: 0 var(--space-4) var(--space-3);
 }
 
+/* 24 px tall to grab (WCAG 2.5.8; UI audit B.30), the 3 px track centred in
+   it, and the negative margins keep the dock's layout exactly as before. */
 .time-scrubber__track {
   width: 100%;
-  margin: 0;
+  height: var(--space-6);
+  margin: calc((3px - var(--space-6)) / 2) 0;
   appearance: none;
   background: transparent;
   cursor: pointer;

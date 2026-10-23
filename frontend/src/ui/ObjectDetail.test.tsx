@@ -4,7 +4,7 @@ import { ObjectDetail } from './ObjectDetail.js';
 import type { DetailGroup } from './object-detail-model.js';
 
 const GROUPS: readonly DetailGroup[] = [
-  { id: 'identity', title: 'Identity', fields: [{ label: 'NORAD ID', value: '25544' }] },
+  { id: 'identity', title: 'Identity', fields: [{ label: 'NORAD ID', value: '25544' }, { label: 'Type', value: 'Payload', text: true }] },
   { id: 'orbit', title: 'Orbit', fields: [{ label: 'RAAN', value: 247.46, unit: '°', precision: 2 }] },
   {
     id: 'provenance',
@@ -21,6 +21,13 @@ describe('ObjectDetail', () => {
       expect(screen.getByRole('region', { name: title })).toBeTruthy();
     }
     expect(screen.getByText('RAAN')).toBeTruthy();
+  });
+
+  it('passes a word field through in the text face (UI audit B.30)', () => {
+    render(<ObjectDetail groups={GROUPS} />);
+
+    expect(screen.getByText('Payload').classList.contains('telemetry-readout__value--text')).toBe(true);
+    expect(screen.getByText('25544').classList.contains('telemetry-readout__value--text')).toBe(false);
   });
 
   it('shows the element-set epoch', () => {

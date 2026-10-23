@@ -17,6 +17,12 @@
   color: var(--text-hi);
 }
 
+/* A word under a mono label: the UI face at body size, so it never outranks a measurement. */
+.telemetry-readout__value--text {
+  font: var(--t-body);
+  font-weight: 500;
+}
+
 .telemetry-readout__unit {
   font: var(--t-caption);
   font-family: var(--font-mono);

@@ -1,8 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { useViewStore } from '../state/view-store.js';
 import { StatusPill } from './StatusPill.js';
 
+afterEach(() => useViewStore.setState({ reducedMotionOverride: null }));
+
 describe('StatusPill', () => {
+  it('stills its live pulse under reduced motion, the in-app setting included (UI audit B.30)', () => {
+    const { container, rerender } = render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} />);
+    expect(container.firstElementChild?.hasAttribute('data-reduced-motion')).toBe(false);
+
+    useViewStore.setState({ reducedMotionOverride: true });
+    rerender(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} />);
+
+    expect(container.firstElementChild?.hasAttribute('data-reduced-motion')).toBe(true);
+  });
+
   it('renders the UTC epoch with the fresh label by default', () => {
     render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} />);
 

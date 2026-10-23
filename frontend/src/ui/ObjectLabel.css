@@ -26,6 +26,15 @@
   font: inherit;
   cursor: pointer;
   pointer-events: auto;
+  position: relative;
+}
+
+/* The 13 px label grows an invisible hit band to 25 px tall and 4 px wider,
+   so even "Io" clears 24 px (WCAG 2.5.8; UI audit B.30). */
+.object-label__hit::before {
+  content: '';
+  position: absolute;
+  inset: -6px -2px;
 }
 
 .object-label[data-hidden] .object-label__hit {

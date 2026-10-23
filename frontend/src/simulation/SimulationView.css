@@ -7,6 +7,9 @@
   width: 100vw;
   height: 100vh;
   --object-panel-width: 340px;
+  /* The legend's column at the bottom right (108 px wide, measured 2026-10-23) and a gap,
+     kept clear on both sides so the dock stays centred. */
+  --legend-column: calc(var(--space-16) + var(--space-12) + var(--space-2));
   /* The brand mark spans 24–130.3 px (measured 2026-10-06 at 1440 × 900); the breadcrumb sits one --space-6 past it. */
   --breadcrumb-left: calc(130px + var(--space-6));
 }
@@ -17,31 +20,55 @@
   right: var(--space-4);
 }
 
-.simulation__dock {
+/* The bottom edge, one stack: the dock and the legend in a row, the credit
+   beneath them, so neither can cover it (UI audit B.30). Above the
+   scene-anchored tethers (11-12), which otherwise draw across the expanded
+   info panel; below the landing sequence (19+). */
+.simulation__bottom {
   position: absolute;
-  left: 50%;
-  bottom: var(--space-8);
-  transform: translateX(-50%);
-  width: min(880px, calc(100vw - 2 * var(--space-4)));
-  /* Above the scene-anchored tethers (11-12), which otherwise draw across
-     the expanded info panel; below the landing sequence (19+). */
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   z-index: 13;
+  /* The gaps stay the scene's: drags pass through to the canvas. */
+  pointer-events: none;
 }
 
-/* Legally required attribution, styled as a map credit: present, legible on
-   inspection, and never competing with the scene. */
+.simulation__bottom-row {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--legend-column);
+}
+
+.simulation__dock {
+  width: min(880px, 100%);
+  pointer-events: auto;
+}
+
+.simulation__bottom-row .orbit-class-legend,
+.simulation__bottom-row .orbit-class-legend-reopen {
+  right: 0;
+  bottom: 0;
+  pointer-events: auto;
+}
+
+/* Legally required attribution, styled as a map credit: present and legible
+   over any backdrop (--text-mid on --glass-fill clears 4.5:1 over white,
+   Design.md §9), at the type scale's smallest size, never competing with the scene. */
 .simulation__credit {
-  position: absolute;
-  /* Symmetric insets keep the centred credit clear of the legend's column. */
-  left: clamp(var(--space-4), 10vw, 11rem);
-  right: clamp(var(--space-4), 10vw, 11rem);
-  bottom: var(--space-2);
+  align-self: center;
   margin: 0;
-  color: var(--text-lo);
-  font-size: 0.66rem;
-  line-height: 1.4;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--glass-fill);
+  color: var(--text-mid);
+  font: var(--t-caption);
+  font-weight: 400;
   text-align: center;
-  pointer-events: none;
 }
 
 .simulation__status {
@@ -80,14 +107,9 @@
   z-index: 13;
 }
 
-/* With the panel open, the dock and the credit centre in the scene that is
-   left, as NASA Eyes re-centres its time controls. Snapped, not animated:
+/* With the panel open, the bottom stack centres in the scene that is left,
+   as NASA Eyes re-centres its time controls. Snapped, not animated:
    animating left/width is banned (Rules.md §2). */
-.simulation[data-object-panel] .simulation__dock {
-  left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
-  width: min(880px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
-}
-
-.simulation[data-object-panel] .simulation__credit {
+.simulation[data-object-panel] .simulation__bottom {
   left: calc(var(--object-panel-width) + 2 * var(--space-4));
 }

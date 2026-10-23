@@ -73,9 +73,9 @@ function provenanceNote(body: Body, ephemerisLoaded: boolean, centreFromHorizons
 /** Where a planet's map came from (S5b), or why it has none. Null for the Sun, the Earth and the Moon. */
 function mapGroup(body: Body): DetailGroup | null {
   const map = PLANET_MAPS[body.id];
-  if (map) return { id: 'map', title: 'Map', fields: [{ label: 'Source', value: map.source }], note: map.note };
+  if (map) return { id: 'map', title: 'Map', fields: [{ label: 'Source', value: map.source, text: true }], note: map.note };
   const none = NO_MAP_NOTE[body.id];
-  return none ? { id: 'map', title: 'Map', fields: [{ label: 'Source', value: 'None' }], note: none } : null;
+  return none ? { id: 'map', title: 'Map', fields: [{ label: 'Source', value: 'None', text: true }], note: none } : null;
 }
 
 const RINGS: DetailGroup = {
@@ -103,7 +103,7 @@ export function bodyDetailGroups(
       id: 'identity',
       title: 'Body',
       fields: [
-        { label: 'Type', value: BODY_KIND_LABEL[body.kind] },
+        { label: 'Type', value: BODY_KIND_LABEL[body.kind], text: true },
         { label: 'Equatorial radius', value: body.equatorialRadiusKm, unit: 'km', precision: body.equatorialRadiusKm < 1e4 ? 1 : 0 },
       ],
       note:
@@ -114,7 +114,7 @@ export function bodyDetailGroups(
     {
       id: 'provenance',
       title: 'Position',
-      fields: [{ label: 'Source', value: body.id === 'moon' ? 'Meeus ch. 47' : body.id === 'earth' ? 'Origin' : 'JPL DE421' }],
+      fields: [{ label: 'Source', value: body.id === 'moon' ? 'Meeus ch. 47' : body.id === 'earth' ? 'Origin' : 'JPL DE421', text: true }],
       note: provenanceNote(body, facts.ephemerisLoaded, facts.centreFromHorizons),
     },
     ...extra,

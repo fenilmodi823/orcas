@@ -11,11 +11,16 @@ const manifest = parseHorizonsManifest(JSON.parse(readFileSync(resolve(process.c
 afterEach(() => resetMoonSystems());
 
 describe("a moon's panel (S6b)", () => {
+  it('marks its words as text and leaves its data mono (Design.md §4, UI audit B.30)', () => {
+    const labels = moonDetailGroups(bodyById('io')!, manifest).flatMap((g) => g.fields.filter((f) => f.text).map((f) => f.label));
+    expect(labels).toEqual(['Type', 'Moon of', 'Source', 'Source']);
+  });
+
   it('names its planet, its IAU radii and the ellipsoid it is drawn as', () => {
     const body = moonDetailGroups(bodyById('phobos')!, manifest).find((g) => g.id === 'identity');
     expect(body?.fields).toEqual(
       expect.arrayContaining([
-        { label: 'Moon of', value: 'Mars' },
+        { label: 'Moon of', value: 'Mars', text: true },
         { label: 'Radii', value: '13 × 11.4 × 9.1', unit: 'km', wide: true },
       ]),
     );
@@ -45,7 +50,7 @@ describe("a moon's panel (S6b)", () => {
     const position = moonDetailGroups(bodyById('io')!, manifest).find((g) => g.id === 'provenance');
     expect(position?.fields).toEqual(
       expect.arrayContaining([
-        { label: 'Source', value: 'JPL Horizons' },
+        { label: 'Source', value: 'JPL Horizons', text: true },
         { label: 'Exported', value: '2026-10-06 UTC' },
         { label: 'Trajectory', value: 'jup365_merged' },
       ]),

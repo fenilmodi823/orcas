@@ -70,6 +70,8 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-lo) transparent;
   /* Wheel-scrolling the panel must not zoom the scene behind it. */
   overscroll-behavior: contain;
   padding-top: var(--space-4);

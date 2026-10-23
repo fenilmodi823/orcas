@@ -1,3 +1,4 @@
+import { useReducedMotion } from '../state/use-reduced-motion.js';
 import './StatusPill.css';
 
 export interface StatusPillProps {
@@ -25,10 +26,12 @@ function formatUtc(date: Date, nowMs?: number): string {
  */
 export function StatusPill({ epoch, stale = false, nowMs }: StatusPillProps) {
   const value = formatUtc(epoch, nowMs);
+  const reducedMotion = useReducedMotion();
   return (
     <div
       className="status-pill"
       data-stale={stale ? '' : undefined}
+      data-reduced-motion={reducedMotion ? '' : undefined}
       role="status"
       aria-label={stale ? `Data stale, element set epoch ${value}` : `Element set epoch ${value}`}
     >

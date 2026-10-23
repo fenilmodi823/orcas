@@ -45,6 +45,16 @@ describe('LandingSequence', () => {
     expect(screen.getByRole('button', { name: 'Skip intro animation' }).hasAttribute('data-dismissed')).toBe(true);
   });
 
+  it('takes the faded skip control out of the tab order once dismissed (UI audit B.30)', () => {
+    render(<LandingSequence />);
+    const skip = screen.getByRole('button', { name: 'Skip intro animation' });
+    expect(skip.hasAttribute('inert')).toBe(false);
+
+    fireEvent.click(skip);
+
+    expect(skip.hasAttribute('inert')).toBe(true);
+  });
+
   it('runs the full storyboard to done within 4s and never beyond it', () => {
     const onDone = vi.fn();
     const { container } = render(<LandingSequence onDone={onDone} />);

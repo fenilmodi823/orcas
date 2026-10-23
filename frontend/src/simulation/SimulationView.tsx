@@ -99,7 +99,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimul
   const panelOpen = scene.selectedObjectMeta !== null || body !== null;
 
   return (
-    <div className="simulation" data-object-panel={panelOpen ? '' : undefined}>
+    <main className="simulation" data-object-panel={panelOpen ? '' : undefined}>
       <LiveScene scene={scene} />
       <SimulationPanels scene={scene} provenance={provenance} />
       <PanelErrorBoundary label="Epoch">
@@ -111,25 +111,30 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimul
           />
         </div>
       </PanelErrorBoundary>
-      <PanelErrorBoundary label="Orbit class legend">
-        <OrbitClassLegend />
-      </PanelErrorBoundary>
       <PanelErrorBoundary label="Search">
         <SimulationSearch objects={scene.objects} />
       </PanelErrorBoundary>
-      <div className="simulation__dock">
-        <PanelErrorBoundary label="Time dock">
-          <SimulationDock scene={scene} provenance={provenance} replay={replay} takeInitialView={takeInitialView} />
-        </PanelErrorBoundary>
+      {/* The bottom edge is one stack, so nothing covers the credit or the legend (UI audit B.30). */}
+      <div className="simulation__bottom">
+        <div className="simulation__bottom-row">
+          <div className="simulation__dock">
+            <PanelErrorBoundary label="Time dock">
+              <SimulationDock scene={scene} provenance={provenance} replay={replay} takeInitialView={takeInitialView} />
+            </PanelErrorBoundary>
+          </div>
+          <PanelErrorBoundary label="Orbit class legend">
+            <OrbitClassLegend />
+          </PanelErrorBoundary>
+        </div>
+        {/* Map-credit style: small, persistent, out of the way. RA-14 §2.3 wants
+            a provenance line wherever catalogue data is shown, and both the
+            USSPACECOM citation (RA14.D3) and ESA's Gaia acknowledgement are
+            licence conditions — neither can wait to be summoned. */}
+        <p className="simulation__credit">
+          {formatCreditLine(provenance)} Stars: {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT} {PLANET_CREDIT} {MOON_CREDIT} {PLANET_MAP_CREDIT} {MOON_MAP_CREDIT} {LAGRANGE_CREDIT}
+        </p>
       </div>
-      {/* Map-credit style: small, persistent, out of the way. RA-14 §2.3 wants
-          a provenance line wherever catalogue data is shown, and both the
-          USSPACECOM citation (RA14.D3) and ESA's Gaia acknowledgement are
-          licence conditions — neither can wait to be summoned. */}
-      <p className="simulation__credit">
-        {formatCreditLine(provenance)} Stars: {GAIA_ACKNOWLEDGEMENT} {EARTH_IMAGERY_CREDIT} {PLANET_CREDIT} {MOON_CREDIT} {PLANET_MAP_CREDIT} {MOON_MAP_CREDIT} {LAGRANGE_CREDIT}
-      </p>
-    </div>
+    </main>
   );
 }
 

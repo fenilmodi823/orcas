@@ -7,8 +7,9 @@
 
 .object-detail__title {
   margin: 0 0 var(--space-2);
-  color: var(--text-lo);
-  font-size: 0.68rem;
+  /* --text-lo fails 4.5:1 on glass at this size (Design.md §9, UI audit B.30). */
+  color: var(--text-mid);
+  font: var(--t-caption);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

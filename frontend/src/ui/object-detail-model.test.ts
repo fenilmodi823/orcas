@@ -35,7 +35,14 @@ describe('orbit derivations', () => {
   });
 });
 
+const textLabels = (groups: readonly { fields: readonly { label: string; text?: boolean }[] }[]) =>
+  groups.flatMap((g) => g.fields.filter((f) => f.text).map((f) => f.label));
+
 describe('buildDetailGroups', () => {
+  it('marks its words as text and leaves its data mono (Design.md §4, UI audit B.30)', () => {
+    expect(textLabels(buildDetailGroups(leo, satrec, EPOCH, EPOCH))).toEqual(['Type', 'Orbit class', 'Source', 'Coverage']);
+  });
+
   it('orders the groups as the brief does: identity, kinematics, orbit, provenance', () => {
     const groups = buildDetailGroups(leo, satrec, EPOCH, EPOCH);
 

@@ -141,6 +141,7 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
           type="button"
           className="landing-sequence__skip"
           data-dismissed={dismissed ? '' : undefined}
+          inert={dismissed}
           onClick={handleSkip}
           aria-label="Skip intro animation"
         >

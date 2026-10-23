@@ -22,4 +22,12 @@ describe('TelemetryReadout', () => {
 
     expect(screen.getByText('LEO')).toBeTruthy();
   });
+
+  it('sets a word in the text face, a measurement in mono (Design.md §4, UI audit B.30)', () => {
+    render(<TelemetryReadout label="Source" value="JPL DE421" text />);
+    render(<TelemetryReadout label="Altitude" value={788.6} unit="km" />);
+
+    expect(screen.getByText('JPL DE421').classList.contains('telemetry-readout__value--text')).toBe(true);
+    expect(screen.getByText('788.60', { exact: false }).classList.contains('telemetry-readout__value--text')).toBe(false);
+  });
 });

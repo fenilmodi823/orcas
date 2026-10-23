@@ -15,7 +15,7 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
   const map = MOON_MAPS[moon.id];
   const irregular = moon.system === 'mars' ? ' Phobos and Deimos are irregular bodies, which an ellipsoid only approximates.' : '';
   const centre = moon.system === 'mars' ? 'Mars’s centre' : `the ${planet.name} system’s barycentre`;
-  const fields: DetailField[] = [{ label: 'Source', value: 'JPL Horizons' }];
+  const fields: DetailField[] = [{ label: 'Source', value: 'JPL Horizons', text: true }];
   let note =
     manifest === undefined
       ? 'Loading the export’s details…'
@@ -42,8 +42,8 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
       id: 'identity',
       title: 'Body',
       fields: [
-        { label: 'Type', value: 'Moon' },
-        { label: 'Moon of', value: planet.name },
+        { label: 'Type', value: 'Moon', text: true },
+        { label: 'Moon of', value: planet.name, text: true },
         { label: 'Radii', value: `${a} × ${b} × ${c}`, unit: 'km', wide: true },
       ],
       note: `IAU 2015 (Archinal et al. 2018), as NAIF’s pck00011 carries them. Drawn as this ellipsoid, turned by its IAU pole and prime meridian.${irregular}`,
@@ -52,7 +52,7 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
     {
       id: 'map',
       title: 'Map',
-      fields: [{ label: 'Source', value: map?.source ?? 'None' }],
+      fields: [{ label: 'Source', value: map?.source ?? 'None', text: true }],
       note: map?.note ?? MOON_NO_MAP_NOTE[moon.id] ?? 'No map.',
     },
   ];
