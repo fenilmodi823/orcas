@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS base
+FROM python:3.15-slim AS base
 RUN groupadd -r orcas && useradd -r -g orcas orcas
 WORKDIR /app
 ENV UV_LINK_MODE=copy PYTHONUNBUFFERED=1 UV_CACHE_DIR=/tmp/uv-cache
