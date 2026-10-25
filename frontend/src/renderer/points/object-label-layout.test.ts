@@ -86,6 +86,13 @@ describe('computeLabelOpacities', () => {
     expect(opacity[0]).toBe(0);
     expect(opacity[1]).toBeCloseTo(1, 6);
   });
+
+  it('keeps a pinned label at full opacity: no cap, no crowding, no distance fade', () => {
+    const candidates = [candidate(0, 0, 1), candidate(1, 0, 2), candidate(2, 0, 3)];
+    const opacity = computeLabelOpacities({ candidates, selectedSlot: -1, pinnedSlot: 2, camRadiusKm: 0.1, cap: 1 });
+    expect(opacity[2]).toBe(1);
+    expect(opacity[1]).toBe(0);
+  });
 });
 
 describe('labelOnScreen (B.14: nothing behind the Earth is labelled, as in NASA Eyes)', () => {

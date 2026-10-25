@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { useSelectionStore } from './selection-store.js';
+import { pinnedLabelNorad, useSelectionStore, type WatchPair } from './selection-store.js';
 import type { NoradId } from '../data/catalog-types.js';
 
 const NORAD_A = '25544' as NoradId;
@@ -48,5 +48,14 @@ describe('useSelectionStore', () => {
     store.setSelectedBody('moon');
     store.setSelected(null);
     expect(useSelectionStore.getState().selectedBody).toBe('moon');
+  });
+});
+
+describe('pinnedLabelNorad', () => {
+  const pair: WatchPair = { follow: '1' as NoradId, counterpart: '2' as NoradId };
+  it('pins the counterpart only while the followed object is selected', () => {
+    expect(pinnedLabelNorad({ selectedNorad: '1' as NoradId, watchPair: pair })).toBe('2');
+    expect(pinnedLabelNorad({ selectedNorad: '3' as NoradId, watchPair: pair })).toBeNull();
+    expect(pinnedLabelNorad({ selectedNorad: '1' as NoradId, watchPair: null })).toBeNull();
   });
 });
