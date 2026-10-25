@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 #: Combined hard-body radius, km. A stated default, not a measurement of any
 #: object: SATCAT RCS is a radar cross-section, not a size (RA14.D7). It is the
 #: figure RA-12's worked numbers and the golden test use, and it is shown with
-#: every result (Questions - Round 3, B.1).
+#: every result (Questions, R3 B.1).
 DEFAULT_HARD_BODY_RADIUS_KM = 0.020
 
 #: A pair this close and this slow is one complex, not an encounter: docked
