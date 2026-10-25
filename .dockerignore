@@ -2,19 +2,22 @@
 legacy/
 data/*
 !data/sample/
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-node_modules/
-dist/
-.vite/
+# `**/` because a bare pattern matches only at the context root: without it the
+# host's backend/.venv (518 MB) and mypy cache rode into the backend image.
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/node_modules/
+**/dist/
+**/.vite/
+**/*.tsbuildinfo
 .vs/
 .vscode/
-.env
-.env.*
-!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 ORCAS Vault
 docs/
