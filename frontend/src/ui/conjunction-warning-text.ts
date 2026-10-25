@@ -67,7 +67,8 @@ export function warningText(pick: WarningPick, run: ScreeningRun, nowMs: number)
 export type QuietState =
   | { readonly kind: 'not-screened' }
   | { readonly kind: 'unavailable' }
-  | { readonly kind: 'idle'; readonly run: ScreeningRun; readonly simulationMs: number };
+  | { readonly kind: 'idle'; readonly run: ScreeningRun;
+      readonly simulationMs: number; readonly selectionCovered: boolean };
 
 export interface QuietLine {
   readonly text: string;
@@ -86,10 +87,11 @@ export function quietLine(state: QuietState, wallNowMs: number): QuietLine {
   if (state.kind === 'unavailable') {
     return { text: 'Close-approach warnings unavailable: the backend is not reachable', goThere: false };
   }
-  const { run, simulationMs } = state;
+  const { run, simulationMs, selectionCovered } = state;
   const span = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;
   if (simulationMs >= run.windowStartMs && simulationMs <= run.windowEndMs) {
-    return { text: `Close-approach warnings: nothing due from the run's top 10 or the selected object · screened ${span}`, goThere: false };
+    const scope = selectionCovered ? "the run's top 10 or the selected object" : "the run's top 10";
+    return { text: `Close-approach warnings: nothing due from ${scope} · screened ${span}`, goThere: false };
   }
   return {
     text: `Close-approach warnings cover ${span} (screened ${screenedAgo(run.completedAtMs, wallNowMs)})`,

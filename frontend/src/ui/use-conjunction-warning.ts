@@ -9,7 +9,7 @@ export type WarningView =
   | { readonly kind: 'loading' }
   | { readonly kind: 'unavailable' }
   | { readonly kind: 'not-screened' }
-  | { readonly kind: 'idle'; readonly run: ScreeningRun }
+  | { readonly kind: 'idle'; readonly run: ScreeningRun; readonly selectionCovered: boolean }
   | { readonly kind: 'message'; readonly run: ScreeningRun; readonly pick: WarningPick };
 
 type TopState =
@@ -66,6 +66,6 @@ export function useConjunctionWarning(
   if (top.kind !== 'report') view = top;
   else if (top.report.run === null) view = { kind: 'not-screened' };
   else if (pick) view = { kind: 'message', run: top.report.run, pick };
-  else view = { kind: 'idle', run: top.report.run };
+  else view = { kind: 'idle', run: top.report.run, selectionCovered: selectedNorad !== null && selected?.kind === 'report' };
   return { view, dismiss };
 }

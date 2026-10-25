@@ -51,14 +51,20 @@ describe('warningText', () => {
 describe('quietLine', () => {
   const now = Date.parse('2026-10-23T14:00:00Z');
   it('offers Go there outside the window and says how old the screen is', () => {
-    expect(quietLine({ kind: 'idle', run: RUN, simulationMs: now }, now)).toEqual({
+    expect(quietLine({ kind: 'idle', run: RUN, simulationMs: now, selectionCovered: true }, now)).toEqual({
       text: 'Close-approach warnings cover 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC (screened 24 days ago)',
       goThere: true,
     });
   });
   it('says none are due inside the window', () => {
-    expect(quietLine({ kind: 'idle', run: RUN, simulationMs: T0 }, now).text).toBe(
+    expect(quietLine({ kind: 'idle', run: RUN, simulationMs: T0, selectionCovered: true }, now).text).toBe(
       "Close-approach warnings: nothing due from the run's top 10 or the selected object · screened 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC");
+  });
+  it('names the selected object only when its passes were checked', () => {
+    const span = '2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC';
+    const idle = (selectionCovered: boolean) => quietLine({ kind: 'idle', run: RUN, simulationMs: T0, selectionCovered }, now).text;
+    expect(idle(false)).toBe(`Close-approach warnings: nothing due from the run's top 10 · screened ${span}`);
+    expect(idle(true)).toBe(`Close-approach warnings: nothing due from the run's top 10 or the selected object · screened ${span}`);
   });
   it('never reads "not screened" or "unreachable" as all clear', () => {
     expect(quietLine({ kind: 'not-screened' }, now)).toEqual({ text: 'No screening run yet', goThere: false });
@@ -66,8 +72,8 @@ describe('quietLine', () => {
   });
   it('says "1 day" and "less than a day" correctly', () => {
     const run = { ...RUN, completedAtMs: now - 86_400_000 };
-    expect(quietLine({ kind: 'idle', run, simulationMs: now }, now).text).toMatch(/\(screened 1 day ago\)$/);
-    expect(quietLine({ kind: 'idle', run: { ...RUN, completedAtMs: now - 1 }, simulationMs: now }, now).text)
+    expect(quietLine({ kind: 'idle', run, simulationMs: now, selectionCovered: true }, now).text).toMatch(/\(screened 1 day ago\)$/);
+    expect(quietLine({ kind: 'idle', run: { ...RUN, completedAtMs: now - 1 }, simulationMs: now, selectionCovered: true }, now).text)
       .toMatch(/\(screened less than a day ago\)$/);
   });
 });

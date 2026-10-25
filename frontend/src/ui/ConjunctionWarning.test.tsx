@@ -51,10 +51,24 @@ describe('ConjunctionWarning', () => {
   });
 
   it('shows the quiet line with Go there outside the window', () => {
-    const { props } = setup({ view: { kind: 'idle', run: RUN }, simulationMs: Date.parse('2026-10-23T14:00:00Z') });
+    const { props } = setup({ view: { kind: 'idle', run: RUN, selectionCovered: true }, simulationMs: Date.parse('2026-10-23T14:00:00Z') });
     expect(screen.getByText(/Close-approach warnings cover/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Go there' }));
     expect(props.onGoThere).toHaveBeenCalled();
+  });
+
+  it('keeps one live region across views so a new pass is announced', () => {
+    const text = 'Close approach: STARLINK-4158 and PELICAN-6, 28 m apart, maximum P_c 0.31.';
+    const message = setup().props.view;
+    for (const from of [{ kind: 'idle', run: RUN, selectionCovered: true }, { kind: 'loading' }] as const) {
+      const { container, rerender, props, unmount } = setup({ view: from });
+      const region = container.querySelector('[aria-live="polite"]');
+      expect(container.querySelectorAll('[aria-live]').length).toBe(1);
+      rerender(<ConjunctionWarning {...props} view={message} />);
+      expect(container.querySelector('[aria-live="polite"]')).toBe(region);
+      expect(region?.textContent).toBe(text);
+      unmount();
+    }
   });
 
   it('renders nothing while loading, and the failure text when a replay failed', () => {

@@ -27,50 +27,62 @@ const Num = ({ children }: { children: string }) => <span className="conjunction
  * each new pass once; the ticking countdown is never in it.
  */
 export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onGoThere, onDismiss, error }: ConjunctionWarningProps) {
-  if (view.kind === 'loading') return null;
+  const live = (announcement: string) => (
+    <p className="conjunction-warning__announce" aria-live="polite">{announcement}</p>
+  );
   const failure = error ? <p className="conjunction-warning__error">{error}</p> : null;
+  // One live region, same type and position in every branch, so React keeps
+  // the node and a new pass is announced as a text change (not an insertion).
+  if (view.kind === 'loading') return <>{null}{live('')}</>;
 
   if (view.kind !== 'message') {
-    const line = quietLine(view.kind === 'idle' ? { kind: 'idle', run: view.run, simulationMs } : view, wallNowMs);
+    const line = quietLine(
+      view.kind === 'idle' ? { kind: 'idle', run: view.run, simulationMs, selectionCovered: view.selectionCovered } : view,
+      wallNowMs,
+    );
     return (
-      <div className="conjunction-warning conjunction-warning--quiet">
-        <p className="conjunction-warning__quiet">
-          {line.text}
-          {line.goThere && (
-            <button type="button" className="conjunction-warning__button" onClick={onGoThere}>Go there</button>
-          )}
-        </p>
-        {failure}
-        <p className="conjunction-warning__announce" aria-live="polite" />
-      </div>
+      <>
+        <div className="conjunction-warning conjunction-warning--quiet">
+          <p className="conjunction-warning__quiet">
+            {line.text}
+            {line.goThere && (
+              <button type="button" className="conjunction-warning__button" onClick={onGoThere}>Go there</button>
+            )}
+          </p>
+          {failure}
+        </div>
+        {live('')}
+      </>
     );
   }
 
   const { conjunction } = view.pick;
   const t = warningText(view.pick, view.run, simulationMs);
   return (
-    <GlassSurface variant="floating" className="conjunction-warning">
-      <div className="conjunction-warning__head">
-        <AlertBadge message={HEADLINE} role={null} />
-        <Num>{t.countdown}</Num>
-        <button type="button" className="conjunction-warning__icon" aria-label="Dismiss this close approach" onClick={() => onDismiss(warningKey(conjunction))}>
-          <X aria-hidden size={16} />
-        </button>
-      </div>
-      <p className="conjunction-warning__line">{t.pair} · <Num>{t.miss}</Num> apart at <Num>{t.speed}</Num></p>
-      <p className="conjunction-warning__line">
-        Maximum P_c <Num>{t.maximumPc}</Num>: an upper bound, for a <Num>{t.aspectRatio}</Num> ellipse and a <Num>{t.hardBodyRadius}</Num> hard-body radius.
-      </p>
-      <p className="conjunction-warning__note">{DERIVATION}</p>
-      <p className="conjunction-warning__note">
-        Screened <Num>{t.windowStart}</Num> → <Num>{t.windowEnd}</Num> · orbit records <Num>{t.recordAge}</Num> old at closest approach
-      </p>
-      <div className="conjunction-warning__foot">
-        <p className="conjunction-warning__note">{DISCLAIMER}</p>
-        <button type="button" className="conjunction-warning__button" onClick={() => onWatch(conjunction)}>Watch</button>
-      </div>
-      {failure}
-      <p className="conjunction-warning__announce" aria-live="polite">{t.announcement}</p>
-    </GlassSurface>
+    <>
+      <GlassSurface variant="floating" className="conjunction-warning">
+        <div className="conjunction-warning__head">
+          <AlertBadge message={HEADLINE} role={null} />
+          <Num>{t.countdown}</Num>
+          <button type="button" className="conjunction-warning__icon" aria-label="Dismiss this close approach" onClick={() => onDismiss(warningKey(conjunction))}>
+            <X aria-hidden size={16} />
+          </button>
+        </div>
+        <p className="conjunction-warning__line">{t.pair} · <Num>{t.miss}</Num> apart at <Num>{t.speed}</Num></p>
+        <p className="conjunction-warning__line">
+          Maximum P_c <Num>{t.maximumPc}</Num>: an upper bound, for a <Num>{t.aspectRatio}</Num> ellipse and a <Num>{t.hardBodyRadius}</Num> hard-body radius.
+        </p>
+        <p className="conjunction-warning__note">{DERIVATION}</p>
+        <p className="conjunction-warning__note">
+          Screened <Num>{t.windowStart}</Num> → <Num>{t.windowEnd}</Num> · orbit records <Num>{t.recordAge}</Num> old at closest approach
+        </p>
+        <div className="conjunction-warning__foot">
+          <p className="conjunction-warning__note">{DISCLAIMER}</p>
+          <button type="button" className="conjunction-warning__button" onClick={() => onWatch(conjunction)}>Watch</button>
+        </div>
+        {failure}
+      </GlassSurface>
+      {live(t.announcement)}
+    </>
   );
 }

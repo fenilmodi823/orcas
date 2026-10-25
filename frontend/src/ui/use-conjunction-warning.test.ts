@@ -30,7 +30,7 @@ describe('useConjunctionWarning', () => {
     fetchTop.mockResolvedValue({ run: RUN, items: [pass(T0)], rejected: 0 });
     const { result } = renderHook(() => useConjunctionWarning(null, T0 - 3_600_000, 1));
     expect(result.current.view.kind).toBe('loading');
-    await waitFor(() => expect(result.current.view).toEqual({ kind: 'idle', run: RUN }));
+    await waitFor(() => expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false }));
   });
 
   it('shows a due pass from the top 10, and one from the selected object', async () => {
@@ -52,7 +52,20 @@ describe('useConjunctionWarning', () => {
     const view = result.current.view;
     expect(view.kind === 'message' && view.pick.phase).toBe('passed');
     act(() => result.current.dismiss(warningKey(a)));
-    expect(result.current.view).toEqual({ kind: 'idle', run: RUN });
+    expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false });
+  });
+
+  it('claims the selected object only once its list loaded', async () => {
+    fetchTop.mockResolvedValue({ run: RUN, items: [], rejected: 0 });
+    selectedView = { kind: 'loading' };
+    const loading = renderHook(() => useConjunctionWarning('1', T0, 1));
+    await waitFor(() => expect(loading.result.current.view.kind).toBe('idle'));
+    expect(loading.result.current.view).toMatchObject({ selectionCovered: false });
+    selectedView = { kind: 'report', report: { run: RUN, items: [], rejected: 0 } };
+    const loaded = renderHook(() => useConjunctionWarning('1', T0, 1));
+    await waitFor(() => expect(loaded.result.current.view).toMatchObject({ kind: 'idle', selectionCovered: true }));
+    const none = renderHook(() => useConjunctionWarning(null, T0, 1));
+    await waitFor(() => expect(none.result.current.view).toMatchObject({ kind: 'idle', selectionCovered: false }));
   });
 
   it('says unavailable when the top-10 fetch fails, and not-screened with no run', async () => {
