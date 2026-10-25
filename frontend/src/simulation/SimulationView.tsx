@@ -28,6 +28,7 @@ import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
+import { SimulationWarning } from './SimulationWarning.js';
 import { SimulationSearch } from './SimulationSearch.js';
 import { CreditLine } from './CreditLine.js';
 import { SimulationPanels } from './SimulationPanels.js';
@@ -98,11 +99,11 @@ interface LiveSimulationProps {
   readonly replay: ReplayHandle;
   readonly takeInitialView: () => PendingView | null;
   readonly viewRequest: number;
-  /** Consumed by the close-approach warning (Watch, Go there). */
+  /** Used by the close-approach warning (Watch, Go there). */
   readonly requestView: (view: PendingView, replayAtMs: number) => Promise<boolean>;
 }
 
-function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest }: LiveSimulationProps) {
+function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest, requestView }: LiveSimulationProps) {
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad, replay.atMs ?? undefined);
   const provenance = useProvenance(snapshot, origin);
   const body = useSelectedBody();
@@ -119,6 +120,11 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
             stale={origin !== 'live'}
             nowMs={provenance.nowMs}
           />
+        </div>
+      </PanelErrorBoundary>
+      <PanelErrorBoundary label="Close-approach warning">
+        <div className="simulation__warning">
+          <SimulationWarning scene={scene} provenance={provenance} replay={replay} requestView={requestView} />
         </div>
       </PanelErrorBoundary>
       <PanelErrorBoundary label="Search">

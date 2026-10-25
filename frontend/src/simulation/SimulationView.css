@@ -98,3 +98,20 @@
 .simulation[data-object-panel] .simulation__bottom {
   left: calc(var(--object-panel-width) + 2 * var(--space-4));
 }
+
+/* The close-approach warning (conjunction-alert spec §3.3): top centre, below
+   the breadcrumb and the epoch pill, re-centred beside an open object panel. */
+.simulation__warning {
+  position: absolute;
+  top: var(--space-16);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  display: flex;
+  justify-content: center;
+}
+
+.simulation[data-object-panel] .simulation__warning {
+  left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
+  width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
+}
