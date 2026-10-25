@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
@@ -36,6 +36,7 @@ import { clampToRange, scrubRangeOf } from './coverage.js';
 import { useEdgeStop } from './use-edge-stop.js';
 import { parseViewState } from './view-url.js';
 import { useApplyInitialView, useWriteViewUrl } from './use-view-url.js';
+import { usePendingView, type PendingView } from './use-pending-view.js';
 import './SimulationView.css';
 
 const FILTER_LABELS: Record<FilterClass, string> = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', debris: 'Debris' };
@@ -52,16 +53,19 @@ const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debri
  */
 export function SimulationView() {
   const { snapshot, origin, loading, error, replayAtMs, replayError, startReplay, endReplay } = useCatalog();
-  const replay: ReplayHandle = { atMs: replayAtMs, error: replayError, start: startReplay, end: endReplay };
+  const replay: ReplayHandle = {
+    atMs: replayAtMs,
+    error: replayError,
+    start: startReplay,
+    end: () => {
+      useSelectionStore.getState().setWatchPair(null); // leaving a replay also ends Watch's label
+      endReplay();
+    },
+  };
   // The link the page opened with (time, rate, selection — S1), applied once:
   // a replay remounts the scene and must not re-apply it.
   const [initialView] = useState(() => parseViewState(new URLSearchParams(window.location.search)));
-  const viewTakenRef = useRef(false);
-  const takeInitialView = useCallback(() => {
-    if (viewTakenRef.current) return null;
-    viewTakenRef.current = true;
-    return initialView;
-  }, [initialView]);
+  const { takeView, requestView, viewRequest } = usePendingView(initialView, { atMs: replayAtMs, start: startReplay });
 
   if (!snapshot || snapshot.objects.length === 0) {
     // useCatalog falls back to cache and then to bundled fixtures, so this is
@@ -81,7 +85,9 @@ export function SimulationView() {
       snapshot={snapshot}
       origin={origin}
       replay={replay}
-      takeInitialView={takeInitialView}
+      takeInitialView={takeView}
+      viewRequest={viewRequest}
+      requestView={requestView}
     />
   );
 }
@@ -90,10 +96,13 @@ interface LiveSimulationProps {
   readonly snapshot: CatalogSnapshot;
   readonly origin: CatalogOrigin;
   readonly replay: ReplayHandle;
-  readonly takeInitialView: () => ReturnType<typeof parseViewState> | null;
+  readonly takeInitialView: () => PendingView | null;
+  readonly viewRequest: number;
+  /** Consumed by the close-approach warning (Watch, Go there). */
+  readonly requestView: (view: PendingView, replayAtMs: number) => Promise<boolean>;
 }
 
-function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimulationProps) {
+function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest }: LiveSimulationProps) {
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad, replay.atMs ?? undefined);
   const provenance = useProvenance(snapshot, origin);
   const body = useSelectedBody();
@@ -120,7 +129,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView }: LiveSimul
         <div className="simulation__bottom-row">
           <div className="simulation__dock">
             <PanelErrorBoundary label="Time dock">
-              <SimulationDock scene={scene} provenance={provenance} replay={replay} takeInitialView={takeInitialView} />
+              <SimulationDock scene={scene} provenance={provenance} replay={replay} takeInitialView={takeInitialView} viewRequest={viewRequest} />
             </PanelErrorBoundary>
           </div>
           <PanelErrorBoundary label="Orbit class legend">
@@ -145,10 +154,11 @@ interface SimulationDockProps {
   readonly scene: LiveSceneState;
   readonly provenance: CatalogProvenance;
   readonly replay: ReplayHandle;
-  readonly takeInitialView: () => ReturnType<typeof parseViewState> | null;
+  readonly takeInitialView: () => PendingView | null;
+  readonly viewRequest: number;
 }
 
-function SimulationDock({ scene, provenance, replay, takeInitialView }: SimulationDockProps) {
+function SimulationDock({ scene, provenance, replay, takeInitialView, viewRequest }: SimulationDockProps) {
   const { objects, loop } = scene;
   const currentTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
   const playing = useSimulationStore((s) => s.playing);
@@ -189,7 +199,7 @@ function SimulationDock({ scene, provenance, replay, takeInitialView }: Simulati
     },
     [scene.byNorad, setSelected, setSelectedBody],
   );
-  useApplyInitialView(takeInitialView, { select, jumpTo: edge.jumpTo });
+  useApplyInitialView(takeInitialView, { select, jumpTo: edge.jumpTo }, viewRequest);
   const live = useSimulationStore((s) => s.live);
   useWriteViewUrl({ epochMs: currentTime.getTime(), rate, playing, live, selected });
 

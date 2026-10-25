@@ -83,4 +83,21 @@ describe('useApplyInitialView', () => {
     renderHook(() => useApplyInitialView(take, { select: vi.fn(), jumpTo: vi.fn() }));
     expect(useSimulationStore.getState().playing).toBe(false);
   });
+
+  it('applies a newly pending view when the request id moves', () => {
+    const select = vi.fn();
+    const jumpTo = vi.fn();
+    let next: { epochMs: number | null; rate: number | null; paused: boolean; selected: string | null } | null = null;
+    const take = () => {
+      const v = next;
+      next = null;
+      return v;
+    };
+    const { rerender } = renderHook(({ id }) => useApplyInitialView(take, { select, jumpTo }, id), { initialProps: { id: 0 } });
+    expect(select).not.toHaveBeenCalled();
+    next = { epochMs: 1000, rate: 1, paused: false, selected: '53252' };
+    rerender({ id: 1 });
+    expect(select).toHaveBeenCalledWith('53252');
+    expect(jumpTo).toHaveBeenCalledWith(1000);
+  });
 });
