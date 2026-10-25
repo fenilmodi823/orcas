@@ -58,7 +58,7 @@ describe('quietLine', () => {
   });
   it('says none are due inside the window', () => {
     expect(quietLine({ kind: 'idle', run: RUN, simulationMs: T0 }, now).text).toBe(
-      'Close-approach warnings: none due · screened 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC');
+      "Close-approach warnings: nothing due from the run's top 10 or the selected object · screened 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC");
   });
   it('never reads "not screened" or "unreachable" as all clear', () => {
     expect(quietLine({ kind: 'not-screened' }, now)).toEqual({ text: 'No screening run yet', goThere: false });

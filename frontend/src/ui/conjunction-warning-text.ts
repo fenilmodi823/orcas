@@ -87,12 +87,12 @@ export function quietLine(state: QuietState, wallNowMs: number): QuietLine {
     return { text: 'Close-approach warnings unavailable: the backend is not reachable', goThere: false };
   }
   const { run, simulationMs } = state;
-  const window = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;
+  const span = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;
   if (simulationMs >= run.windowStartMs && simulationMs <= run.windowEndMs) {
-    return { text: `Close-approach warnings: none due · screened ${window}`, goThere: false };
+    return { text: `Close-approach warnings: nothing due from the run's top 10 or the selected object · screened ${span}`, goThere: false };
   }
   return {
-    text: `Close-approach warnings cover ${window} (screened ${screenedAgo(run.completedAtMs, wallNowMs)})`,
+    text: `Close-approach warnings cover ${span} (screened ${screenedAgo(run.completedAtMs, wallNowMs)})`,
     goThere: true,
   };
 }
