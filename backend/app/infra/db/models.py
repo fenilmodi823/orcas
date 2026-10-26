@@ -46,7 +46,7 @@ class SpaceObject(Base):
     satcat_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    element_sets: Mapped[list["ElementSet"]] = relationship(back_populates="space_object")
+    element_sets: Mapped[list[ElementSet]] = relationship(back_populates="space_object")
 
 
 class ElementSet(Base):
@@ -112,7 +112,7 @@ class ScreeningRun(Base):
     colocated_excluded: Mapped[int] = mapped_column(Integer, nullable=False)  # docked/formation
     encounters: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    conjunctions: Mapped[list["Conjunction"]] = relationship(
+    conjunctions: Mapped[list[Conjunction]] = relationship(
         back_populates="run", cascade="all, delete-orphan", passive_deletes=True
     )
 
