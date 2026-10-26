@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { useApplyInitialView } from './use-view-url.js';
 import { usePendingView, type PendingView } from './use-pending-view.js';
 
 const link: PendingView = { epochMs: 1, rate: null, paused: false, selected: '25544' };
@@ -24,10 +25,11 @@ describe('usePendingView', () => {
 
   it('starts the replay otherwise, and keeps the view for the remount', async () => {
     const start = vi.fn(async () => true);
-    const { result } = renderHook(() => usePendingView(link, { atMs: null, start }));
+    const { result, rerender } = renderHook(({ atMs }) => usePendingView(link, { atMs, start }), { initialProps: { atMs: null as number | null } });
     result.current.takeView();
     await act(async () => expect(await result.current.requestView(watch, 500)).toBe(true));
     expect(start).toHaveBeenCalledWith(500);
+    rerender({ atMs: 500 }); // the replay landed and the scene remounted
     expect(result.current.takeView()).toBe(watch);
   });
 
@@ -36,5 +38,36 @@ describe('usePendingView', () => {
     result.current.takeView();
     await act(async () => expect(await result.current.requestView(watch, 500)).toBe(false));
     expect(result.current.takeView()).toBeNull();
+  });
+
+  it('hands a view only to a scene at the replay instant it was requested for, and keeps it for that scene', async () => {
+    const start = vi.fn(() => new Promise<boolean>(() => undefined));
+    const { result, rerender } = renderHook(({ atMs }) => usePendingView(link, { atMs, start }), { initialProps: { atMs: null as number | null } });
+    result.current.takeView();
+    void act(() => void result.current.requestView(watch, 500));
+    expect(result.current.takeView()).toBeNull(); // the pre-replay scene
+    expect(result.current.takeView()).toBeNull(); // asking again does not clear it
+    rerender({ atMs: 500 });
+    expect(result.current.takeView()).toBe(watch); // the replay's scene
+  });
+
+  it('does not apply a pending view to the old scene when jumpTo changes during the fetch', () => {
+    const start = vi.fn(() => new Promise<boolean>(() => undefined));
+    const select = vi.fn();
+    const jumpTo = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ jump }) => {
+        const pending = usePendingView(link, { atMs: null, start });
+        useApplyInitialView(pending.takeView, { select, jumpTo: jump }, pending.viewRequest);
+        return pending;
+      },
+      { initialProps: { jump: jumpTo } },
+    );
+    select.mockClear();
+    jumpTo.mockClear();
+    void act(() => void result.current.requestView(watch, 500));
+    rerender({ jump: vi.fn((ms: number) => jumpTo(ms)) });
+    expect(select).not.toHaveBeenCalled();
+    expect(jumpTo).not.toHaveBeenCalled();
   });
 });
