@@ -22,7 +22,7 @@ interface Props {
 
 /** Wires the warning to the clock, the selection and the replay. Owns the 4 Hz clock read, so its re-renders stay here. */
 export function SimulationWarning({ scene, provenance, replay, requestView }: Props) {
-  const simulationMs = useSimulationClock(scene.loop.frameStateRef, provenance.nowMs).getTime();
+  const simulationMs = useSimulationClock(scene.loop).getTime();
   const rate = useSimulationStore((s) => (s.playing ? effectiveRate(s) : 0));
   const selectedNorad = useSelectionStore((s) => s.selectedNorad);
   const setWatchPair = useSelectionStore((s) => s.setWatchPair);

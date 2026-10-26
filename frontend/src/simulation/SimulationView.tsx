@@ -166,7 +166,7 @@ interface SimulationDockProps {
 
 function SimulationDock({ scene, provenance, replay, takeInitialView, viewRequest }: SimulationDockProps) {
   const { objects, loop } = scene;
-  const currentTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
+  const currentTime = useSimulationClock(loop);
   const playing = useSimulationStore((s) => s.playing);
   const rate = useSimulationStore((s) => effectiveRate(s));
   const togglePlaying = useSimulationStore((s) => s.togglePlaying);

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { MutableRefObject } from 'react';
-import type { FrameState } from './frame-state.js';
+import type { SimulationLoopHandle } from './use-simulation-loop.js';
 
 /**
  * The simulation's current instant, sampled for display at a slow cadence.
@@ -12,12 +11,12 @@ import type { FrameState } from './frame-state.js';
  * whichever small component calls this, never the scene.
  */
 export function useSimulationClock(
-  frameStateRef: MutableRefObject<FrameState>,
-  /** Shown until the first sample lands (a quarter-second at most). Passed in
-   * so rendering never reads the ref or the wall clock itself. */
-  fallbackMs: number,
+  /** Until the first sample lands (a quarter-second at most) the clock reads
+   * the loop's own start epoch, so a replay remount never shows today. */
+  loop: Pick<SimulationLoopHandle, 'frameStateRef' | 'startEpochMs'>,
   hz = 4,
 ): Date {
+  const { frameStateRef, startEpochMs } = loop;
   const [epochMs, setEpochMs] = useState<number | null>(null);
 
   useEffect(() => {
@@ -29,5 +28,5 @@ export function useSimulationClock(
     return () => clearInterval(timer);
   }, [frameStateRef, hz]);
 
-  return new Date(epochMs ?? fallbackMs);
+  return new Date(epochMs ?? startEpochMs);
 }

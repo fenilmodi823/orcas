@@ -53,7 +53,7 @@ export function SimulationPanels({ scene, provenance }: { readonly scene: LiveSc
               {meta ? (
                 <SimulationObjectPanel scene={scene} meta={meta} provenance={provenance} />
               ) : (
-                body && <SimulationBodyPanel scene={scene} body={body} provenance={provenance} />
+                body && <SimulationBodyPanel scene={scene} body={body} />
               )}
             </PanelErrorBoundary>
           </motion.div>

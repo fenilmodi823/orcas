@@ -23,6 +23,8 @@ export interface SimulationLoopHandle {
    * against a fast time-lapse rate. Ordinary reverse playback (a rate
    * sign flip) is not a discontinuity and does not bump this. */
   readonly scrubGenerationRef: MutableRefObject<number>;
+  /** The epoch the loop started at: what a clock reads before its first sample. */
+  readonly startEpochMs: number;
   scrubTo(epochMs: number): void;
 }
 
@@ -112,6 +114,7 @@ export function useSimulationLoop(
     frameStateRef,
     ringRef,
     scrubGenerationRef,
+    startEpochMs,
     scrubTo(epochMs: number) {
       scrubGenerationRef.current++;
       clockTicksRef.current = epochMsToTicks(epochMs);

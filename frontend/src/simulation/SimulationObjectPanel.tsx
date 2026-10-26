@@ -24,7 +24,7 @@ interface SimulationObjectPanelProps {
  * (memory 2026-09-26).
  */
 export function SimulationObjectPanel({ scene, meta, provenance }: SimulationObjectPanelProps) {
-  const currentTime = useSimulationClock(scene.loop.frameStateRef, provenance.nowMs);
+  const currentTime = useSimulationClock(scene.loop);
   const groups = useDetailGroups(meta, currentTime.getTime(), provenance.nowMs);
   const setSelected = useSelectionStore((s) => s.setSelected);
   const close = useCallback(() => setSelected(null), [setSelected]);
