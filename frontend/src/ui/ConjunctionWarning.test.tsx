@@ -76,6 +76,19 @@ describe('ConjunctionWarning', () => {
     expect(loading.container.querySelector('.conjunction-warning')).toBeNull();
     loading.unmount();
     setup({ view: { kind: 'unavailable' }, error: 'history starts at 2026-08-01' });
-    expect(screen.getByText('history starts at 2026-08-01')).toBeTruthy();
+    expect(screen.getAllByText('history starts at 2026-08-01').length).toBeGreaterThan(0);
+  });
+
+  it('announces a failed Watch or Go there through the one live region', () => {
+    const message = setup().props.view;
+    for (const view of [message, { kind: 'unavailable' } as const]) {
+      const { container, rerender, props, unmount } = setup({ view });
+      const region = container.querySelector('[aria-live="polite"]');
+      rerender(<ConjunctionWarning {...props} error="history starts at 2026-08-01" />);
+      expect(container.querySelectorAll('[aria-live]').length).toBe(1);
+      expect(container.querySelector('[aria-live="polite"]')).toBe(region);
+      expect(region?.textContent).toBe('history starts at 2026-08-01');
+      unmount();
+    }
   });
 });

@@ -24,7 +24,7 @@ const Num = ({ children }: { children: string }) => <span className="conjunction
 /**
  * The close-approach warning (conjunction-alert spec §3.3–§3.6): one message
  * at a time, or one quiet line. A visually hidden polite region announces
- * each new pass once; the ticking countdown is never in it.
+ * each new pass, and a failed Watch or Go there, once; the ticking countdown is never in it.
  */
 export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onGoThere, onDismiss, error }: ConjunctionWarningProps) {
   const live = (announcement: string) => (
@@ -33,7 +33,7 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
   const failure = error ? <p className="conjunction-warning__error">{error}</p> : null;
   // One live region, same type and position in every branch, so React keeps
   // the node and a new pass is announced as a text change (not an insertion).
-  if (view.kind === 'loading') return <>{null}{live('')}</>;
+  if (view.kind === 'loading') return <>{null}{live(error ?? '')}</>;
 
   if (view.kind !== 'message') {
     const line = quietLine(
@@ -51,7 +51,7 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
           </p>
           {failure}
         </div>
-        {live('')}
+        {live(error ?? '')}
       </>
     );
   }
@@ -82,7 +82,7 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
         </div>
         {failure}
       </GlassSurface>
-      {live(t.announcement)}
+      {live(error ?? t.announcement)}
     </>
   );
 }
