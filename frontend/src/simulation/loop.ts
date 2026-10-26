@@ -1,10 +1,16 @@
 import { advanceTicks, ticksToEpochMs } from '../time/clock.js';
 import type { KeyframeRing } from './keyframe-ring.js';
 
+/** Ask for the next window with this fraction of the current one still ahead, so
+ * it is ready before this one runs out at real speed. Fast-forward rates outrun
+ * it; that stall is scheduled separately after S6c. */
+export const PREFETCH_FRACTION = 0.25;
+
 export interface StepResult {
   readonly clockTicks: number;
   readonly epochMs: number;
-  /** True once the clock has left the ring's current window — brief
+  /** True once the clock has left the ring's current window, or is within
+   * PREFETCH_FRACTION of its end in the direction of travel — brief
    * §A.5 "Segment scheduling": the caller should request the next
    * window now, before the clock actually runs out of valid data. */
   readonly needsRebuild: boolean;
@@ -22,7 +28,9 @@ export interface StepResult {
 export function stepClock(clockTicks: number, dtMs: number, rate: number, ring: KeyframeRing): StepResult {
   const nextTicks = advanceTicks(clockTicks, dtMs, rate);
   const epochMs = ticksToEpochMs(nextTicks);
-  const needsRebuild = epochMs < ring.windowT0Ms || epochMs >= ring.windowT1Ms;
+  const outsideWindow = epochMs < ring.windowT0Ms || epochMs >= ring.windowT1Ms;
+  const remaining = rate < 0 ? epochMs - ring.windowT0Ms : ring.windowT1Ms - epochMs;
+  const needsRebuild = outsideWindow || remaining < (ring.windowT1Ms - ring.windowT0Ms) * PREFETCH_FRACTION;
   return { clockTicks: nextTicks, epochMs, needsRebuild };
 }
 
