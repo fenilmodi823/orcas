@@ -147,6 +147,22 @@ describe('useCameraController', () => {
       unmount();
     });
 
+    it('keeps the Watch distance when the target has no position yet', () => {
+      reset();
+      const cold: FrameState = { ...frame, positions: new Float32Array(3), velocities: new Float32Array(3) };
+      frameCallbacks.length = 0;
+      const { unmount } = render(<Harness state={cold} />);
+      useSelectionStore.setState({ watchPair: PAIR });
+      useSelectionStore.getState().setSelected(NORAD);
+      expect(flyCalls).toEqual([]);
+      cold.positions.set([7000, 0, 0]);
+      cold.velocities.set([0, 7.6, 0]);
+      frameCallbacks.at(-1)?.({}, 1 / 60);
+      expect(flyCalls).toEqual([{ radiusKm: WATCH_FRAMING_KM }]);
+      reset();
+      unmount();
+    });
+
     it('flies nothing when the pair is cleared', () => {
       reset();
       const { unmount } = render(<Harness />);
