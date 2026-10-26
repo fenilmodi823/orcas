@@ -25,6 +25,7 @@
   color: var(--orca-cyan);
   font: var(--t-small);
   font-family: var(--font-ui);
+  white-space: nowrap;
   cursor: pointer;
 }
 .conjunction-warning__icon { padding: 0; display: inline-grid; place-items: center; color: var(--text-mid); }
