@@ -6,6 +6,7 @@ import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import { pinnedLabelNorad, useSelectionStore } from '../../state/selection-store.js';
 import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
+import { LABEL_SLOT_COUNT as SLOT_COUNT, PIN_SLOT, SELECTION_SLOT } from './label-slots.js';
 import { computeLabelOpacities, labelOnScreen, type LabelCandidate } from './object-label-layout.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
@@ -17,14 +18,6 @@ const LABEL_CAP = 12;
  * "static featured slots + one selection slot" shape exactly; the
  * candidate set here only ever changes on a selection click, never per
  * frame, so it needs no slot reconciliation (renderer/paths/slot-pool.ts). */
-/** Exported so PointsDebug.tsx renders exactly this many DOM `<ObjectLabel>`
- * elements — one per slot this component writes into. */
-export const LABEL_SLOT_COUNT = FEATURED_OBJECT_IDS.size + 2;
-const SLOT_COUNT = LABEL_SLOT_COUNT;
-/** The current selection, if it isn't already featured. */
-export const SELECTION_SLOT = FEATURED_OBJECT_IDS.size;
-/** Watch's counterpart, if it is neither featured nor selected. */
-export const PIN_SLOT = FEATURED_OBJECT_IDS.size + 1;
 /** Placeholder rank for an empty slot — always loses the cap ordering
  * (significance-rank.ts never produces a rank this high). */
 const EMPTY_RANK = 65535;

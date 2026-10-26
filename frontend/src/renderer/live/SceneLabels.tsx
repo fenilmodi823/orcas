@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import type { NoradId, ObjectMeta } from '../../data/catalog-types.js';
 import { pinnedLabelNorad, useSelectionStore } from '../../state/selection-store.js';
 import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
-import { LABEL_SLOT_COUNT, PIN_SLOT, SELECTION_SLOT } from '../points/ObjectLabels.js';
+import { LABEL_SLOT_COUNT, PIN_SLOT, SELECTION_SLOT } from '../points/label-slots.js';
 
 interface Props {
   readonly labelRefs: MutableRefObject<(ObjectLabelHandle | null)[]>;

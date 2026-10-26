@@ -1,26 +1,17 @@
 import { useState } from 'react';
-import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
+import type { Conjunction } from '../data/conjunction-client.js';
 import type { CatalogProvenance } from '../data/catalog-provenance.js';
 import type { NoradId } from '../data/catalog-types.js';
 import type { LiveSceneState } from '../renderer/live/use-live-scene.js';
 import { useSelectionStore } from '../state/selection-store.js';
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { ConjunctionWarning } from '../ui/ConjunctionWarning.js';
-import { WATCH_LEAD_MS, watchTarget } from '../ui/conjunction-warning.js';
+import { watchTarget } from '../ui/conjunction-warning.js';
 import type { ReplayHandle } from '../ui/ReplayControl.js';
 import { useConjunctionWarning } from '../ui/use-conjunction-warning.js';
 import type { PendingView } from './use-pending-view.js';
 import { useSimulationClock } from './use-simulation-clock.js';
-
-/** Watch: 30 s before closest approach, real speed, following the selected party (spec §3.5). */
-export function watchView(c: Conjunction, selectedNorad: string | null): PendingView {
-  return { selected: watchTarget(c, selectedNorad).follow.noradId, epochMs: c.tcaMs - WATCH_LEAD_MS, rate: 1, paused: false };
-}
-
-/** Go there: the screened window's start, keeping a forward rate, selection untouched (spec §3.3). */
-export function goThereView(run: ScreeningRun, rate: number): PendingView {
-  return { selected: null, epochMs: run.windowStartMs, rate: rate > 0 ? rate : 1, paused: false };
-}
+import { goThereView, watchView } from './warning-views.js';
 
 interface Props {
   readonly scene: LiveSceneState;

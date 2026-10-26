@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Conjunction } from '../data/conjunction-client.js';
-import { goThereView, watchView } from './SimulationWarning.js';
+import { goThereView, watchView } from './warning-views.js';
 
 const T0 = Date.parse('2026-09-30T02:51:56Z');
 const C: Conjunction = {
