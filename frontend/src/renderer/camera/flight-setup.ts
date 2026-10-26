@@ -50,6 +50,7 @@ export function buildFlightEndpoints(args: {
   preFocusDir: Vector3;
   preFocusRadiusKm: number;
   framingScale?: number;
+  radiusKm?: number;
   from: FlightEndpoint;
   to: FlightEndpoint;
 }): EndpointsResult {
@@ -72,7 +73,7 @@ export function buildFlightEndpoints(args: {
   targetPositionAt(args.frame, args.targetIndex, args.frame.epochMs, _tp);
   to.pivotKm.copy(_tp);
   to.dir.copy(from.dir); // approach from where you are
-  to.radiusKm = framingDistanceKm(PLACEHOLDER_RADIUS_KM, rig.fovDeg, args.framingScale);
+  to.radiusKm = args.radiusKm ?? framingDistanceKm(PLACEHOLDER_RADIUS_KM, rig.fovDeg, args.framingScale);
   to.refUp.copy(_tp).normalize();
   return { camDist0Km: _pos.length(), camDist1Km: _tp.length() };
 }

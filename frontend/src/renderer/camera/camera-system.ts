@@ -138,6 +138,7 @@ class CameraSystemImpl implements CameraSystem {
       preFocusDir: this.preFocusDir,
       preFocusRadiusKm: this.preFocusRadiusKm,
       framingScale: opts?.framingScale,
+      radiusKm: opts?.radiusKm,
       from: _from,
       to: _to,
     });

@@ -9,7 +9,7 @@ import { bodyById } from '../solar/bodies.js';
 import { bodyTarget } from '../solar/body-target.js';
 import { createCameraSystem, type CameraSystem } from './camera-system.js';
 import { dragToManualInput, wheelToManualInput } from './manual-input.js';
-import { useCameraTunables } from './camera-tunables.js';
+import { useCameraTunables, WATCH_FRAMING_KM } from './camera-tunables.js';
 import { useCameraStatus } from './camera-status.js';
 import { subscribeCameraViews } from './camera-views.js';
 import { useReducedMotion } from '../../state/use-reduced-motion.js';
@@ -82,7 +82,14 @@ export function useCameraController({
         pendingTargetRef.current = index;
         return;
       }
-      const p = norad === null ? sys.flyToEarth() : index === undefined ? Promise.resolve() : sys.flyTo(index);
+      // Watch stands back so the counterpart is in frame; a normal selection frames the object.
+      const watching = norad !== null && useSelectionStore.getState().watchPair?.follow === norad;
+      const p =
+        norad === null
+          ? sys.flyToEarth()
+          : index === undefined
+            ? Promise.resolve()
+            : sys.flyTo(index, watching ? { radiusKm: WATCH_FRAMING_KM } : undefined);
       p.catch(() => undefined); // CancelledError when superseded — expected
     };
     const followBody = (id: string) => {
@@ -102,6 +109,9 @@ export function useCameraController({
     let homing = false; // the home view clears the selection without flying back to the Earth
     const unsub = useSelectionStore.subscribe((state, prev) => {
       if (homing) return;
+      // Watch on the object that is already selected: no selection change, so re-follow it.
+      const pair = state.watchPair;
+      if (pair && pair !== prev.watchPair && pair.follow === state.selectedNorad) return follow(pair.follow);
       if (state.selectedBody !== prev.selectedBody && state.selectedBody !== null) return followBody(state.selectedBody);
       if (state.selectedNorad !== prev.selectedNorad && state.selectedNorad !== null) return follow(state.selectedNorad);
       const changed = state.selectedNorad !== prev.selectedNorad || state.selectedBody !== prev.selectedBody;

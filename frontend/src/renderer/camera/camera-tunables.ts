@@ -31,6 +31,13 @@ export const CAMERA_TUNABLE_DEFAULTS: CameraTunables = {
   lodHiPx: LOD_BAND_PX.hiPx,
 };
 
+/**
+ * How far back, km, the camera stands from the satellite Watch follows, so the
+ * counterpart (13 km/s) and its pinned label are on screen for the last
+ * seconds. Chosen by live measurement; tune it there.
+ */
+export const WATCH_FRAMING_KM = 100;
+
 interface Store extends CameraTunables {
   set<K extends keyof CameraTunables>(key: K, value: CameraTunables[K]): void;
   reset(): void;
