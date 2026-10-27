@@ -13,6 +13,7 @@ vi.mock('./use-conjunctions.js', () => ({ useConjunctions: () => selectedView })
 
 const { useConjunctionWarning } = await import('./use-conjunction-warning.js');
 const { warningKey } = await import('./conjunction-warning.js');
+const { useWarningStore } = await import('../state/warning-store.js');
 
 const T0 = Date.parse('2026-09-30T02:51:56Z');
 const RUN = { completedAtMs: T0 - 1e8, windowStartMs: T0 - 6e7, windowEndMs: T0 + 2.6e7, reportingDistanceKm: 5 };
@@ -23,7 +24,7 @@ const pass = (tcaMs: number, maximumPc: number | null = 0.3): Conjunction => ({
   secondary: { noradId: '2', name: 'B', elementSetEpochMs: T0 - 1e7 },
 });
 
-afterEach(() => { fetchTop.mockReset(); selectedView = null; });
+afterEach(() => { fetchTop.mockReset(); selectedView = null; useWarningStore.setState({ dismissed: new Set() }); });
 
 describe('useConjunctionWarning', () => {
   it('is loading, then idle with the run when nothing is due', async () => {
@@ -53,6 +54,17 @@ describe('useConjunctionWarning', () => {
     expect(view.kind === 'message' && view.pick.phase).toBe('passed');
     act(() => result.current.dismiss(warningKey(a)));
     expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false });
+  });
+
+  it('remembers a dismissal across an unmount and remount (a replay remounts the scene)', async () => {
+    const a = pass(T0);
+    fetchTop.mockResolvedValue({ run: RUN, items: [a], rejected: 0 });
+    const first = renderHook(() => useConjunctionWarning(null, T0 - 1000, 1));
+    await waitFor(() => expect(first.result.current.view.kind).toBe('message'));
+    act(() => first.result.current.dismiss(warningKey(a)));
+    first.unmount();
+    const second = renderHook(() => useConjunctionWarning(null, T0 - 1000, 1));
+    await waitFor(() => expect(second.result.current.view.kind).toBe('idle'));
   });
 
   it('claims the selected object only once its list loaded', async () => {

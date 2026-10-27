@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useWarningStore } from '../state/warning-store.js';
 import {
   fetchTopConjunctions, type Conjunction, type ConjunctionReport, type ScreeningRun,
 } from '../data/conjunction-client.js';
@@ -50,17 +51,15 @@ export function useConjunctionWarning(
   const selectedItems = selected?.kind === 'report' ? selected.report.items : EMPTY;
   const candidates = useMemo(() => warningCandidates(topItems, selectedItems), [topItems, selectedItems]);
 
-  // ponytail: dismissals live in this component, so a replay remount (Watch,
-  // Go there) forgets them; lift them into state/ if that is ever noticed.
-  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
+  // Dismissals live in state/, so a replay remount (Watch, Go there) keeps them.
+  const dismissed = useWarningStore((s) => s.dismissed);
+  const dismiss = useWarningStore((s) => s.dismiss);
   const [shownKey, setShownKey] = useState<string | null>(null);
   const pick = pickWarning({ candidates, nowMs: simulationMs, rate, dismissed, shownKey });
   const pickKey = pick ? warningKey(pick.conjunction) : null;
   // React's "information from previous renders" pattern; settles in one
   // extra render because a due pass never depends on shownKey.
   if (pickKey !== shownKey) setShownKey(pickKey);
-
-  const dismiss = useCallback((key: string) => setDismissed((prev) => new Set(prev).add(key)), []);
 
   let view: WarningView;
   if (top.kind !== 'report') view = top;
