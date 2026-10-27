@@ -28,7 +28,7 @@ const Num = ({ children }: { children: string }) => <span className="conjunction
  * each new pass, and a failed Watch or Go there, once; the ticking countdown is never in it.
  */
 export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onGoThere, onDismiss, error }: ConjunctionWarningProps) {
-  // Dismissing unmounts the focused ×; focus moves to this always-mounted
+  // Dismissing unmounts the focused Ã—; focus moves to this always-mounted
   // wrapper (WCAG 2.4.3) instead of falling to <body>.
   const root = useRef<HTMLDivElement>(null);
   const dismiss = (key: string) => {

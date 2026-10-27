@@ -24,7 +24,7 @@ interface Props {
 export function SimulationWarning({ scene, provenance, replay, requestView }: Props) {
   const simulationMs = useSimulationClock(scene.loop).getTime();
   const rate = useSimulationStore((s) => (s.playing ? effectiveRate(s) : 0));
-  // Go there keeps the stored rate even while paused (spec ง3.3); the warning's lead window wants 0 then.
+  // Go there keeps the stored rate even while paused (spec ยง3.3); the warning's lead window wants 0 then.
   const storedRate = useSimulationStore(effectiveRate);
   const selectedNorad = useSelectionStore((s) => s.selectedNorad);
   const setWatchPair = useSelectionStore((s) => s.setWatchPair);

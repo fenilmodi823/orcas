@@ -51,7 +51,7 @@ describe('useSelectionStore', () => {
   });
 });
 
-describe('the Watch pair (spec ง4: cleared by any other selection change)', () => {
+describe('the Watch pair (spec ยง4: cleared by any other selection change)', () => {
   const pair: WatchPair = { follow: NORAD_A, counterpart: NORAD_B };
   const watching = () => {
     useSelectionStore.setState({ selectedNorad: NORAD_A, watchPair: pair });

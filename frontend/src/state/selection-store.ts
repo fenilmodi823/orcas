@@ -53,7 +53,7 @@ export const useSelectionStore = create<SelectionState>((set) => ({
   selectedBody: null,
   hoveredBody: null,
   watchPair: null,
-  // Watch's pair lives only while its followed object stays selected (spec ง4).
+  // Watch's pair lives only while its followed object stays selected (spec ยง4).
   setSelected: (selectedNorad) =>
     set((s) => ({
       selectedNorad,
