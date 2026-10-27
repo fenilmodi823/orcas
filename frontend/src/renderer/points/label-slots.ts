@@ -1,6 +1,6 @@
 import { FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
 
-/** Exported so PointsDebug.tsx renders exactly this many DOM `<ObjectLabel>`
+/** Exported so SceneLabels.tsx renders exactly this many DOM `<ObjectLabel>`
  * elements — one per slot this component writes into. */
 export const LABEL_SLOT_COUNT = FEATURED_OBJECT_IDS.size + 2;
 /** The current selection, if it isn't already featured. */

@@ -13,11 +13,11 @@ import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
 
 /** Hard cap on simultaneously-visible non-exempt labels (P4.D28). */
 const LABEL_CAP = 12;
-/** One slot per featured object plus one selection slot and one Watch slot
- * ("the current selection / Watch's counterpart, if not already featured") — mirrors OrbitPaths.tsx's own
- * "static featured slots + one selection slot" shape exactly; the
- * candidate set here only ever changes on a selection click, never per
- * frame, so it needs no slot reconciliation (renderer/paths/slot-pool.ts). */
+/** Slots (label-slots.ts): one per featured object, then the selection and Watch's pinned counterpart.
+ * Mirrors OrbitPaths.tsx's "static featured slots + one selection slot"
+ * shape; the candidate set only changes on a selection click or when Watch
+ * pins or unpins its counterpart, never per frame, so it needs no slot
+ * reconciliation (renderer/paths/slot-pool.ts). */
 /** Placeholder rank for an empty slot — always loses the cap ordering
  * (significance-rank.ts never produces a rank this high). */
 const EMPTY_RANK = 65535;
@@ -43,7 +43,7 @@ interface Props {
   readonly camRadiusKmRef: MutableRefObject<number>;
   /** One entry per slot (`SLOT_COUNT`), written imperatively each frame —
    * the actual `<ObjectLabel>` DOM elements live outside the Canvas in
-   * PointsDebug.tsx, same cross-boundary ref pattern `points-tether.ts`
+   * SceneLabels.tsx, same cross-boundary ref pattern `points-tether.ts`
    * already uses for the hover/selection tethers. */
   readonly labelRefs: MutableRefObject<(ObjectLabelHandle | null)[]>;
 }
