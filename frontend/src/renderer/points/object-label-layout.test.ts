@@ -53,17 +53,15 @@ describe('computeLabelOpacities', () => {
     expect(opacity[0]).toBe(0);
   });
 
-  it('keeps the selected slot at full strength whatever the density or cap', () => {
+  it('never draws the selected label, even zoomed out: its tether already names it (Q19)', () => {
     const candidates = [
-      candidate(100, 100, 5), // selected: worst rank, crowded, would be over any small cap
-      candidate(105, 102, 0),
-      candidate(108, 98, 1),
+      candidate(100, 100, 5), // selected
+      candidate(300, 300, 0),
     ];
-    // Zoomed out (distance factor 1), and a cap of 0 (nothing else survives).
-    const opacity = computeLabelOpacities({ candidates, selectedSlot: 0, camRadiusKm: FAR, cap: 0 });
-    expect(opacity[0]).toBe(1);
-    expect(opacity[1]).toBe(0);
-    expect(opacity[2]).toBe(0);
+    // Zoomed out (distance factor 1): before Q19 the plain label showed beside the tether's chip.
+    const opacity = computeLabelOpacities({ candidates, selectedSlot: 0, camRadiusKm: FAR, cap: 10 });
+    expect(opacity[0]).toBe(0);
+    expect(opacity[1]).toBe(1);
   });
 
   it('fades the selected label too once the camera is on the object, as NASA Eyes does', () => {
@@ -85,6 +83,13 @@ describe('computeLabelOpacities', () => {
     const opacity = computeLabelOpacities({ candidates, selectedSlot: -1, camRadiusKm: FAR, cap: 10 });
     expect(opacity[0]).toBe(0);
     expect(opacity[1]).toBeCloseTo(1, 6);
+  });
+
+  it('keeps a pinned label at full opacity: no cap, no crowding, no distance fade', () => {
+    const candidates = [candidate(0, 0, 1), candidate(1, 0, 2), candidate(2, 0, 3)];
+    const opacity = computeLabelOpacities({ candidates, selectedSlot: -1, pinnedSlot: 2, camRadiusKm: 0.1, cap: 1 });
+    expect(opacity[2]).toBe(1);
+    expect(opacity[1]).toBe(0);
   });
 });
 

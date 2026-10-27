@@ -58,6 +58,9 @@ export interface ComputeLabelOpacitiesArgs {
    * distance fade like every other label (NASA Eyes hides the focused
    * object's own label close up) — and 0 if it isn't on screen. */
   readonly selectedSlot: number;
+  /** Index of Watch's counterpart (conjunction-alert spec §3.5), or undefined.
+   * Exempt from the cap, crowding and the distance fade: it must stay findable. */
+  readonly pinnedSlot?: number;
   readonly camRadiusKm: number;
   /** Hard cap on simultaneously-visible non-exempt labels. */
   readonly cap: number;
@@ -70,23 +73,28 @@ export interface ComputeLabelOpacitiesArgs {
  * never produces (no two objects share a rank).
  */
 export function computeLabelOpacities(args: ComputeLabelOpacitiesArgs): Float32Array {
-  const { candidates, selectedSlot, camRadiusKm, cap } = args;
+  const { candidates, selectedSlot, pinnedSlot, camRadiusKm, cap } = args;
   const n = candidates.length;
   const opacity = new Float32Array(n);
   const distanceFactor = distanceFadeFactor(camRadiusKm);
 
   const byRank = candidates
     .map((_, i) => i)
-    .filter((i) => i !== selectedSlot)
+    .filter((i) => i !== selectedSlot && i !== pinnedSlot)
     .sort((a, b) => candidates[a].rank - candidates[b].rank);
   const kept = new Set(byRank.slice(0, cap));
 
   for (let i = 0; i < n; i++) {
+    if (i === pinnedSlot) {
+      opacity[i] = candidates[i].visible ? 1 : 0;
+      continue;
+    }
     if (i === selectedSlot) {
-      // Exempt from the cap and from crowding, not from the distance fade:
-      // close up the object fills the view and its tether names it, so its
-      // own label hides, as in NASA Eyes (Reference §4.2).
-      opacity[i] = candidates[i].visible ? distanceFactor : 0;
+      // Never drawn: the selection tether is on whenever the object is in
+      // view and already names it, so a plain label beside it read as the
+      // name twice (Q19, Fenil 2026-10-27). Close up it hid anyway, as in
+      // NASA Eyes (Reference §4.2).
+      opacity[i] = 0;
       continue;
     }
     if (!candidates[i].visible || !kept.has(i)) {
@@ -96,7 +104,7 @@ export function computeLabelOpacities(args: ComputeLabelOpacitiesArgs): Float32A
     let nearby = 0;
     for (let j = 0; j < n; j++) {
       if (j === i || !candidates[j].visible) continue;
-      if (j !== selectedSlot && !kept.has(j)) continue; // a hidden candidate doesn't crowd a visible one
+      if (j !== selectedSlot && j !== pinnedSlot && !kept.has(j)) continue; // a hidden candidate doesn't crowd a visible one
       const dx = candidates[i].xPx - candidates[j].xPx;
       const dy = candidates[i].yPx - candidates[j].yPx;
       if (dx * dx + dy * dy < DENSITY_RADIUS_PX * DENSITY_RADIUS_PX) nearby++;

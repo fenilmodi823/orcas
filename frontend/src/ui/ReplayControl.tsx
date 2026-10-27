@@ -8,7 +8,7 @@ export interface ReplayHandle {
   readonly atMs: number | null;
   /** Why the last replay request failed, in the backend's words. */
   readonly error: string | null;
-  readonly start: (atMs: number) => Promise<void>;
+  readonly start: (atMs: number) => Promise<boolean>;
   readonly end: () => void;
 }
 

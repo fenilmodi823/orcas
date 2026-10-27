@@ -6,7 +6,7 @@ import { TierZeroPoints } from '../points/TierZeroPoints.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
 import { GroundTracks } from '../paths/GroundTracks.js';
-import { ObjectLabels, LABEL_SLOT_COUNT } from '../points/ObjectLabels.js';
+import { ObjectLabels } from '../points/ObjectLabels.js';
 import { StarSky } from '../sky/StarSky.js';
 import { EarthSunMoon } from '../earth/EarthSunMoon.js';
 import { BodyLabels, type BodyLabelRefs } from '../earth/BodyLabels.js';
@@ -16,12 +16,12 @@ import { classifyOrbitClass } from '../points/points-filters.js';
 import { useCameraController } from '../camera/use-camera-controller.js';
 import { useContextLoss } from '../use-context-loss.js';
 import { ObjectTether } from '../../ui/ObjectTether.js';
-import { ObjectLabel } from '../../ui/ObjectLabel.js';
 import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { LiveSceneState } from './use-live-scene.js';
 import { keepRenderOrder } from './render-order.js';
+import { SceneLabels } from './SceneLabels.js';
 import './LiveScene.css';
 
 // R_GEO — matches the camera rig's default radius so the first frame does not jump.
@@ -85,8 +85,6 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
   const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
-  const setHover = useSelectionStore((state) => state.setHover);
-  const selectedNorad = useSelectionStore((state) => state.selectedNorad);
 
   function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const canvas = event.currentTarget.querySelector('canvas');
@@ -220,27 +218,14 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
         orbitClass={resolvedHovered?.orbitClass ?? 'debris'}
         altitudeKm={resolvedHovered?.altitudeKm ?? 0}
       />
-      {Array.from({ length: LABEL_SLOT_COUNT }, (_, k) => {
-        // Featured slots (0..featuredNames.length-1) get their real name; the
-        // last slot is the dynamic "current selection, if not already
-        // featured" one — see ObjectLabels.tsx.
-        const isSelectionSlot = k === LABEL_SLOT_COUNT - 1;
-        const norad = isSelectionSlot ? selectedNorad : (featuredNorads[k] ?? null);
-        return (
-          <ObjectLabel
-            key={k}
-            ref={(l) => {
-              labelRefs.current[k] = l;
-            }}
-            name={isSelectionSlot ? (selectedMeta?.name ?? '') : (featuredNames[k] ?? '')}
-            emphasised={norad !== null && norad === selectedNorad}
-            // "Click any label" flies there (Reference - NASA Eyes §4.4);
-            // hovering it is hovering the object.
-            onSelect={norad === null ? undefined : () => setSelected(norad)}
-            onHover={norad === null ? undefined : (hovered) => setHover(hovered ? norad : null)}
-          />
-        );
-      })}
+      <SceneLabels
+        labelRefs={labelRefs}
+        objects={objects}
+        byNorad={byNorad}
+        featuredNames={featuredNames}
+        featuredNorads={featuredNorads}
+        selectedName={selectedMeta?.name ?? ''}
+      />
       <BodyLabels labelsRef={bodyLabelsRef} />
     </div>
   );

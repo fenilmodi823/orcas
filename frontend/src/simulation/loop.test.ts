@@ -3,7 +3,7 @@ import { createPropagationPool, createInProcessRunner } from '../propagation/wor
 import { rebuildRing, createEmptyRing } from './keyframe-ring.js';
 import { createFrameState, evaluateFrame } from './frame-state.js';
 import { epochMsToTicks } from '../time/clock.js';
-import { REVERSE_LEAD_MS, rebuildWindowFor, stepClock } from './loop.js';
+import { PREFETCH_FRACTION, REVERSE_LEAD_MS, rebuildWindowFor, stepClock } from './loop.js';
 import { makeTestCatalog } from './test-fixtures.js';
 
 const { objects, satrecs } = makeTestCatalog(10);
@@ -44,6 +44,34 @@ describe('stepClock', () => {
     expect(stepped.epochMs).toBe(direct.epochMs);
     expect(stepped.positions).toEqual(direct.positions);
     expect(stepped.velocities).toEqual(direct.velocities);
+  });
+});
+
+describe('stepClock — prefetch (Q18)', () => {
+  const W = 40_000; // a quarter is 10 s
+  const at = (ring: Awaited<ReturnType<typeof buildTestRing>>, offsetMs: number, rate: number) =>
+    stepClock(epochMsToTicks(T0_MS + offsetMs), 0, rate, ring).needsRebuild;
+
+  it('forwards: waits until a quarter is left, then asks; still asks past the end', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    expect(PREFETCH_FRACTION).toBe(0.25);
+    expect(at(ring, 29_000, 1)).toBe(false);
+    expect(at(ring, 31_000, 1)).toBe(true);
+    expect(at(ring, W, 1)).toBe(true);
+    expect(at(ring, W + 5_000, 1)).toBe(true);
+  });
+
+  it('reverse: the mirror, measured from the start of the window', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    expect(at(ring, 11_000, -1)).toBe(false);
+    expect(at(ring, 9_000, -1)).toBe(true);
+    expect(at(ring, -1_000, -1)).toBe(true);
+  });
+
+  it('paused follows the forwards rule', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    expect(at(ring, 11_000, 0)).toBe(false);
+    expect(at(ring, 31_000, 0)).toBe(true);
   });
 });
 

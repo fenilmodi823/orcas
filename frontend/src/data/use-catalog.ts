@@ -19,8 +19,8 @@ export interface CatalogState {
 }
 
 export interface CatalogHandle extends CatalogState {
-  /** Load the catalogue as it stood at `atMs`. On failure what is on screen stays. */
-  readonly startReplay: (atMs: number) => Promise<void>;
+  /** Load the catalogue as it stood at `atMs`. On failure what is on screen stays, and it resolves false. */
+  readonly startReplay: (atMs: number) => Promise<boolean>;
   /** Leave replay and load the live catalogue again. */
   readonly endReplay: () => void;
 }
@@ -91,9 +91,11 @@ export function useCatalog(): CatalogHandle {
       const records = await fetchCatalogReplay(atMs);
       const snapshot = buildSnapshot(records, atMs, Date.now());
       setState({ snapshot, origin: 'replay', loading: false, error: null, replayAtMs: atMs, replayError: null });
+      return true;
     } catch (err) {
       const replayError = err instanceof Error ? err.message : String(err);
       setState((prev) => ({ ...prev, replayError }));
+      return false;
     }
   }, []);
 

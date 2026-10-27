@@ -5,12 +5,35 @@ import { useCameraController } from './use-camera-controller.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { useCameraStatus } from './camera-status.js';
 import type { FrameState } from '../../simulation/frame-state.js';
+import type { FlyOpts } from './flight.js';
+import { WATCH_FRAMING_KM } from './camera-tunables.js';
 
 // vi.mock is hoisted above imports; vi.hoisted (async) runs in the same
 // phase and lets us build a real PerspectiveCamera without `require`.
-const { mockCamera, frameCallbacks } = await vi.hoisted(async () => {
+const { mockCamera, frameCallbacks, flyCalls } = await vi.hoisted(async () => {
   const { PerspectiveCamera } = await import('three');
-  return { mockCamera: new PerspectiveCamera(35, 1, 1, 1e6), frameCallbacks: [] as ((s: unknown, dt: number) => void)[] };
+  return {
+    mockCamera: new PerspectiveCamera(35, 1, 1, 1e6),
+    frameCallbacks: [] as ((s: unknown, dt: number) => void)[],
+    flyCalls: [] as (FlyOpts | undefined)[],
+  };
+});
+
+// The real camera system, with flyTo's options recorded.
+vi.mock('./camera-system.js', async (importOriginal) => {
+  const real = await importOriginal<typeof import('./camera-system.js')>();
+  return {
+    ...real,
+    createCameraSystem: (...args: Parameters<typeof real.createCameraSystem>) => {
+      const sys = real.createCameraSystem(...args);
+      const flyTo = sys.flyTo.bind(sys);
+      sys.flyTo = (index, opts) => {
+        flyCalls.push(opts);
+        return flyTo(index, opts);
+      };
+      return sys;
+    },
+  };
 });
 
 vi.mock('@react-three/fiber', () => ({
@@ -84,5 +107,72 @@ describe('useCameraController', () => {
     expect(useCameraStatus.getState().flying).toBe(true);
     useSelectionStore.getState().setSelected(null);
     unmount();
+  });
+
+  describe('Watch framing (Q17)', () => {
+    const NORAD = '90000' as never;
+    const PAIR = { follow: NORAD, counterpart: '90001' as never };
+    const reset = () => {
+      useSelectionStore.setState({ selectedNorad: null, selectedBody: null, watchPair: null });
+      flyCalls.length = 0;
+    };
+
+    it('flies a normal selection with the object framing', () => {
+      reset();
+      const { unmount } = render(<Harness />);
+      useSelectionStore.getState().setSelected(NORAD);
+      expect(flyCalls).toEqual([undefined]);
+      reset();
+      unmount();
+    });
+
+    it('flies the Watch follow back at the Watch distance', () => {
+      reset();
+      const { unmount } = render(<Harness />);
+      useSelectionStore.setState({ watchPair: PAIR });
+      useSelectionStore.getState().setSelected(NORAD);
+      expect(flyCalls).toEqual([{ radiusKm: WATCH_FRAMING_KM }]);
+      reset();
+      unmount();
+    });
+
+    it('re-follows when the pair is set on the object that is already selected', () => {
+      reset();
+      const { unmount } = render(<Harness />);
+      useSelectionStore.getState().setSelected(NORAD);
+      flyCalls.length = 0;
+      useSelectionStore.getState().setWatchPair(PAIR);
+      expect(flyCalls).toEqual([{ radiusKm: WATCH_FRAMING_KM }]);
+      reset();
+      unmount();
+    });
+
+    it('keeps the Watch distance when the target has no position yet', () => {
+      reset();
+      const cold: FrameState = { ...frame, positions: new Float32Array(3), velocities: new Float32Array(3) };
+      frameCallbacks.length = 0;
+      const { unmount } = render(<Harness state={cold} />);
+      useSelectionStore.setState({ watchPair: PAIR });
+      useSelectionStore.getState().setSelected(NORAD);
+      expect(flyCalls).toEqual([]);
+      cold.positions.set([7000, 0, 0]);
+      cold.velocities.set([0, 7.6, 0]);
+      frameCallbacks.at(-1)?.({}, 1 / 60);
+      expect(flyCalls).toEqual([{ radiusKm: WATCH_FRAMING_KM }]);
+      reset();
+      unmount();
+    });
+
+    it('flies nothing when the pair is cleared', () => {
+      reset();
+      const { unmount } = render(<Harness />);
+      useSelectionStore.getState().setSelected(NORAD);
+      useSelectionStore.getState().setWatchPair(PAIR);
+      flyCalls.length = 0;
+      useSelectionStore.getState().setWatchPair(null);
+      expect(flyCalls).toEqual([]);
+      reset();
+      unmount();
+    });
   });
 });

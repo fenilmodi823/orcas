@@ -1,7 +1,7 @@
 """Golden-file reconstruction of the 2009 Iridium 33 / Cosmos 2251 collision.
 
 Three claims, verified separately — see data/sample/README.md, memory.md
-issue #18, and ORCAS Vault RA-11 §5 / RA - Open Questions C.3:
+issue #18, and ORCAS Vault RA-11 §5 / Questions RA C.3:
 
 1. KINEMATICS — exact, no tuning. Propagating the real Space-Track element
    sets (data/sample/iridium33_cosmos2251_2009_spacetrack.tle) to the

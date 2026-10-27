@@ -15,4 +15,11 @@ describe('AlertBadge', () => {
 
     expect(screen.getByRole('alert')).toBeTruthy();
   });
+
+  it('leaves announcing to a surrounding live region when role is null', () => {
+    render(<AlertBadge message="Close approach" role={null} />);
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('Close approach')).toBeTruthy();
+  });
 });

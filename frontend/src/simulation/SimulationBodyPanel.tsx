@@ -1,5 +1,4 @@
 import { X } from 'lucide-react';
-import type { CatalogProvenance } from '../data/catalog-provenance.js';
 import { useHorizonsManifest } from '../data/use-horizons-manifest.js';
 import { useMoonSystemsVersion } from '../data/use-moon-systems.js';
 import { usePlanetEphemerisState } from '../data/use-planet-ephemeris.js';
@@ -20,7 +19,6 @@ import '../ui/ObjectPanel.css';
 interface SimulationBodyPanelProps {
   readonly scene: LiveSceneState;
   readonly body: Body;
-  readonly provenance: CatalogProvenance;
 }
 
 /**
@@ -28,8 +26,8 @@ interface SimulationBodyPanelProps {
  * own slow clock, as that panel does, so its re-renders stay inside it. Esc and the close button clear the
  * selection, and the camera flies back to the Earth.
  */
-export function SimulationBodyPanel({ scene, body, provenance }: SimulationBodyPanelProps) {
-  const currentTime = useSimulationClock(scene.loop.frameStateRef, provenance.nowMs);
+export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
+  const currentTime = useSimulationClock(scene.loop);
   const ephemeris = usePlanetEphemerisState();
   const clearSelection = useSelectionStore((s) => s.clearSelection);
   useMoonSystemsVersion(); // one re-render when a moon system lands or fails

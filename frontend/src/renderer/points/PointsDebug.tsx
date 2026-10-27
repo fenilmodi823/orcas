@@ -75,7 +75,7 @@ function PointsDebugPanel({ snapshot, origin }: { snapshot: CatalogSnapshot; ori
   const scene = useLiveScene(snapshot.objects, snapshot.byNorad);
   const { objects, loop, refs, resolvedSelected, selectedObjectMeta } = scene;
   const provenance = useProvenance(snapshot, origin);
-  const simulationTime = useSimulationClock(loop.frameStateRef, provenance.nowMs);
+  const simulationTime = useSimulationClock(loop);
   const detailGroups = useDetailGroups(selectedObjectMeta, simulationTime.getTime(), provenance.nowMs);
   const crossCheck = useCrossCheck(objects, loop);
   // M1.8 §G.8: a hidden perf HUD, read once at boot — no reason for it to

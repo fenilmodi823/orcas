@@ -11,6 +11,7 @@ import { CancelledError } from './errors.js';
 export interface FlyOpts {
   duration?: number; // seconds — overrides the computed duration
   framingScale?: number; // k in §C.6; larger = further back
+  radiusKm?: number; // arrival distance from the target, km; overrides the framing
   swell?: number; // arc lift; 0 = flat great-circle
 }
 

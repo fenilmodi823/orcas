@@ -43,11 +43,13 @@ type InitialView = ReturnType<typeof parseViewState>;
  * Applies the link the page was opened with, once: the selection, then the
  * time (which pauses), then the rate — a link that carries a rate plays at it,
  * `rate=0` opens paused. `take` returns the view the first time and null after,
- * so a remount (a replay) never re-applies an old link.
+ * so a remount (a replay) never re-applies an old link. `requestId` moves when
+ * a new pending view is waiting (Watch in the same replay).
  */
 export function useApplyInitialView(
   take: () => InitialView | null,
   actions: { select: (id: string) => void; jumpTo: (epochMs: number) => void },
+  requestId: number = 0,
 ): void {
   const { select, jumpTo } = actions;
   useEffect(() => {
@@ -66,5 +68,5 @@ export function useApplyInitialView(
     } else if (view.paused) {
       store.pause();
     }
-  }, [take, select, jumpTo]);
+  }, [take, select, jumpTo, requestId]);
 }

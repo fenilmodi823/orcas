@@ -4,24 +4,20 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { ObjectMeta } from '../../data/catalog-types.js';
-import { useSelectionStore } from '../../state/selection-store.js';
+import { pinnedLabelNorad, useSelectionStore } from '../../state/selection-store.js';
 import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
+import { LABEL_SLOT_COUNT as SLOT_COUNT, PIN_SLOT, SELECTION_SLOT } from './label-slots.js';
 import { computeLabelOpacities, labelOnScreen, type LabelCandidate } from './object-label-layout.js';
 import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
 
 /** Hard cap on simultaneously-visible non-exempt labels (P4.D28). */
 const LABEL_CAP = 12;
-/** One slot per featured object plus one dynamic slot for "the current
- * selection, if it isn't already featured" — mirrors OrbitPaths.tsx's own
- * "static featured slots + one selection slot" shape exactly; the
- * candidate set here only ever changes on a selection click, never per
- * frame, so it needs no slot reconciliation (renderer/paths/slot-pool.ts). */
-/** Exported so PointsDebug.tsx renders exactly this many DOM `<ObjectLabel>`
- * elements — one per slot this component writes into. */
-export const LABEL_SLOT_COUNT = FEATURED_OBJECT_IDS.size + 1;
-const SLOT_COUNT = LABEL_SLOT_COUNT;
-const SELECTION_SLOT = SLOT_COUNT - 1;
+/** Slots (label-slots.ts): one per featured object, then the selection and Watch's pinned counterpart.
+ * Mirrors OrbitPaths.tsx's "static featured slots + one selection slot"
+ * shape; the candidate set only changes on a selection click or when Watch
+ * pins or unpins its counterpart, never per frame, so it needs no slot
+ * reconciliation (renderer/paths/slot-pool.ts). */
 /** Placeholder rank for an empty slot — always loses the cap ordering
  * (significance-rank.ts never produces a rank this high). */
 const EMPTY_RANK = 65535;
@@ -47,7 +43,7 @@ interface Props {
   readonly camRadiusKmRef: MutableRefObject<number>;
   /** One entry per slot (`SLOT_COUNT`), written imperatively each frame —
    * the actual `<ObjectLabel>` DOM elements live outside the Canvas in
-   * PointsDebug.tsx, same cross-boundary ref pattern `points-tether.ts`
+   * SceneLabels.tsx, same cross-boundary ref pattern `points-tether.ts`
    * already uses for the hover/selection tethers. */
   readonly labelRefs: MutableRefObject<(ObjectLabelHandle | null)[]>;
 }
@@ -99,12 +95,18 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
       }
     }
     slotIndex.current[SELECTION_SLOT] = selectedIndex !== -1 && !alreadyFeatured ? selectedIndex : -1;
+    const pinned = pinnedLabelNorad(state);
+    const pinnedIndex = pinned === null ? -1 : (byNorad[pinned] ?? -1);
+    let pinFeatured = false;
+    for (let k = 0; k < SELECTION_SLOT; k++) if (slotIndex.current[k] === pinnedIndex) pinFeatured = true;
+    slotIndex.current[PIN_SLOT] = pinnedIndex !== -1 && !pinFeatured && pinnedIndex !== selectedIndex ? pinnedIndex : -1;
 
     const positions = frameStateRef.current.positions;
     const widthPx = size.width;
     const heightPx = size.height;
     const candidates = candidatesRef.current;
     let selectedSlot = -1;
+    let pinnedSlot = -1;
 
     for (let k = 0; k < SLOT_COUNT; k++) {
       const idx = slotIndex.current[k];
@@ -125,11 +127,13 @@ export function ObjectLabels({ frameStateRef, objects, byNorad, ranks, camRadius
       candidate.yPx = (1 - (scratch.y * 0.5 + 0.5)) * heightPx;
       candidate.rank = ranks[idx];
       if (idx === selectedIndex) selectedSlot = k;
+      if (idx === pinnedIndex && idx !== selectedIndex) pinnedSlot = k;
     }
 
     const opacities = computeLabelOpacities({
       candidates: candidates as readonly LabelCandidate[],
       selectedSlot,
+      pinnedSlot,
       camRadiusKm: camRadiusKmRef.current,
       cap: LABEL_CAP,
     });
