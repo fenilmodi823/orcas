@@ -6,7 +6,7 @@ const NORAD_A = '25544' as NoradId;
 const NORAD_B = '90000' as NoradId;
 
 beforeEach(() => {
-  useSelectionStore.setState({ selectedNorad: null, hoveredNorad: null, selectedBody: null, hoveredBody: null });
+  useSelectionStore.setState({ selectedNorad: null, hoveredNorad: null, selectedBody: null, hoveredBody: null, watchPair: null });
 });
 
 describe('useSelectionStore', () => {
@@ -48,6 +48,35 @@ describe('useSelectionStore', () => {
     store.setSelectedBody('moon');
     store.setSelected(null);
     expect(useSelectionStore.getState().selectedBody).toBe('moon');
+  });
+});
+
+describe('the Watch pair (spec §4: cleared by any other selection change)', () => {
+  const pair: WatchPair = { follow: NORAD_A, counterpart: NORAD_B };
+  const watching = () => {
+    useSelectionStore.setState({ selectedNorad: NORAD_A, watchPair: pair });
+    return useSelectionStore.getState();
+  };
+
+  it('survives re-selecting the followed object', () => {
+    watching().setSelected(NORAD_A);
+    expect(useSelectionStore.getState().watchPair).toBe(pair);
+  });
+
+  it('is cleared by selecting anything else, a body, or nothing', () => {
+    watching().setSelected(NORAD_B);
+    expect(useSelectionStore.getState().watchPair).toBeNull();
+    watching().setSelected(null);
+    expect(useSelectionStore.getState().watchPair).toBeNull();
+    watching().setSelectedBody('moon');
+    expect(useSelectionStore.getState().watchPair).toBeNull();
+    watching().clearSelection();
+    expect(useSelectionStore.getState().watchPair).toBeNull();
+  });
+
+  it('is kept when a body is deselected', () => {
+    watching().setSelectedBody(null);
+    expect(useSelectionStore.getState().watchPair).toBe(pair);
   });
 });
 

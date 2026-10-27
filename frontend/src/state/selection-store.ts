@@ -53,12 +53,18 @@ export const useSelectionStore = create<SelectionState>((set) => ({
   selectedBody: null,
   hoveredBody: null,
   watchPair: null,
-  setSelected: (selectedNorad) => set(selectedNorad === null ? { selectedNorad } : { selectedNorad, selectedBody: null }),
+  // Watch's pair lives only while its followed object stays selected (spec §4).
+  setSelected: (selectedNorad) =>
+    set((s) => ({
+      selectedNorad,
+      ...(selectedNorad === null ? {} : { selectedBody: null }),
+      ...(selectedNorad === s.watchPair?.follow ? {} : { watchPair: null }),
+    })),
   setHover: (hoveredNorad) => set({ hoveredNorad }),
-  setSelectedBody: (selectedBody) => set(selectedBody === null ? { selectedBody } : { selectedBody, selectedNorad: null }),
+  setSelectedBody: (selectedBody) => set(selectedBody === null ? { selectedBody } : { selectedBody, selectedNorad: null, watchPair: null }),
   setHoverBody: (hoveredBody) => set({ hoveredBody }),
   setWatchPair: (watchPair) => set({ watchPair }),
-  clearSelection: () => set({ selectedNorad: null, selectedBody: null }),
+  clearSelection: () => set({ selectedNorad: null, selectedBody: null, watchPair: null }),
 }));
 
 /** The label kept on during Watch: the counterpart, only while the followed object is still selected. */

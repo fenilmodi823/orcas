@@ -37,6 +37,7 @@ import { clampToRange, scrubRangeOf } from './coverage.js';
 import { useEdgeStop } from './use-edge-stop.js';
 import { parseViewState } from './view-url.js';
 import { useApplyInitialView, useWriteViewUrl } from './use-view-url.js';
+import { toReplayHandle } from './replay-handle.js';
 import { usePendingView, type PendingView } from './use-pending-view.js';
 import './SimulationView.css';
 
@@ -54,15 +55,7 @@ const FILTER_ORDER: readonly FilterClass[] = ['leo', 'meo', 'geo', 'heo', 'debri
  */
 export function SimulationView() {
   const { snapshot, origin, loading, error, replayAtMs, replayError, startReplay, endReplay } = useCatalog();
-  const replay: ReplayHandle = {
-    atMs: replayAtMs,
-    error: replayError,
-    start: startReplay,
-    end: () => {
-      useSelectionStore.getState().setWatchPair(null); // leaving a replay also ends Watch's label
-      endReplay();
-    },
-  };
+  const replay: ReplayHandle = toReplayHandle({ atMs: replayAtMs, error: replayError, start: startReplay, end: endReplay });
   // The link the page opened with (time, rate, selection — S1), applied once:
   // a replay remounts the scene and must not re-apply it.
   const [initialView] = useState(() => parseViewState(new URLSearchParams(window.location.search)));
