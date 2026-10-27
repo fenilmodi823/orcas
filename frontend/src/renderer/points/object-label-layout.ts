@@ -90,10 +90,11 @@ export function computeLabelOpacities(args: ComputeLabelOpacitiesArgs): Float32A
       continue;
     }
     if (i === selectedSlot) {
-      // Exempt from the cap and from crowding, not from the distance fade:
-      // close up the object fills the view and its tether names it, so its
-      // own label hides, as in NASA Eyes (Reference §4.2).
-      opacity[i] = candidates[i].visible ? distanceFactor : 0;
+      // Never drawn: the selection tether is on whenever the object is in
+      // view and already names it, so a plain label beside it read as the
+      // name twice (Q19, Fenil 2026-10-27). Close up it hid anyway, as in
+      // NASA Eyes (Reference §4.2).
+      opacity[i] = 0;
       continue;
     }
     if (!candidates[i].visible || !kept.has(i)) {
