@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useRef, type ReactNode } from 'react';
 import type { Conjunction } from '../data/conjunction-client.js';
 import { AlertBadge } from './AlertBadge.js';
 import { GlassSurface } from './GlassSurface.js';
@@ -27,20 +28,30 @@ const Num = ({ children }: { children: string }) => <span className="conjunction
  * each new pass, and a failed Watch or Go there, once; the ticking countdown is never in it.
  */
 export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onGoThere, onDismiss, error }: ConjunctionWarningProps) {
+  // Dismissing unmounts the focused ×; focus moves to this always-mounted
+  // wrapper (WCAG 2.4.3) instead of falling to <body>.
+  const root = useRef<HTMLDivElement>(null);
+  const dismiss = (key: string) => {
+    onDismiss(key);
+    root.current?.focus();
+  };
+  const wrap = (children: ReactNode) => (
+    <div ref={root} tabIndex={-1} className="conjunction-warning__root">{children}</div>
+  );
   const live = (announcement: string) => (
     <p className="conjunction-warning__announce" aria-live="polite">{announcement}</p>
   );
   const failure = error ? <p className="conjunction-warning__error">{error}</p> : null;
   // One live region, same type and position in every branch, so React keeps
   // the node and a new pass is announced as a text change (not an insertion).
-  if (view.kind === 'loading') return <>{null}{live(error ?? '')}</>;
+  if (view.kind === 'loading') return wrap(<>{null}{live(error ?? '')}</>);
 
   if (view.kind !== 'message') {
     const line = quietLine(
       view.kind === 'idle' ? { kind: 'idle', run: view.run, simulationMs, selectionCovered: view.selectionCovered } : view,
       wallNowMs,
     );
-    return (
+    return wrap(
       <>
         <div className="conjunction-warning conjunction-warning--quiet">
           <p className="conjunction-warning__quiet">
@@ -52,19 +63,19 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
           {failure}
         </div>
         {live(error ?? '')}
-      </>
+      </>,
     );
   }
 
   const { conjunction } = view.pick;
   const t = warningText(view.pick, view.run, simulationMs);
-  return (
+  return wrap(
     <>
       <GlassSurface variant="floating" className="conjunction-warning">
         <div className="conjunction-warning__head">
           <AlertBadge message={HEADLINE} role={null} />
           <Num>{t.countdown}</Num>
-          <button type="button" className="conjunction-warning__icon" aria-label="Dismiss this close approach" onClick={() => onDismiss(warningKey(conjunction))}>
+          <button type="button" className="conjunction-warning__icon" aria-label="Dismiss this close approach" onClick={() => dismiss(warningKey(conjunction))}>
             <X aria-hidden size={16} />
           </button>
         </div>
@@ -83,6 +94,6 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
         {failure}
       </GlassSurface>
       {live(error ?? t.announcement)}
-    </>
+    </>,
   );
 }

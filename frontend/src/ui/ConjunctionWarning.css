@@ -1,3 +1,5 @@
+/* The always-mounted focus target for dismiss; never shows a ring (the buttons keep theirs). */
+.conjunction-warning__root { max-width: 100%; outline: none; }
 .conjunction-warning {
   display: flex;
   flex-direction: column;

@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Conjunction } from '../data/conjunction-client.js';
 import { ConjunctionWarning, type ConjunctionWarningProps } from './ConjunctionWarning.js';
+import type { WarningView } from './use-conjunction-warning.js';
 
 const T0 = Date.parse('2026-09-30T02:51:56Z');
 const RUN = { completedAtMs: Date.parse('2026-09-29T10:37:29Z'), windowStartMs: Date.parse('2026-09-29T10:02:05Z'), windowEndMs: Date.parse('2026-09-30T10:02:05Z'), reportingDistanceKm: 5 };
@@ -55,6 +57,21 @@ describe('ConjunctionWarning', () => {
     expect(screen.getByText(/Close-approach warnings cover/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Go there' }));
     expect(props.onGoThere).toHaveBeenCalled();
+  });
+
+  it('keeps focus inside the warning after a dismiss, not on <body>', () => {
+    // Dismissing really unmounts the message, as the hook does.
+    function Harness() {
+      const [dismissed, setDismissed] = useState(false);
+      const view: WarningView = dismissed ? { kind: 'idle', run: RUN, selectionCovered: true } : { kind: 'message', run: RUN, pick: { conjunction: C, phase: 'upcoming' } };
+      return <ConjunctionWarning view={view} simulationMs={T0 - 252_000} wallNowMs={T0} onWatch={vi.fn()} onGoThere={vi.fn()} onDismiss={() => setDismissed(true)} error={null} />;
+    }
+    const { container } = render(<Harness />);
+    const button = screen.getByRole('button', { name: 'Dismiss this close approach' });
+    button.focus();
+    fireEvent.click(button);
+    expect(document.activeElement).not.toBe(document.body);
+    expect(container.contains(document.activeElement)).toBe(true);
   });
 
   it('keeps one live region across views so a new pass is announced', () => {
