@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
+import type { Points } from 'three';
 import { useSimulationLoop, type SimulationLoopHandle } from '../../simulation/use-simulation-loop.js';
 import { computeRanks } from '../points/significance-rank.js';
 import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
@@ -23,6 +24,9 @@ interface LiveSceneRefs {
   readonly activeMembersRef: MutableRefObject<Uint32Array | null>;
   readonly camRadiusKmRef: MutableRefObject<number>;
   readonly camTargetDistanceKmRef: MutableRefObject<number>;
+  /** Tier 0's THREE.Points. Its `visible` is the satellite layer's fade test,
+   * which the simulation loop reads to stop rebuilding keyframes nobody can see. */
+  readonly tierZeroObjectRef: MutableRefObject<Points | null>;
 }
 
 export interface LiveSceneState {
@@ -58,7 +62,9 @@ export function useLiveScene(
   const playingRef = useRef(useSimulationStore.getState().playing);
   const rateRef = useRef(effectiveRate(useSimulationStore.getState()));
   const [startEpochMs] = useState(() => startAtMs ?? Date.now());
-  const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs);
+  const tierZeroObjectRef = useRef<Points | null>(null);
+  // Before the points exist the layer counts as visible, so the first window is built.
+  const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs, () => tierZeroObjectRef.current?.visible ?? true);
 
   useEffect(() => {
     const mirror = (state: ReturnType<typeof useSimulationStore.getState>) => {
@@ -102,6 +108,7 @@ export function useLiveScene(
     activeMembersRef: useRef<Uint32Array | null>(null),
     camRadiusKmRef: useRef(0),
     camTargetDistanceKmRef: useRef(0),
+    tierZeroObjectRef,
   };
 
   const selectedNorad = useSelectionStore((state) => state.selectedNorad);

@@ -3,7 +3,8 @@ import type { KeyframeRing } from './keyframe-ring.js';
 
 /** Ask for the next window with this fraction of the current one still ahead, so
  * it is ready before this one runs out at real speed. Fast-forward rates outrun
- * it; that stall is scheduled separately after S6c. */
+ * it; while the satellites are faded out no window is asked for at all (Roadmap
+ * 1b), so zoomed-out fast-forward no longer stalls on rebuilds nobody can see. */
 export const PREFETCH_FRACTION = 0.25;
 
 export interface StepResult {
@@ -12,7 +13,8 @@ export interface StepResult {
   /** True once the clock has left the ring's current window, or is within
    * PREFETCH_FRACTION of its end in the direction of travel — brief
    * §A.5 "Segment scheduling": the caller should request the next
-   * window now, before the clock actually runs out of valid data. */
+   * window now, before the clock actually runs out of valid data. Always
+   * false while the satellite layer is faded out. */
   readonly needsRebuild: boolean;
 }
 
@@ -25,12 +27,21 @@ export interface StepResult {
  * expected already clamped by the caller (brief §A.7 step 0:
  * `min(dt, 100ms)`).
  */
-export function stepClock(clockTicks: number, dtMs: number, rate: number, ring: KeyframeRing): StepResult {
+export function stepClock(
+  clockTicks: number,
+  dtMs: number,
+  rate: number,
+  ring: KeyframeRing,
+  /** False while the satellite layer is faded out: nothing it shows needs fresh
+   * keyframes, so none are asked for. The first visible frame asks at once. */
+  layerVisible = true,
+): StepResult {
   const nextTicks = advanceTicks(clockTicks, dtMs, rate);
   const epochMs = ticksToEpochMs(nextTicks);
   const outsideWindow = epochMs < ring.windowT0Ms || epochMs >= ring.windowT1Ms;
   const remaining = rate < 0 ? epochMs - ring.windowT0Ms : ring.windowT1Ms - epochMs;
-  const needsRebuild = outsideWindow || remaining < (ring.windowT1Ms - ring.windowT0Ms) * PREFETCH_FRACTION;
+  const needsRebuild =
+    layerVisible && (outsideWindow || remaining < (ring.windowT1Ms - ring.windowT0Ms) * PREFETCH_FRACTION);
   return { clockTicks: nextTicks, epochMs, needsRebuild };
 }
 
