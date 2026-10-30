@@ -56,6 +56,9 @@ export function useSimulationLoop(
   playingRef: MutableRefObject<boolean>,
   rateRef: MutableRefObject<number>,
   startEpochMs: number,
+  /** Whether the satellite layer can be seen. While it can't, no keyframes are
+   * rebuilt (Roadmap 1b); read once a frame. Omitted: always visible. */
+  satellitesVisible: () => boolean = () => true,
 ): SimulationLoopHandle {
   const frameStateRef = useRef<FrameState>(createFrameState(objects.length));
   const ringRef = useRef<KeyframeRing>(createEmptyRing());
@@ -92,7 +95,7 @@ export function useSimulationLoop(
       const dtMs = lastWallMs === null ? 0 : Math.min(wallMs - lastWallMs, MAX_DT_MS);
 
       const rate = playingRef.current ? rateRef.current : 0;
-      const result = stepClock(clockTicksRef.current, dtMs, rate, ringRef.current);
+      const result = stepClock(clockTicksRef.current, dtMs, rate, ringRef.current, satellitesVisible());
       clockTicksRef.current = result.clockTicks;
       if (result.needsRebuild) requestRebuild(result.epochMs);
 

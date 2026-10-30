@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import type { MutableRefObject, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
-import type { Points } from 'three';
 import { TierZeroPoints } from '../points/TierZeroPoints.js';
 import { Tier1Objects } from '../instanced/Tier1Objects.js';
 import { OrbitPaths } from '../paths/OrbitPaths.js';
@@ -77,12 +76,12 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
     activeMembersRef,
     camRadiusKmRef,
     camTargetDistanceKmRef,
+    tierZeroObjectRef,
   } = scene.refs;
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const contextLoss = useContextLoss(canvasEl);
   const pointerDownRef = useRef<{ px: number; py: number } | null>(null);
   const bodyLabelsRef = useRef<BodyLabelRefs>({ sun: null, moon: null, planets: [], moons: [], lagrange: [] });
-  const tierZeroObjectRef = useRef<Points | null>(null);
   const hoveredNorad = useSelectionStore((state) => state.hoveredNorad);
   const setSelected = useSelectionStore((state) => state.setSelected);
 

@@ -75,6 +75,29 @@ describe('stepClock — prefetch (Q18)', () => {
   });
 });
 
+describe('stepClock — satellite layer hidden (Roadmap 1b)', () => {
+  const W = 40_000;
+  const at = (ring: Awaited<ReturnType<typeof buildTestRing>>, offsetMs: number, visible: boolean) =>
+    stepClock(epochMsToTicks(T0_MS + offsetMs), 0, 86_400, ring, visible).needsRebuild;
+
+  it('never asks for a rebuild while the layer is faded out, even far past the window', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    expect(at(ring, 31_000, false)).toBe(false);
+    expect(at(ring, W + 3_600_000, false)).toBe(false);
+  });
+
+  it('asks on the first visible frame, so the satellites catch up as they fade back in', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    expect(at(ring, W + 3_600_000, true)).toBe(true);
+  });
+
+  it('still advances the clock while hidden', async () => {
+    const ring = await buildTestRing(T0_MS, T0_MS + W);
+    const result = stepClock(epochMsToTicks(T0_MS), 100, 86_400, ring, false);
+    expect(result.epochMs).toBe(T0_MS + 100 * 86_400);
+  });
+});
+
 describe('rebuildWindowFor — reversibility (brief §I M1.2)', () => {
   const WINDOW = 30_000;
   const E = T0_MS + 100_000;
