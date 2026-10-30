@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
 import { DISCLAIMER, formatCountdown, passText, quietLine, warningText } from './conjunction-warning-text.js';
 
@@ -16,6 +16,8 @@ const C: Conjunction = {
   primary: { noradId: '53252', name: 'STARLINK-4158', elementSetEpochMs: T0 - 0.99 * 86_400_000 },
   secondary: { noradId: '58000', name: 'PELICAN-6', elementSetEpochMs: T0 - 0.5 * 86_400_000 },
 };
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe('formatCountdown', () => {
   it('is mm:ss, then h:mm:ss, then days', () => {
@@ -75,6 +77,10 @@ describe('quietLine', () => {
   it('never reads "not screened" or "unreachable" as all clear', () => {
     expect(quietLine({ kind: 'not-screened' }, now)).toEqual({ text: 'No screening run yet', goThere: false });
     expect(quietLine({ kind: 'unavailable' }, now).text).toBe('Close-approach warnings unavailable: the backend is not reachable');
+  });
+  it('names the published files, not the backend, on the static site', () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    expect(quietLine({ kind: 'unavailable' }, now).text).toBe('Close-approach warnings unavailable: the published screening files could not be loaded');
   });
   it('says "1 day" and "less than a day" correctly', () => {
     const run = { ...RUN, completedAtMs: now - 86_400_000 };

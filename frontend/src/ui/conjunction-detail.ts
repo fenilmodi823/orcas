@@ -1,5 +1,6 @@
 import type { Conjunction, ConjunctionReport } from '../data/conjunction-client.js';
 import { formatEpochUtc } from '../data/catalog-provenance.js';
+import { isStaticSite } from '../data/site-mode.js';
 import type { DetailField, DetailGroup } from './object-detail-model.js';
 
 /** What the panel knows about the selected object's conjunctions right now. */
@@ -49,7 +50,9 @@ function approachFields(c: Conjunction, selfNorad: string, countInWindow: number
 export function buildConjunctionGroup(view: ConjunctionView, selfNorad: string, simulationMs: number): DetailGroup {
   if (view.kind === 'loading') return status('Loading…');
   if (view.kind === 'unavailable') {
-    return status('Unavailable — the backend is not reachable', 'Screening results come from the backend; the scene does not need it.');
+    return isStaticSite()
+      ? status('Unavailable — the published screening files could not be loaded', 'The scene does not need them.')
+      : status('Unavailable — the backend is not reachable', 'Screening results come from the backend; the scene does not need it.');
   }
   const { run, items } = view.report;
   if (run === null) {

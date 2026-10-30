@@ -180,7 +180,7 @@ describe('formatCreditLine', () => {
     const line = formatCreditLine({ ...base, sources: ['celestrak', 'spacetrack-gp'] });
 
     expect(line).toContain('CelesTrak GP');
-    expect(line).toContain('Space-Track.org (18th Space Defense Squadron), GP catalogue');
+    expect(line).toContain('Space-Track.org, courtesy of USSPACECOM (18th Space Defense Squadron), GP catalogue');
   });
 
   it('carries the element-set epoch and says positions are propagations', () => {

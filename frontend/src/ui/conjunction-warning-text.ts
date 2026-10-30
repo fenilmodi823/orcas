@@ -1,5 +1,6 @@
 import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
 import { formatEpochUtc } from '../data/catalog-provenance.js';
+import { isStaticSite } from '../data/site-mode.js';
 import { formatTelemetryValue } from './telemetry-format.js';
 import type { WarningPick } from './conjunction-warning.js';
 
@@ -94,7 +95,8 @@ function screenedAgo(completedAtMs: number, wallNowMs: number): string {
 export function quietLine(state: QuietState, wallNowMs: number): QuietLine {
   if (state.kind === 'not-screened') return { text: 'No screening run yet', goThere: false };
   if (state.kind === 'unavailable') {
-    return { text: 'Close-approach warnings unavailable: the backend is not reachable', goThere: false };
+    const why = isStaticSite() ? 'the published screening files could not be loaded' : 'the backend is not reachable';
+    return { text: `Close-approach warnings unavailable: ${why}`, goThere: false };
   }
   const { run, simulationMs, selectionCovered } = state;
   const span = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;

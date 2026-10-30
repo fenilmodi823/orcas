@@ -134,7 +134,7 @@ export function isStale(origin: CatalogOrigin): boolean {
  */
 const SOURCE_CREDITS: Readonly<Record<string, string>> = {
   celestrak: 'CelesTrak GP',
-  'spacetrack-gp': 'Space-Track.org (18th Space Defense Squadron), GP catalogue',
+  'spacetrack-gp': 'Space-Track.org, courtesy of USSPACECOM (18th Space Defense Squadron), GP catalogue',
 };
 
 /**
