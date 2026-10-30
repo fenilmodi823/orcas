@@ -10,54 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_cache, get_db_session
 from app.infra.cache.base import CacheService
-from app.infra.db.models import Conjunction, ScreeningRun
 from app.schemas.conjunctions import (
-    ConjunctionItem,
     ConjunctionListResponse,
-    ConjunctionParty,
     ScreeningRunInfo,
+    conjunction_item,
 )
 from app.services.screening_service import latest_run, list_conjunctions
 
 router = APIRouter(prefix="/conjunctions", tags=["conjunctions"])
 
 _CACHE_TTL_SECONDS = 60  # results change only when the worker completes a run
-
-
-def _method(aspect_ratio: float) -> str:
-    return (
-        f"Upper bound over uncertainty ellipses of {aspect_ratio:g}:1 aspect ratio "
-        "(Alfano 2005) - public element sets carry no covariance."
-    )
-
-
-def _item(c: Conjunction, run: ScreeningRun) -> ConjunctionItem:
-    return ConjunctionItem(
-        tca=c.tca,
-        miss_distance_km=c.miss_distance_km,
-        relative_speed_km_s=c.relative_speed_km_s,
-        maximum_pc=c.maximum_pc,
-        pc_method=c.pc_method,
-        aspect_ratio=run.aspect_ratio,
-        hard_body_radius_km=run.hard_body_radius_km,
-        dilution_sigma_km=c.dilution_sigma_km,
-        valid_2d=c.valid_2d,
-        validity_reason=c.validity_reason,
-        encounter_duration_s=c.encounter_duration_s,
-        method=_method(run.aspect_ratio),
-        primary=ConjunctionParty(
-            norad_id=c.primary.norad_id,
-            name=c.primary.name,
-            object_type=c.primary.object_type,
-            element_set_epoch=c.primary_epoch,
-        ),
-        secondary=ConjunctionParty(
-            norad_id=c.secondary.norad_id,
-            name=c.secondary.name,
-            object_type=c.secondary.object_type,
-            element_set_epoch=c.secondary_epoch,
-        ),
-    )
 
 
 @router.get(
@@ -83,7 +45,7 @@ async def list_conjunctions_endpoint(
         rows = await list_conjunctions(session, run.id, norad_id, limit)
         response = ConjunctionListResponse(
             run=ScreeningRunInfo.model_validate(run, from_attributes=True),
-            items=[_item(c, run) for c in rows],
+            items=[conjunction_item(c, run) for c in rows],
         )
     await cache.set(cache_key, response, ttl_seconds=_CACHE_TTL_SECONDS)
     return response
