@@ -67,6 +67,7 @@ describe('ConjunctionWarning', () => {
     expect(screen.getByRole('button', { name: 'Go there' })).toBeTruthy();
     const list = screen.getByRole('list', { name: "The screened day's closest passes" });
     expect(list.querySelectorAll('li').length).toBe(2);
+    expect(list.textContent).toContain('·');
     fireEvent.click(screen.getByRole('button', { name: 'Watch STARLINK-4158 and PELICAN-7' }));
     expect(props.onWatch).toHaveBeenCalledWith(C2);
     unmount();

@@ -66,7 +66,7 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
                 const p = passText(c);
                 return (
                   <li key={warningKey(c)} className="conjunction-warning__pass">
-                    <span>{p.pair} · <Num>{p.miss}</Num> at <Num>{p.tca}</Num></span>
+                    <span>{p.pair} Â· <Num>{p.miss}</Num> at <Num>{p.tca}</Num></span>
                     <button type="button" className="conjunction-warning__button" aria-label={`Watch ${p.pair}`} onClick={() => onWatch(c)}>Watch</button>
                   </li>
                 );
