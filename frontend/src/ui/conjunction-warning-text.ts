@@ -1,4 +1,4 @@
-import type { ScreeningRun } from '../data/conjunction-client.js';
+import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
 import { formatEpochUtc } from '../data/catalog-provenance.js';
 import { formatTelemetryValue } from './telemetry-format.js';
 import type { WarningPick } from './conjunction-warning.js';
@@ -60,6 +60,15 @@ export function warningText(pick: WarningPick, run: ScreeningRun, nowMs: number)
     windowEnd: formatEpochUtc(run.windowEndMs),
     recordAge: `${formatTelemetryValue(ageDays, 2)} days`,
     announcement: `${HEADLINE}: ${pair}, ${miss} apart, maximum P_c ${maximumPc}.`,
+  };
+}
+
+/** One row of the screened day's list (Q26 (b)); numbers separate so the view sets them in mono. */
+export function passText(c: Conjunction): { readonly pair: string; readonly miss: string; readonly tca: string } {
+  return {
+    pair: `${c.primary.name} and ${c.secondary.name}`,
+    miss: `${formatTelemetryValue(c.missDistanceKm * 1000, 0)} m`,
+    tca: formatEpochUtc(c.tcaMs),
   };
 }
 

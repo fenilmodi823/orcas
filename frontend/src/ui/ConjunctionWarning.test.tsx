@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Conjunction } from '../data/conjunction-client.js';
 import { ConjunctionWarning, type ConjunctionWarningProps } from './ConjunctionWarning.js';
@@ -53,17 +53,35 @@ describe('ConjunctionWarning', () => {
   });
 
   it('shows the quiet line with Go there outside the window', () => {
-    const { props } = setup({ view: { kind: 'idle', run: RUN, selectionCovered: true }, simulationMs: Date.parse('2026-10-23T14:00:00Z') });
+    const { props } = setup({ view: { kind: 'idle', run: RUN, selectionCovered: true, top: [] }, simulationMs: Date.parse('2026-10-23T14:00:00Z') });
     expect(screen.getByText(/Close-approach warnings cover/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Go there' }));
     expect(props.onGoThere).toHaveBeenCalled();
+  });
+
+  it("lists the screened day's closest passes after it, each with Watch", () => {
+    const C2: Conjunction = { ...C, tcaMs: T0 + 60_000, secondary: { ...C.secondary, noradId: '58001', name: 'PELICAN-7' } };
+    const after = Date.parse('2026-10-23T14:00:00Z');
+    const view: WarningView = { kind: 'idle', run: RUN, selectionCovered: true, top: [C, C2] };
+    const { props, unmount } = setup({ view, simulationMs: after });
+    expect(screen.getByRole('button', { name: 'Go there' })).toBeTruthy();
+    const list = screen.getByRole('list', { name: "The screened day's closest passes" });
+    expect(list.querySelectorAll('li').length).toBe(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Watch STARLINK-4158 and PELICAN-7' }));
+    expect(props.onWatch).toHaveBeenCalledWith(C2);
+    unmount();
+    setup({ view, simulationMs: T0 - 252_000 });
+    expect(screen.queryByRole('list')).toBeNull();
+    cleanup();
+    setup({ view: { ...view, top: [] }, simulationMs: after });
+    expect(screen.queryByRole('list')).toBeNull();
   });
 
   it('keeps focus inside the warning after a dismiss, not on <body>', () => {
     // Dismissing really unmounts the message, as the hook does.
     function Harness() {
       const [dismissed, setDismissed] = useState(false);
-      const view: WarningView = dismissed ? { kind: 'idle', run: RUN, selectionCovered: true } : { kind: 'message', run: RUN, pick: { conjunction: C, phase: 'upcoming' } };
+      const view: WarningView = dismissed ? { kind: 'idle', run: RUN, selectionCovered: true, top: [] } : { kind: 'message', run: RUN, pick: { conjunction: C, phase: 'upcoming' } };
       return <ConjunctionWarning view={view} simulationMs={T0 - 252_000} wallNowMs={T0} onWatch={vi.fn()} onGoThere={vi.fn()} onDismiss={() => setDismissed(true)} error={null} />;
     }
     const { container } = render(<Harness />);
@@ -77,7 +95,7 @@ describe('ConjunctionWarning', () => {
   it('keeps one live region across views so a new pass is announced', () => {
     const text = 'Close approach: STARLINK-4158 and PELICAN-6, 28 m apart, maximum P_c 0.31.';
     const message = setup().props.view;
-    for (const from of [{ kind: 'idle', run: RUN, selectionCovered: true }, { kind: 'loading' }] as const) {
+    for (const from of [{ kind: 'idle', run: RUN, selectionCovered: true, top: [] }, { kind: 'loading' }] as const) {
       const { container, rerender, props, unmount } = setup({ view: from });
       const region = container.querySelector('[aria-live="polite"]');
       expect(container.querySelectorAll('[aria-live]').length).toBe(1);

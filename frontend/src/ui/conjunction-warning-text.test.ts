@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
-import { DISCLAIMER, formatCountdown, quietLine, warningText } from './conjunction-warning-text.js';
+import { DISCLAIMER, formatCountdown, passText, quietLine, warningText } from './conjunction-warning-text.js';
 
 const T0 = Date.parse('2026-09-30T02:51:56Z');
 const RUN: ScreeningRun = {
@@ -23,6 +23,12 @@ describe('formatCountdown', () => {
     expect(formatCountdown(3_723_000)).toBe('1:02:03');
     expect(formatCountdown(90_061_000)).toBe('1 d 01:01:01');
     expect(formatCountdown(-31_000)).toBe('00:31');
+  });
+});
+
+describe('passText', () => {
+  it('gives the pair, the miss in metres and the closest-approach time', () => {
+    expect(passText(C)).toEqual({ pair: 'STARLINK-4158 and PELICAN-6', miss: '28 m', tca: '2026-09-30 02:51:56 UTC' });
   });
 });
 
