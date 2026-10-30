@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CatalogFetchError, fetchCatalogMeta, fetchCatalogReplay, fetchCatalogSnapshot } from './catalog-client.js';
+import { CatalogFetchError, fetchCatalogMeta, fetchCatalogReplay, fetchCatalogSnapshot, REPLAY_LOCAL_ONLY } from './catalog-client.js';
+import { dataAsOf, resetSiteMode } from './site-mode.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -81,5 +82,44 @@ describe('fetchCatalogReplay', () => {
       }),
     );
     await expect(fetchCatalogReplay(0)).rejects.toThrow(/earliest is 2026-08-01/);
+  });
+});
+
+describe('static site (spec §4)', () => {
+  const top = {
+    attribution: 'a',
+    run: { completed_at: '2026-10-27T07:03:21Z', window_start: '2026-10-27T06:29:07Z', window_end: '2026-10-28T06:29:07Z', reporting_distance_km: 5 },
+    items: [],
+  };
+  const catalog = { attribution: 'a', generated_at: '2026-10-27T07:40:00Z', data_as_of: '2026-10-27T06:29:07Z', source: 'spacetrack-gp', records: [{ NORAD_CAT_ID: '25544' }] };
+  const files = () => vi.fn(async (url: string) =>
+    new Response(JSON.stringify(url.includes('top') ? top : catalog)));
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); resetSiteMode(); });
+
+  it('reads the baked catalogue and records the instant its data stands for', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', files());
+    expect(await fetchCatalogSnapshot()).toEqual(catalog.records);
+    expect(dataAsOf()).toBe(Date.parse('2026-10-27T06:29:07Z'));
+  });
+
+  it('a replay inside the screened day is the baked catalogue, with no server', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    const fetchMock = files();
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await fetchCatalogReplay(Date.parse('2026-10-27T06:29:07Z'))).toEqual(catalog.records);
+    expect(fetchMock.mock.calls.every(([url]) => String(url).startsWith('/data/'))).toBe(true);
+  });
+
+  it('a replay of any other day is refused with the local-version line', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', files());
+    await expect(fetchCatalogReplay(Date.parse('2026-10-20T00:00:00Z'))).rejects.toThrow(REPLAY_LOCAL_ONLY);
+  });
+
+  it('a catalogue file without records is rejected', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"attribution":"a"}')));
+    await expect(fetchCatalogSnapshot()).rejects.toBeInstanceOf(CatalogFetchError);
   });
 });

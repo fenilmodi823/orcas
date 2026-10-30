@@ -1,4 +1,5 @@
 import { apiBaseUrl, CatalogFetchError } from './catalog-client.js';
+import { isStaticSite, readSiteFile } from './site-mode.js';
 
 export interface ConjunctionParty {
   readonly noradId: string;
@@ -111,7 +112,10 @@ async function fetchReport(query: string, signal?: AbortSignal): Promise<Conjunc
     throw new CatalogFetchError('network request for /conjunctions failed', err);
   }
   if (!res.ok) throw new CatalogFetchError(`GET /conjunctions -> ${res.status}`);
-  const body: unknown = await res.json();
+  return parseReport(await res.json());
+}
+
+function parseReport(body: unknown): ConjunctionReport {
   const run = isObj(body) ? parseRun(body.run) : undefined;
   if (!isObj(body) || run === undefined || !Array.isArray(body.items)) {
     throw new CatalogFetchError('conjunctions response did not match the expected shape');
@@ -120,8 +124,30 @@ async function fetchReport(query: string, signal?: AbortSignal): Promise<Conjunc
   return { run, items, rejected: body.items.length - items.length };
 }
 
+/** Which baked file holds an object's passes. Mirrors backend site_bake_service.shard_of. */
+export function shardOf(noradId: string): string {
+  return noradId.slice(-2).padStart(2, '0');
+}
+
+async function fetchSiteReport(path: string, signal: AbortSignal | undefined, noradId?: string): Promise<ConjunctionReport> {
+  let body: Record<string, unknown>;
+  try {
+    body = await readSiteFile(path);
+  } catch (err) {
+    throw new CatalogFetchError(`the published file ${path} could not be loaded`, err);
+  }
+  // Files are shared and memoised, so abort is honoured after the read, not by cancelling it.
+  signal?.throwIfAborted();
+  if (noradId === undefined) return parseReport(body);
+  const objects = isObj(body.objects) ? body.objects : undefined;
+  if (!objects) throw new CatalogFetchError('the published passes file did not match the expected shape');
+  const items: unknown = objects[noradId] ?? [];
+  return parseReport({ run: body.run, items });
+}
+
 /** The latest screening run's close approaches for one object. */
 export function fetchConjunctions(noradId: string, signal?: AbortSignal): Promise<ConjunctionReport> {
+  if (isStaticSite()) return fetchSiteReport(`conjunctions/by-object/${shardOf(noradId)}.json.gz`, signal, noradId);
   return fetchReport(`norad_id=${encodeURIComponent(noradId)}&limit=200`, signal);
 }
 
@@ -134,5 +160,6 @@ export const TOP_CONJUNCTION_LIMIT = 10;
  * (`services/screening_service.py: list_conjunctions`).
  */
 export function fetchTopConjunctions(signal?: AbortSignal): Promise<ConjunctionReport> {
+  if (isStaticSite()) return fetchSiteReport('conjunctions/top.json.gz', signal);
   return fetchReport(`limit=${TOP_CONJUNCTION_LIMIT}`, signal);
 }
