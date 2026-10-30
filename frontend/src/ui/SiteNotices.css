@@ -1,0 +1,10 @@
+.site-notice {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--glass-fill);
+  color: var(--text-mid);
+  font: var(--t-caption);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

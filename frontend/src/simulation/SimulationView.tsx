@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
-import { formatCreditLine, type CatalogProvenance } from '../data/catalog-provenance.js';
+import { formatCreditLine, isStale, type CatalogProvenance } from '../data/catalog-provenance.js';
 import type { CatalogSnapshot, NoradId } from '../data/catalog-types.js';
 import { LiveScene } from '../renderer/live/LiveScene.js';
 import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-scene.js';
@@ -16,6 +16,8 @@ import { PLANET_MAP_CREDIT } from '../renderer/solar/planet-maps.js';
 import { MOON_MAP_CREDIT } from '../renderer/solar/moon-maps.js';
 import { isBodyId } from '../renderer/solar/bodies.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
+import { presentMs } from '../data/site-mode.js';
+import { SiteNotices } from '../ui/SiteNotices.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
 import { DataProvenance } from '../ui/DataProvenance.js';
@@ -110,9 +112,10 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
         <div className="simulation__pill">
           <StatusPill
             epoch={new Date(provenance.medianEpochMs)}
-            stale={origin !== 'live'}
+            stale={isStale(origin)}
             nowMs={provenance.nowMs}
           />
+          <SiteNotices nowMs={provenance.nowMs} />
         </div>
       </PanelErrorBoundary>
       <PanelErrorBoundary label="Close-approach warning">
@@ -220,7 +223,7 @@ function SimulationDock({ scene, provenance, replay, takeInitialView, viewReques
         // propagated from the replay's old element sets.
         if (replay.atMs !== null) return replay.end();
         useSimulationStore.getState().jumpToNow();
-        scrubTo(Date.now());
+        scrubTo(presentMs());
       }}
       onScrub={(time) => {
         useSimulationStore.getState().leaveLive();

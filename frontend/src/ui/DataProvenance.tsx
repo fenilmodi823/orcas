@@ -4,6 +4,7 @@ import {
   formatEpochUtc,
   isStale,
 } from '../data/catalog-provenance.js';
+import { dataAsOf } from '../data/site-mode.js';
 import type { CatalogProvenance } from '../data/catalog-provenance.js';
 import './DataProvenance.css';
 
@@ -31,6 +32,8 @@ export function DataProvenance({ provenance }: { provenance: CatalogProvenance }
     newestEpochIsAhead,
     fetchedAgeMs,
   } = provenance;
+
+  const asOf = origin === 'published' ? dataAsOf() : null;
 
   return (
     <section
@@ -65,6 +68,12 @@ export function DataProvenance({ provenance }: { provenance: CatalogProvenance }
           <dt>Snapshot fetched</dt>
           <dd>{formatAge(fetchedAgeMs)}</dd>
         </div>
+        {asOf !== null && (
+          <div>
+            <dt>Data as of</dt>
+            <dd>{formatEpochUtc(asOf)}</dd>
+          </div>
+        )}
         {rejectedCount > 0 && (
           <div>
             <dt>Rejected</dt>

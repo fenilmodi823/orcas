@@ -1,3 +1,4 @@
+import { isPastPublishedWindow, isStaticSite } from './site-mode.js';
 import type { CatalogOrigin } from './use-catalog.js';
 import type { CatalogSnapshot } from './catalog-types.js';
 
@@ -108,6 +109,7 @@ export function formatEpochUtc(ms: number): string {
 
 const ORIGIN_LABELS: Readonly<Record<CatalogOrigin, string>> = {
   live: 'live from the backend',
+  published: 'published snapshot — baked from the screened catalogue, not live',
   cached: 'last cached snapshot — the backend was unreachable',
   bundled: 'bundled sample fixtures — no live or cached data available',
   replay: 'historical replay — the element sets that existed at the replay moment, not today’s',
@@ -115,12 +117,13 @@ const ORIGIN_LABELS: Readonly<Record<CatalogOrigin, string>> = {
 };
 
 export function describeOrigin(origin: CatalogOrigin): string {
+  if (origin === 'cached' && isStaticSite()) return 'last cached snapshot — the published files could not be loaded';
   return ORIGIN_LABELS[origin];
 }
 
 /** True when what is on screen is not live data and the UI must say so. */
 export function isStale(origin: CatalogOrigin): boolean {
-  return origin !== 'live';
+  return origin === 'published' ? isPastPublishedWindow() : origin !== 'live';
 }
 
 /**
