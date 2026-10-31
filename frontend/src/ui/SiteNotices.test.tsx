@@ -41,7 +41,7 @@ describe('SiteNotices', () => {
     render(<SiteNotices nowMs={AS_OF + 9 * DAY} />);
     const note = screen.getByRole('status');
     expect(note.textContent).toBe(
-      'Showing 2026-11-01 06:29:07 UTC — the latest moment this site’s orbit data covers (data as of 2026-10-27 06:29:07 UTC).',
+      'This site’s orbit data covers up to 2026-11-01 06:29:07 UTC (data as of 2026-10-27 06:29:07 UTC).',
     );
   });
 });

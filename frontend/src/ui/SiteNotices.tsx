@@ -41,8 +41,8 @@ function StaleNotice({ nowMs }: { nowMs: number }) {
   if (!isStaticSite() || asOf === null || !isPastPublishedWindow(nowMs)) return null;
   return (
     <p className="site-notice" role="status">
-      Showing <span className="site-notice__num">{formatEpochUtc(presentMs(nowMs))}</span> — the latest moment this
-      site’s orbit data covers (data as of <span className="site-notice__num">{formatEpochUtc(asOf)}</span>).
+      This site’s orbit data covers up to <span className="site-notice__num">{formatEpochUtc(presentMs(nowMs))}</span>{' '}
+      (data as of <span className="site-notice__num">{formatEpochUtc(asOf)}</span>).
     </p>
   );
 }
