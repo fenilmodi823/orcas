@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  PUBLISHED_TRUST_MS, isPastPublishedWindow, isStaticSite, presentMs, readSiteFile, resetSiteMode, setDataAsOf,
+  isPastPublishedWindow, isStaticSite, presentMs, readSiteFile, resetSiteMode, setDataAsOf,
 } from './site-mode.js';
+import { COVERAGE_FORWARD_LEO_MS } from '../simulation/coverage.js';
 
 const gzip = async (text: string): Promise<Uint8Array<ArrayBuffer>> => {
   const stream = new Response(text).body?.pipeThrough(new CompressionStream('gzip'));
@@ -37,8 +38,8 @@ describe('presentMs — safe when stale (spec §4)', () => {
   it('stops at data_as_of + 5 days once the window has passed', () => {
     vi.stubEnv('VITE_DATA_MODE', 'static');
     setDataAsOf(asOf);
-    expect(PUBLISHED_TRUST_MS).toBe(5 * 86_400_000);
-    expect(presentMs(asOf + 9 * 86_400_000)).toBe(asOf + PUBLISHED_TRUST_MS);
+    expect(COVERAGE_FORWARD_LEO_MS).toBe(5 * 86_400_000);
+    expect(presentMs(asOf + 9 * 86_400_000)).toBe(asOf + COVERAGE_FORWARD_LEO_MS);
     expect(isPastPublishedWindow(asOf + 9 * 86_400_000)).toBe(true);
   });
   it('is the wall clock when no catalogue file has loaded', () => {

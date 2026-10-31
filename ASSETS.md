@@ -26,4 +26,4 @@ Paths are under `frontend/public/` unless stated.
 | `data/site/conjunctions/` (baked at refresh; same location) | Public site's close-approach screening | ORCAS screening analysis based on USSPACECOM data | "A screening result, not an operational warning." | `backend/app/services/site_bake_service.py` (`SOURCE_CREDITS`, `attribution_for`) |
 | `brand/*` | ORCAS logo, icons and social card | ORCAS's own mark (Phase 3) | licence not recorded in the repository | — |
 
-JPL Horizons paths are static exports; the NAIF/JPL email about their terms is deferred (Questions R3 A.4).
+JPL Horizons paths are static exports; the NAIF/JPL email about their terms is deferred.

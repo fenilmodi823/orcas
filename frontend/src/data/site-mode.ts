@@ -9,9 +9,6 @@ export function isStaticSite(): boolean {
   return import.meta.env.VITE_DATA_MODE === 'static';
 }
 
-/** How long a bake is trusted: the low-orbit window, the first to run out (spec §4, coverage.ts). */
-export const PUBLISHED_TRUST_MS = COVERAGE_FORWARD_LEO_MS;
-
 // ponytail: module state, set once per page load by the catalogue fetch; a
 // store would add nothing while exactly one catalogue file exists.
 let dataAsOfMs: number | null = null;
@@ -31,7 +28,9 @@ export function dataAsOf(): number | null {
  */
 export function presentMs(nowMs: number = Date.now()): number {
   if (!isStaticSite() || dataAsOfMs === null) return nowMs;
-  return Math.min(nowMs, dataAsOfMs + PUBLISHED_TRUST_MS);
+  // Trusted for the low-orbit window (spec §4). Read here, not at module top:
+  // coverage.ts imports back into this module through catalog-provenance.ts.
+  return Math.min(nowMs, dataAsOfMs + COVERAGE_FORWARD_LEO_MS);
 }
 
 export function isPastPublishedWindow(nowMs: number = Date.now()): boolean {
