@@ -49,7 +49,9 @@ function CatalogProbe() {
       data-count={state.snapshot?.objects.length ?? 'none'}
       data-error={state.error ?? 'none'}
       data-rejected={state.snapshot?.rejected.length ?? 'none'}
-    />
+    >
+      <button type="button" onClick={() => void state.startReplay(Date.now())}>replay</button>
+    </div>
   );
 }
 
@@ -148,6 +150,21 @@ describe('useCatalog', () => {
       render(<CatalogProbe />);
       await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
       expect(readProbe().dataset.origin).toBe('published');
+    });
+
+    it("keeps the published origin for Watch's replay, which is the same published data (Q37)", async () => {
+      vi.stubEnv('VITE_DATA_MODE', 'static');
+      const records = async () => {
+        setDataAsOf(Date.now());
+        return [{ ...good, EPOCH: new Date().toISOString() }];
+      };
+      fetchCatalogSnapshot.mockImplementation(records);
+      fetchCatalogReplay.mockImplementation(records);
+      render(<CatalogProbe />);
+      await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
+      document.querySelector('button')?.click();
+      await waitFor(() => expect(fetchCatalogReplay).toHaveBeenCalled());
+      await waitFor(() => expect(readProbe().dataset.origin).toBe('published'));
     });
 
     it('validates against the clamped present and counts a record that cannot reach it', async () => {

@@ -93,7 +93,10 @@ export function useCatalog(): CatalogHandle {
     try {
       const records = await fetchCatalogReplay(atMs);
       const snapshot = buildSnapshot(records, atMs, Date.now());
-      setState({ snapshot, origin: 'replay', loading: false, error: null, replayAtMs: atMs, replayError: null });
+      // On the static site Watch replays the published data itself, so it stays
+      // 'published': stale only once that data is past its window (Q37).
+      const origin = isStaticSite() ? 'published' : 'replay';
+      setState({ snapshot, origin, loading: false, error: null, replayAtMs: atMs, replayError: null });
       return true;
     } catch (err) {
       const replayError = err instanceof Error ? err.message : String(err);
