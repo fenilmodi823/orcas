@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import type { Points } from 'three';
+import { presentMs } from '../../data/site-mode.js';
 import { useSimulationLoop, type SimulationLoopHandle } from '../../simulation/use-simulation-loop.js';
 import { computeRanks } from '../points/significance-rank.js';
 import { featuredIndices, FEATURED_OBJECT_IDS } from '../paths/featured-norads.js';
@@ -61,7 +62,7 @@ export function useLiveScene(
 ): LiveSceneState {
   const playingRef = useRef(useSimulationStore.getState().playing);
   const rateRef = useRef(effectiveRate(useSimulationStore.getState()));
-  const [startEpochMs] = useState(() => startAtMs ?? Date.now());
+  const [startEpochMs] = useState(() => startAtMs ?? presentMs());
   const tierZeroObjectRef = useRef<Points | null>(null);
   // Before the points exist the layer counts as visible, so the first window is built.
   const loop = useSimulationLoop(objects, playingRef, rateRef, startEpochMs, () => tierZeroObjectRef.current?.visible ?? true);

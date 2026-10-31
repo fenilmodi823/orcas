@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     # Generated artifacts — same host/container split as data_sample_dir.
     # Both are gitignored; regenerated on schedule, never committed.
     snapshot_dir: str = "../data/snapshot"
+    site_dir: str = "../data/site"
     archive_dir: str = "../data/archive"
 
     # Data-Strategy.md §7: latest element_set per object is kept forever;

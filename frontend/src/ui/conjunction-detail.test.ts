@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Conjunction, ConjunctionReport } from '../data/conjunction-client.js';
 import { buildConjunctionGroup } from './conjunction-detail.js';
+
+afterEach(() => vi.unstubAllEnvs());
 
 const RUN = {
   completedAtMs: Date.parse('2026-09-27T14:00:00Z'),
@@ -40,6 +42,13 @@ describe('buildConjunctionGroup', () => {
 
   it('says so when the backend cannot be reached', () => {
     expect(value(buildConjunctionGroup({ kind: 'unavailable' }, '24946', NOW), 'Status')).toMatch(/Unavailable/);
+  });
+
+  it('names the published files on the static site', () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    const g = buildConjunctionGroup({ kind: 'unavailable' }, '24946', NOW);
+    expect(value(g, 'Status')).toBe('Unavailable — the published screening files could not be loaded');
+    expect(g.note).toBe('The scene does not need them.');
   });
 
   it('states the window when nothing came within the reporting distance', () => {

@@ -12,7 +12,7 @@ vi.mock('./use-simulation-clock.js', () => ({ useSimulationClock: () => ({ getTi
 vi.mock('../ui/use-conjunction-warning.js', () => ({
   useConjunctionWarning: (_n: string | null, _ms: number, rate: number) => {
     warningRates.push(rate);
-    const view: WarningView = { kind: 'idle', run: RUN, selectionCovered: false };
+    const view: WarningView = { kind: 'idle', run: RUN, selectionCovered: false, top: [] };
     return { view, dismiss: vi.fn() };
   },
 }));

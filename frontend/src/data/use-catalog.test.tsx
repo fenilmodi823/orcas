@@ -1,6 +1,7 @@
 import { render, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCatalog } from './use-catalog.js';
+import { resetSiteMode, setDataAsOf } from './site-mode.js';
 
 const { fetchCatalogSnapshot, fetchCatalogReplay } = vi.hoisted(() => ({
   fetchCatalogSnapshot: vi.fn(),
@@ -47,7 +48,10 @@ function CatalogProbe() {
       data-origin={state.origin}
       data-count={state.snapshot?.objects.length ?? 'none'}
       data-error={state.error ?? 'none'}
-    />
+      data-rejected={state.snapshot?.rejected.length ?? 'none'}
+    >
+      <button type="button" onClick={() => void state.startReplay(Date.now())}>replay</button>
+    </div>
   );
 }
 
@@ -124,5 +128,66 @@ describe('useCatalog', () => {
     // it's a last resort, not something that should overwrite a real
     // cached snapshot on a later visit.
     expect(persistSnapshot).not.toHaveBeenCalled();
+  });
+
+  describe('on the static site', () => {
+    const DAY = 86_400_000;
+    const AS_OF = Date.parse('2026-10-27T06:29:07Z');
+    const good = { ...fallbackRecords[0], EPOCH: new Date(AS_OF).toISOString() };
+
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllEnvs();
+      resetSiteMode();
+    });
+
+    it('reports the published origin', async () => {
+      vi.stubEnv('VITE_DATA_MODE', 'static');
+      fetchCatalogSnapshot.mockImplementation(async () => {
+        setDataAsOf(Date.now());
+        return [{ ...good, EPOCH: new Date().toISOString() }];
+      });
+      render(<CatalogProbe />);
+      await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
+      expect(readProbe().dataset.origin).toBe('published');
+    });
+
+    it("keeps the published origin for Watch's replay, which is the same published data (Q37)", async () => {
+      vi.stubEnv('VITE_DATA_MODE', 'static');
+      const records = async () => {
+        setDataAsOf(Date.now());
+        return [{ ...good, EPOCH: new Date().toISOString() }];
+      };
+      fetchCatalogSnapshot.mockImplementation(records);
+      fetchCatalogReplay.mockImplementation(records);
+      render(<CatalogProbe />);
+      await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
+      document.querySelector('button')?.click();
+      await waitFor(() => expect(fetchCatalogReplay).toHaveBeenCalled());
+      await waitFor(() => expect(readProbe().dataset.origin).toBe('published'));
+    });
+
+    it('validates against the clamped present and counts a record that cannot reach it', async () => {
+      vi.stubEnv('VITE_DATA_MODE', 'static');
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(AS_OF + 9 * DAY);
+      const doomed = {
+        ...good,
+        NORAD_CAT_ID: '90002',
+        EPOCH: new Date(AS_OF - 60 * DAY).toISOString(),
+        MEAN_MOTION: 16.4,
+        ECCENTRICITY: 0.05,
+        BSTAR: 0.5,
+      };
+      fetchCatalogSnapshot.mockImplementation(async () => {
+        setDataAsOf(AS_OF);
+        return [good, doomed];
+      });
+      render(<CatalogProbe />);
+      await waitFor(() => expect(readProbe().dataset.loading).toBe('false'));
+      expect(readProbe().dataset.origin).toBe('published');
+      expect(readProbe().dataset.count).toBe('1');
+      expect(readProbe().dataset.rejected).toBe('1');
+    });
   });
 });

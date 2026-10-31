@@ -1,5 +1,6 @@
-import type { ScreeningRun } from '../data/conjunction-client.js';
+import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
 import { formatEpochUtc } from '../data/catalog-provenance.js';
+import { isStaticSite } from '../data/site-mode.js';
 import { formatTelemetryValue } from './telemetry-format.js';
 import type { WarningPick } from './conjunction-warning.js';
 
@@ -63,6 +64,15 @@ export function warningText(pick: WarningPick, run: ScreeningRun, nowMs: number)
   };
 }
 
+/** One row of the screened day's list (Q26 (b)); numbers separate so the view sets them in mono. */
+export function passText(c: Conjunction): { readonly pair: string; readonly miss: string; readonly tca: string } {
+  return {
+    pair: `${c.primary.name} and ${c.secondary.name}`,
+    miss: `${formatTelemetryValue(c.missDistanceKm * 1000, 0)} m`,
+    tca: formatEpochUtc(c.tcaMs),
+  };
+}
+
 /** The slot's state when no message is showing (spec §3.3). */
 export type QuietState =
   | { readonly kind: 'not-screened' }
@@ -85,7 +95,8 @@ function screenedAgo(completedAtMs: number, wallNowMs: number): string {
 export function quietLine(state: QuietState, wallNowMs: number): QuietLine {
   if (state.kind === 'not-screened') return { text: 'No screening run yet', goThere: false };
   if (state.kind === 'unavailable') {
-    return { text: 'Close-approach warnings unavailable: the backend is not reachable', goThere: false };
+    const why = isStaticSite() ? 'the published screening files could not be loaded' : 'the backend is not reachable';
+    return { text: `Close-approach warnings unavailable: ${why}`, goThere: false };
   }
   const { run, simulationMs, selectionCovered } = state;
   const span = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;

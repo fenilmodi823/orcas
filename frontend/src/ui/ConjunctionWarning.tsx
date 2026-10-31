@@ -4,7 +4,7 @@ import type { Conjunction } from '../data/conjunction-client.js';
 import { AlertBadge } from './AlertBadge.js';
 import { GlassSurface } from './GlassSurface.js';
 import { warningKey } from './conjunction-warning.js';
-import { DERIVATION, DISCLAIMER, HEADLINE, quietLine, warningText } from './conjunction-warning-text.js';
+import { DERIVATION, DISCLAIMER, HEADLINE, passText, quietLine, warningText } from './conjunction-warning-text.js';
 import type { WarningView } from './use-conjunction-warning.js';
 import './ConjunctionWarning.css';
 
@@ -60,6 +60,19 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
               <button type="button" className="conjunction-warning__button" onClick={onGoThere}>Go there</button>
             )}
           </p>
+          {line.goThere && view.kind === 'idle' && view.top.length > 0 && (
+            <ul className="conjunction-warning__passes" aria-label="The screened day's closest passes">
+              {view.top.map((c) => {
+                const p = passText(c);
+                return (
+                  <li key={warningKey(c)} className="conjunction-warning__pass">
+                    <span>{p.pair} · <Num>{p.miss}</Num> at <Num>{p.tca}</Num></span>
+                    <button type="button" className="conjunction-warning__button" aria-label={`Watch ${p.pair}`} onClick={() => onWatch(c)}>Watch</button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           {failure}
         </div>
         {live(error ?? '')}
