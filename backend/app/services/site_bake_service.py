@@ -33,6 +33,9 @@ SOURCE_CREDITS: Mapping[str, str] = {
     ),
 }
 
+#: Object types and decay dates come from the SATCAT ingest on every refresh (Q35).
+SATCAT_CREDIT = "Object types and decay dates: CelesTrak SATCAT."
+
 Json = dict[str, Any]
 
 
@@ -46,6 +49,7 @@ def attribution_for(source: str) -> str:
     credits = [SOURCE_CREDITS.get(s, s) for s in source.split("+") if s]
     return (
         f"Orbital data: {'; '.join(credits)}. "
+        f"{SATCAT_CREDIT} "
         "Close approaches: ORCAS screening analysis based on USSPACECOM data; "
         "a screening result, not an operational warning. "
         "Positions are SGP4 propagations, not observations."

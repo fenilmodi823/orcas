@@ -181,6 +181,7 @@ describe('formatCreditLine', () => {
 
     expect(line).toContain('CelesTrak GP');
     expect(line).toContain('Space-Track.org, courtesy of USSPACECOM (18th Space Defense Squadron), GP catalogue');
+    expect(line).toContain('Object types and decay dates: CelesTrak SATCAT.');
   });
 
   it('carries the element-set epoch and says positions are propagations', () => {

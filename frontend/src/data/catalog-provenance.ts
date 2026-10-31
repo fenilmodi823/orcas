@@ -150,6 +150,8 @@ export function formatCreditLine(provenance: CatalogProvenance): string {
   const origin = sources.length > 0 ? sources.join('; ') : 'unknown source';
   return (
     `Orbital data: ${origin}, median element-set epoch ${formatEpochUtc(provenance.medianEpochMs)}. ` +
+    // Types and decay dates come from the SATCAT ingest (Q35).
+    'Object types and decay dates: CelesTrak SATCAT. ' +
     'Positions are SGP4 propagations, not observations.'
   );
 }

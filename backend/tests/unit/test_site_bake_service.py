@@ -29,6 +29,7 @@ def test_attribution_names_usspacecom_and_every_source() -> None:
     text = attribution_for("celestrak+spacetrack-gp")
     assert "Space-Track.org, courtesy of USSPACECOM (18th Space Defense Squadron)" in text
     assert "CelesTrak GP" in text
+    assert "Object types and decay dates: CelesTrak SATCAT." in text
     assert "not an operational warning" in text
     assert "SGP4 propagations, not observations" in text
 
