@@ -16,7 +16,7 @@ jobs:
       # is DB-touching and this project deliberately doesn't use SQLite for
       # tests (Data-Strategy.md: "Why PostgreSQL and not SQLite, even locally").
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: orcas
           POSTGRES_PASSWORD: orcas
