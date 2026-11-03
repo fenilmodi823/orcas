@@ -7,7 +7,7 @@ ENV UV_LINK_MODE=copy PYTHONUNBUFFERED=1 UV_CACHE_DIR=/tmp/uv-cache
 # Installed as orcas, so no `chown -R` layer copies the venv a second time,
 # and with --no-cache, so uv's download cache never lands in a layer.
 FROM base AS deps
-COPY --from=ghcr.io/astral-sh/uv:0.10.7 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 USER orcas
 COPY --chown=orcas:orcas backend/pyproject.toml backend/uv.lock* ./
 RUN uv sync --no-install-project --no-cache

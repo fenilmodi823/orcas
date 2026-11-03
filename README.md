@@ -1,7 +1,7 @@
 # ORCAS — Orbital Risk and Conjunction Assessment System
 
 [![CI](https://github.com/fenilmodi823/orcas/actions/workflows/ci.yml/badge.svg)](https://github.com/fenilmodi823/orcas/actions/workflows/ci.yml)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.15](https://img.shields.io/badge/python-3.15-blue.svg)](https://www.python.org/downloads/)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Ruff](https://img.shields.io/badge/lint-ruff-D7FF64.svg)](https://github.com/astral-sh/ruff)
 
@@ -253,7 +253,7 @@ Every failure degrades to something honest, never to a broken screen.
 
 ```text
 orcas/
-├─ backend/                    🛰️ FastAPI backend (Python 3.12)
+├─ backend/                    🛰️ FastAPI backend (Python 3.15)
 │  ├─ app/
 │  │  ├─ api/v1/               objects.py · catalog.py · conjunctions.py · router.py
 │  │  ├─ domain/               ⭐ propagation · coordinates · covariance
@@ -302,7 +302,7 @@ annoyance.
 
 | Technology | Role |
 | --- | --- |
-| **Python 3.12** | Non-negotiable — the `.joblib` classifier and the NumPy/SciPy covariance maths *are* the research |
+| **Python 3.15** | Non-negotiable — the `.joblib` classifier and the NumPy/SciPy covariance maths *are* the research |
 | **FastAPI** + Uvicorn | Async HTTP layer |
 | **sgp4** (2.27) | SGP4/SDP4 propagation, initialised from OMM directly |
 | **NumPy · SciPy** | Covariance algebra, B-plane projection, 2D numerical quadrature for P_c |
@@ -333,7 +333,7 @@ every frame, and proportional digits make the readout jitter.
 
 ### Infrastructure
 
-Docker Compose (4 services) · PostgreSQL 16 · GitHub Actions · `uv` for Python dependencies.
+Docker Compose (4 services) · PostgreSQL 18 · GitHub Actions · `uv` for Python dependencies.
 Containers never run as root.
 
 ---

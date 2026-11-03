@@ -13,6 +13,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 from sqlalchemy import delete, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infra.db.models import ElementSet
@@ -59,7 +60,7 @@ async def _find_archival_candidates(session: AsyncSession, cutoff: datetime) -> 
     """
     latest_ids = (
         select(ElementSet.id)
-        .distinct(ElementSet.object_id)
+        .ext(distinct_on(ElementSet.object_id))
         .order_by(ElementSet.object_id, ElementSet.epoch.desc())
     ).scalar_subquery()
 
