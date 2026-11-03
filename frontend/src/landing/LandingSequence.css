@@ -47,95 +47,106 @@
   overflow: visible;
 }
 
+/* Each beat, once reached, is a data attribute on the root (data-ring … data-done). */
+
+/* The ring draws itself on. */
 .landing-sequence__ring {
   stroke-dasharray: var(--dash);
   stroke-dashoffset: var(--dash);
   opacity: 0;
   transition:
-    stroke-dashoffset 500ms var(--ease-quick),
+    stroke-dashoffset 1200ms var(--ease-camera),
     opacity 200ms var(--ease-quick);
 }
-.landing-sequence[data-phase="rings"] .landing-sequence__ring,
-.landing-sequence[data-phase="tracks"] .landing-sequence__ring,
-.landing-sequence[data-phase="resolve"] .landing-sequence__ring,
-.landing-sequence[data-phase="hold"] .landing-sequence__ring,
-.landing-sequence[data-phase="wordmark"] .landing-sequence__ring,
-.landing-sequence[data-phase="settle"] .landing-sequence__ring,
-.landing-sequence[data-phase="done"] .landing-sequence__ring {
+.landing-sequence[data-ring] .landing-sequence__ring {
   opacity: 0.55;
   stroke-dashoffset: 0;
 }
 
-/* The "tracks" beat: a stroked outline draws itself on. */
-.landing-sequence__body-stroke {
-  fill: none;
-  stroke: var(--orca-cyan);
-  stroke-width: 1.4;
-  stroke-dasharray: var(--dash);
-  stroke-dashoffset: var(--dash);
+/* The breach: the orca rises from below. */
+.landing-sequence__body {
   opacity: 0;
+  transform: translateY(9px) scale(0.985);
+  transform-box: fill-box;
+  transform-origin: 52% 58%;
   transition:
-    stroke-dashoffset 800ms var(--ease-camera),
-    opacity 200ms var(--ease-quick);
+    opacity 1000ms var(--ease-quick),
+    transform 1000ms var(--ease-quick);
 }
-.landing-sequence[data-phase="tracks"] .landing-sequence__body-stroke {
+.landing-sequence[data-surface] .landing-sequence__body {
   opacity: 1;
-  stroke-dashoffset: 0;
+  transform: none;
 }
-/* The "resolve" beat: the stroke hands off to a filled silhouette — a
-   second, separately-opacity-animated path, not a fill-colour tween. */
-.landing-sequence[data-phase="resolve"] .landing-sequence__body-stroke,
-.landing-sequence[data-phase="hold"] .landing-sequence__body-stroke,
-.landing-sequence[data-phase="wordmark"] .landing-sequence__body-stroke,
-.landing-sequence[data-phase="settle"] .landing-sequence__body-stroke,
-.landing-sequence[data-phase="done"] .landing-sequence__body-stroke {
-  opacity: 0;
-  stroke-dashoffset: 0;
-}
-
 .landing-sequence__body-fill {
   fill: var(--orca-cyan);
-  opacity: 0;
+}
+
+/* Waves, ping and dots belong to the intro, not the corner logo: they leave as it settles. */
+.landing-sequence__fx {
   transition: opacity 400ms var(--ease-quick);
 }
-.landing-sequence[data-phase="resolve"] .landing-sequence__body-fill,
-.landing-sequence[data-phase="hold"] .landing-sequence__body-fill,
-.landing-sequence[data-phase="wordmark"] .landing-sequence__body-fill,
-.landing-sequence[data-phase="settle"] .landing-sequence__body-fill,
-.landing-sequence[data-phase="done"] .landing-sequence__body-fill {
-  opacity: 1;
+.landing-sequence[data-settle] .landing-sequence__fx {
+  opacity: 0;
 }
 
-.landing-sequence__hole {
+.landing-sequence__wave {
   opacity: 0;
-  transition: opacity 300ms var(--ease-quick);
-}
-.landing-sequence[data-phase="resolve"] .landing-sequence__hole,
-.landing-sequence[data-phase="hold"] .landing-sequence__hole,
-.landing-sequence[data-phase="wordmark"] .landing-sequence__hole,
-.landing-sequence[data-phase="settle"] .landing-sequence__hole,
-.landing-sequence[data-phase="done"] .landing-sequence__hole {
-  opacity: 1;
-}
-
-/* The "hold" beat: a specular sweep, transform + opacity only. */
-.landing-sequence__sweep {
-  opacity: 0;
-  transform: translateX(-40px);
-}
-.landing-sequence[data-phase="hold"] .landing-sequence__sweep {
-  opacity: 0.45;
-  transform: translateX(40px);
+  transform: translateY(5px);
   transition:
-    transform 400ms var(--ease-quick),
-    opacity 400ms var(--ease-quick);
+    opacity 900ms var(--ease-quick),
+    transform 900ms var(--ease-quick);
 }
-.landing-sequence[data-phase="wordmark"] .landing-sequence__sweep,
-.landing-sequence[data-phase="settle"] .landing-sequence__sweep,
-.landing-sequence[data-phase="done"] .landing-sequence__sweep {
+.landing-sequence__wave:nth-child(2) {
+  transition-delay: 120ms;
+}
+.landing-sequence__wave:nth-child(3) {
+  transition-delay: 240ms;
+}
+.landing-sequence[data-waves] .landing-sequence__wave {
+  opacity: 0.6;
+  transform: none;
+}
+
+/* The sonar ping spreads at a constant speed, so each dot's delay lands on its front. */
+.landing-sequence__ping,
+.landing-sequence__dot {
   opacity: 0;
-  transform: translateX(40px);
-  transition: opacity 300ms var(--ease-quick);
+}
+.landing-sequence__ping {
+  stroke-width: 0.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.04);
+}
+.landing-sequence__dot {
+  fill: var(--orca-cyan);
+}
+.landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping {
+  animation: landing-sequence-ping 1100ms linear forwards;
+}
+.landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping + .landing-sequence__ping {
+  animation-delay: 250ms;
+}
+.landing-sequence[data-mode="full"][data-ping] .landing-sequence__dot {
+  animation: landing-sequence-blip 900ms var(--ease-quick) var(--dot-delay) forwards;
+}
+@keyframes landing-sequence-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(0.04);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@keyframes landing-sequence-blip {
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.4;
+  }
 }
 
 .landing-sequence__word {
@@ -145,9 +156,7 @@
   opacity: 0;
   transition: opacity 400ms var(--ease-quick);
 }
-.landing-sequence[data-phase="wordmark"] .landing-sequence__word,
-.landing-sequence[data-phase="settle"] .landing-sequence__word,
-.landing-sequence[data-phase="done"] .landing-sequence__word {
+.landing-sequence[data-wordmark] .landing-sequence__word {
   opacity: 1;
 }
 
@@ -200,11 +209,10 @@
 .landing-sequence[data-instant] .landing-sequence__brand,
 .landing-sequence[data-instant] .landing-sequence__backdrop,
 .landing-sequence[data-instant] .landing-sequence__skip,
-.landing-sequence[data-instant] .landing-sequence__body-stroke,
-.landing-sequence[data-instant] .landing-sequence__body-fill,
-.landing-sequence[data-instant] .landing-sequence__hole,
+.landing-sequence[data-instant] .landing-sequence__body,
+.landing-sequence[data-instant] .landing-sequence__fx,
 .landing-sequence[data-instant] .landing-sequence__ring,
-.landing-sequence[data-instant] .landing-sequence__sweep,
-.landing-sequence[data-instant] .landing-sequence__word {
+.landing-sequence[data-instant] .landing-sequence__word,
+.landing-sequence[data-instant] .landing-sequence__readout {
   transition-duration: 150ms;
 }

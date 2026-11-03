@@ -1,16 +1,22 @@
-export type LandingPhase = 'point' | 'rings' | 'tracks' | 'resolve' | 'hold' | 'wordmark' | 'settle' | 'done';
+export type LandingPhase = 'ring' | 'surface' | 'waves' | 'ping' | 'wordmark' | 'settle' | 'done';
 
-/** Storyboard from Branding.md#Logo animation. Every "at" is ms from mount. */
+/**
+ * Storyboard from Branding.md#Logo animation (breach, ping, settle — shared
+ * with the portfolio's loader since 2026-11-03). Every "at" is ms from mount;
+ * settle → done is the brand's --motion-camera glide (900ms).
+ */
 export const TIMELINE: readonly { phase: LandingPhase; at: number }[] = [
-  { phase: 'point', at: 0 },
-  { phase: 'rings', at: 400 },
-  { phase: 'tracks', at: 800 },
-  { phase: 'resolve', at: 1600 },
-  { phase: 'hold', at: 2000 },
+  { phase: 'ring', at: 0 },
+  { phase: 'surface', at: 400 },
+  { phase: 'waves', at: 800 },
+  { phase: 'ping', at: 1600 },
   { phase: 'wordmark', at: 2400 },
-  { phase: 'settle', at: 3000 },
-  { phase: 'done', at: 3600 },
+  { phase: 'settle', at: 3300 },
+  { phase: 'done', at: 4200 },
 ];
+
+/** How long the ping takes to reach PING.r; each dot lights at its share of it. */
+export const PING_MS = 1100;
 
 export const REDUCED_MOTION_FADE_MS = 300;
 

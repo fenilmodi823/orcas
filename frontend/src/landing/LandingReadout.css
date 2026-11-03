@@ -1,0 +1,43 @@
+/* "Establishing link", under the lockup while it is centred; gone before it settles. */
+.landing-sequence__readout {
+  position: fixed;
+  top: calc(50vh + 120px);
+  left: 50%;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transform: translateX(-50%);
+  font: 400 10px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  color: var(--text-lo);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 400ms var(--ease-quick);
+}
+.landing-sequence[data-wordmark] .landing-sequence__readout {
+  opacity: 1;
+}
+.landing-sequence[data-settle] .landing-sequence__readout {
+  opacity: 0;
+}
+.landing-sequence__bar {
+  position: relative;
+  width: 78px;
+  height: 1px;
+  overflow: hidden;
+  background: var(--glass-edge);
+}
+.landing-sequence__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--orca-cyan);
+  transform: translateX(-100%);
+  animation: landing-sequence-sweep 1500ms var(--ease-camera) infinite;
+}
+@keyframes landing-sequence-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}

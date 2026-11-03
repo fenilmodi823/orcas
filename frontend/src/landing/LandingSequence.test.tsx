@@ -55,19 +55,32 @@ describe('LandingSequence', () => {
     expect(skip.hasAttribute('inert')).toBe(true);
   });
 
-  it('runs the full storyboard to done within 4s and never beyond it', () => {
+  it('runs breach, ping and settle to done at 4.2s and never beyond it', () => {
     const onDone = vi.fn();
     const { container } = render(<LandingSequence onDone={onDone} />);
     const root = container.firstElementChild as HTMLElement;
 
-    expect(root.dataset.phase).toBe('point');
+    expect(root.dataset.phase).toBe('ring');
     act(() => vi.advanceTimersByTime(2000));
-    expect(root.dataset.phase).toBe('hold');
+    expect(root.dataset.phase).toBe('ping');
+    // Every beat reached so far stays set, so the CSS never replays one.
+    expect(['ring', 'surface', 'waves', 'ping'].every((beat) => root.hasAttribute(`data-${beat}`))).toBe(true);
+    expect(root.hasAttribute('data-wordmark')).toBe(false);
     expect(onDone).not.toHaveBeenCalled();
 
-    act(() => vi.advanceTimersByTime(1600)); // total 3600ms
+    act(() => vi.advanceTimersByTime(2200)); // total 4200ms
     expect(root.dataset.phase).toBe('done');
     expect(onDone).toHaveBeenCalledOnce();
+  });
+
+  it('pings twelve decorative dots and reads 100 once the lockup settles', () => {
+    const { container } = render(<LandingSequence />);
+
+    expect(container.querySelectorAll('.landing-sequence__ping')).toHaveLength(2);
+    expect(container.querySelectorAll('.landing-sequence__dot')).toHaveLength(12);
+
+    act(() => vi.advanceTimersByTime(3300));
+    expect(container.querySelector('.landing-sequence__readout')?.textContent).toBe('Establishing link100');
   });
 
   it('prefers-reduced-motion renders no backdrop or skip control and finishes in ~300ms', () => {
