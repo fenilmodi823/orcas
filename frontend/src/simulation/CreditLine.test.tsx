@@ -20,6 +20,15 @@ describe('CreditLine (UI audit B.30)', () => {
     for (const credit of sources) expect(details?.textContent).toContain(credit);
   });
 
+  it('links to the ORCAS page on the portfolio, in a new tab', () => {
+    render(<CreditLine required={required} sources={sources} />);
+    const link = screen.getByRole('link', { name: 'About ORCAS' });
+
+    expect(link.getAttribute('href')).toBe('https://orcas-portfolio.vercel.app/projects/orcas');
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noopener');
+  });
+
   it('opens on the Sources control', () => {
     render(<CreditLine required={required} sources={sources} />);
     const summary = screen.getByText('Sources');

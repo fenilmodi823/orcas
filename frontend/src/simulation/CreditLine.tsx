@@ -24,6 +24,15 @@ export function CreditLine({ required, sources }: CreditLineProps) {
           ))}
         </div>
       </details>
+      {/* The way back to the project's write-up on the portfolio (Fenil, 2026-11-03). */}
+      <a
+        className="credit-line__link"
+        href="https://orcas-portfolio.vercel.app/projects/orcas"
+        target="_blank"
+        rel="noopener"
+      >
+        About ORCAS<span aria-hidden="true"> ↗</span>
+      </a>
     </div>
   );
 }
