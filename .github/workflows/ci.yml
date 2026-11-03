@@ -31,8 +31,8 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://orcas:orcas@localhost:5432/orcas
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync
       - run: uv run ruff check .
       - run: uv run mypy app/domain app/services
@@ -44,10 +44,10 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
       - run: npm install --no-audit --no-fund
       - run: npm run lint -w frontend
       - run: npx tsc -b --noEmit
