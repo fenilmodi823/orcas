@@ -17,6 +17,7 @@ from datetime import UTC, datetime, timedelta
 
 from sgp4.api import Satrec
 from sqlalchemy import delete, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -74,7 +75,7 @@ async def _load_catalogue(
         select(SpaceObject, ElementSet)
         .join(ElementSet, ElementSet.object_id == SpaceObject.id)
         .where(ElementSet.source_type != "simulation")
-        .distinct(ElementSet.object_id)
+        .ext(distinct_on(ElementSet.object_id))
         .order_by(ElementSet.object_id, ElementSet.epoch.desc(), ElementSet.id.desc())
     )
     if norad_ids is not None:

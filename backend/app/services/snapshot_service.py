@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import or_, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.types import OmmRecord
@@ -74,7 +75,7 @@ async def build_snapshot(session: AsyncSession, at: datetime | None = None) -> S
     stmt = (
         select(SpaceObject, ElementSet)
         .join(ElementSet, ElementSet.object_id == SpaceObject.id)
-        .distinct(ElementSet.object_id)
+        .ext(distinct_on(ElementSet.object_id))
         .order_by(ElementSet.object_id, ElementSet.epoch.desc())
     )
     if at is not None:
