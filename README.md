@@ -362,6 +362,15 @@ docker compose logs -f backend
 docker compose exec backend bash
 ```
 
+### Refreshing the public site
+
+```bash
+npm run site:refresh               # ingest, screen, bake, build, upload
+npm run site:refresh -- --no-upload  # everything except the upload
+```
+
+One command runs the Space-Track and SATCAT ingests, the conjunction screen and the data bake in the worker container, builds the static frontend with the baked files, and deploys `frontend/dist` to Vercel. It stops at the first failing step. It needs Docker running, Space-Track credentials in `.env`, and, once, `npx vercel login` and `npx vercel link --project orcas-simulation`. `--no-upload` leaves the built site in `frontend/dist`. The baked data (`data/site/`) is gitignored and never enters git.
+
 ### Conventions
 
 **Python** — ruff for lint and format · type hints everywhere · `mypy --strict` on `domain/` and

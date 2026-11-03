@@ -22,12 +22,14 @@
   text-align: center;
 }
 
-.credit-line__sources {
+.credit-line__sources,
+.credit-line__link {
   flex: none;
   pointer-events: auto;
 }
 
-.credit-line__toggle {
+.credit-line__toggle,
+.credit-line__link {
   display: inline-flex;
   align-items: center;
   min-height: var(--space-6); /* WCAG 2.5.8 */
@@ -37,6 +39,7 @@
   font-weight: 500;
   cursor: pointer;
   list-style: none;
+  text-decoration: none;
   transition: color var(--motion-quick) var(--ease-quick);
 }
 
@@ -44,11 +47,13 @@
   display: none;
 }
 
-.credit-line__toggle:hover {
+.credit-line__toggle:hover,
+.credit-line__link:hover {
   color: var(--orca-cyan);
 }
 
-.credit-line__toggle:focus-visible {
+.credit-line__toggle:focus-visible,
+.credit-line__link:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }

@@ -31,7 +31,14 @@ describe('useConjunctionWarning', () => {
     fetchTop.mockResolvedValue({ run: RUN, items: [pass(T0)], rejected: 0 });
     const { result } = renderHook(() => useConjunctionWarning(null, T0 - 3_600_000, 1));
     expect(result.current.view.kind).toBe('loading');
-    await waitFor(() => expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false }));
+    await waitFor(() => expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false, top: [pass(T0)] }));
+  });
+
+  it("carries the report's items on the idle view", async () => {
+    const items = [pass(T0), pass(T0 + 1000)];
+    fetchTop.mockResolvedValue({ run: RUN, items, rejected: 0 });
+    const { result } = renderHook(() => useConjunctionWarning(null, T0 - 3_600_000, 1));
+    await waitFor(() => expect(result.current.view).toMatchObject({ kind: 'idle', top: items }));
   });
 
   it('shows a due pass from the top 10, and one from the selected object', async () => {
@@ -53,7 +60,7 @@ describe('useConjunctionWarning', () => {
     const view = result.current.view;
     expect(view.kind === 'message' && view.pick.phase).toBe('passed');
     act(() => result.current.dismiss(warningKey(a)));
-    expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false });
+    expect(result.current.view).toEqual({ kind: 'idle', run: RUN, selectionCovered: false, top: [a] });
   });
 
   it('remembers a dismissal across an unmount and remount (a replay remounts the scene)', async () => {

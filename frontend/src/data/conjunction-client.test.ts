@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CatalogFetchError } from './catalog-client.js';
-import { fetchTopConjunctions, parseConjunction } from './conjunction-client.js';
+import { fetchConjunctions, fetchTopConjunctions, parseConjunction, shardOf } from './conjunction-client.js';
+import { resetSiteMode } from './site-mode.js';
 
 const party = (norad: string) => ({ norad_id: norad, name: `OBJ ${norad}`, object_type: 'PAYLOAD', element_set_epoch: '2026-09-27T01:00:00+00:00' });
 const raw = {
@@ -75,5 +76,58 @@ describe('fetchTopConjunctions', () => {
   it('throws CatalogFetchError on a non-OK status', async () => {
     stubFetch({ detail: 'boom' }, 500);
     await expect(fetchTopConjunctions()).rejects.toBeInstanceOf(CatalogFetchError);
+  });
+});
+
+describe('static site (spec §4)', () => {
+  const run = {
+    completed_at: '2026-10-27T07:03:21Z', window_start: '2026-10-27T06:29:07Z', window_end: '2026-10-28T06:29:07Z',
+    reporting_distance_km: 5,
+  };
+  const file = (body: unknown) => vi.fn(async (url: string) =>
+    url.endsWith('.json.gz') ? new Response(JSON.stringify(body)) : new Response('', { status: 500 }));
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); resetSiteMode(); });
+
+  it('shards by the last two characters, padded', () => {
+    expect(shardOf('25544')).toBe('44');
+    expect(shardOf('5')).toBe('05');
+  });
+
+  it('reads the top 10 from the baked file, never /api', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    const fetchMock = file({ attribution: 'a', run, items: [raw] });
+    vi.stubGlobal('fetch', fetchMock);
+    const report = await fetchTopConjunctions();
+    expect(report.items).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledWith('/data/conjunctions/top.json.gz');
+  });
+
+  it("reads one object's passes from its shard", async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    const fetchMock = file({ attribution: 'a', run, objects: { '24946': [raw] } });
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await fetchConjunctions('24946')).items).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledWith('/data/conjunctions/by-object/46.json.gz');
+  });
+
+  it('an object absent from its shard has no passes (not an error)', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', file({ attribution: 'a', run, objects: {} }));
+    expect((await fetchConjunctions('11146')).items).toEqual([]);
+  });
+
+  it('a missing shard is an error, never an empty list', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })));
+    await expect(fetchConjunctions('24946')).rejects.toBeInstanceOf(CatalogFetchError);
+  });
+
+  it('an aborted request does not resolve with a stale list', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.stubGlobal('fetch', file({ attribution: 'a', run, objects: { '24946': [raw] } }));
+    const controller = new AbortController();
+    const pending = fetchConjunctions('24946', controller.signal);
+    controller.abort();
+    await expect(pending).rejects.toThrow();
   });
 });

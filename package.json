@@ -11,6 +11,7 @@
     "test:packages": "npm run test -w packages/orcas-physics",
     "dev:frontend": "npm run dev -w frontend",
     "build:frontend": "npm run build -w frontend",
+    "site:refresh": "node scripts/refresh-site.mjs",
     "lint:frontend": "npm run lint -w frontend"
   }
 }

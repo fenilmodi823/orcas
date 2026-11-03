@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { formatEpochUtc } from '../data/catalog-provenance.js';
+import { isStaticSite } from '../data/site-mode.js';
 import { parseUtcDateTimeLocal, toUtcDateTimeLocal } from './replay-input.js';
 import './ReplayControl.css';
 
@@ -31,9 +32,18 @@ export function ReplayControl({ replay }: { replay: ReplayHandle }) {
           <span className="replay-control__time">{formatEpochUtc(replay.atMs)}</span>
         </p>
         <button type="button" className="replay-control__button" onClick={replay.end}>
-          Back to live
+          {isStaticSite() ? 'Back to the present' : 'Back to live'}
         </button>
       </div>
+    );
+  }
+
+  if (isStaticSite()) {
+    return (
+      <p className="replay-control__status">
+        Replays of other days run in the local version: <code>docker compose up</code> from{' '}
+        <a href="https://github.com/fenilmodi823/orcas" target="_blank" rel="noreferrer">the GitHub repository</a>.
+      </p>
     );
   }
 

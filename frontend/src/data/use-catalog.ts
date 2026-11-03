@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { fetchCatalogReplay, fetchCatalogSnapshot } from './catalog-client.js';
 import { loadPersistedSnapshot, persistSnapshot } from './catalog-db.js';
 import { buildSnapshot } from './catalog-snapshot.js';
+import { isStaticSite, presentMs } from './site-mode.js';
 import { fallbackRecords } from './fallback-snapshot.js';
 import type { CatalogSnapshot } from './catalog-types.js';
 
-export type CatalogOrigin = 'live' | 'cached' | 'bundled' | 'replay' | 'unavailable';
+export type CatalogOrigin = 'live' | 'published' | 'cached' | 'bundled' | 'replay' | 'unavailable';
 
 export interface CatalogState {
   readonly snapshot: CatalogSnapshot | null;
@@ -38,9 +39,11 @@ async function loadLive(): Promise<CatalogState> {
   const base = { loading: false, error: null, replayAtMs: null, replayError: null };
   try {
     const records = await fetchCatalogSnapshot();
-    const snapshot = buildSnapshot(records, Date.now());
+    const fetchedAtMs = Date.now();
+    // On the static site a stale bake is validated at its data's edge, not at the wall clock.
+    const snapshot = buildSnapshot(records, presentMs(fetchedAtMs), fetchedAtMs);
     void persistSnapshot(snapshot);
-    return { ...base, snapshot, origin: 'live' };
+    return { ...base, snapshot, origin: isStaticSite() ? 'published' : 'live' };
   } catch (liveErr) {
     const cached = await loadPersistedSnapshot();
     if (cached) return { ...base, snapshot: cached, origin: 'cached' };
@@ -90,7 +93,10 @@ export function useCatalog(): CatalogHandle {
     try {
       const records = await fetchCatalogReplay(atMs);
       const snapshot = buildSnapshot(records, atMs, Date.now());
-      setState({ snapshot, origin: 'replay', loading: false, error: null, replayAtMs: atMs, replayError: null });
+      // On the static site Watch replays the published data itself, so it stays
+      // 'published': stale only once that data is past its window (Q37).
+      const origin = isStaticSite() ? 'published' : 'replay';
+      setState({ snapshot, origin, loading: false, error: null, replayAtMs: atMs, replayError: null });
       return true;
     } catch (err) {
       const replayError = err instanceof Error ? err.message : String(err);

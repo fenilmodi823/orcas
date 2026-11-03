@@ -56,6 +56,7 @@ services:
       ML_MODEL_PATH: /app/ml_models/object_classifier.joblib
       DATA_SAMPLE_DIR: /app/data/sample
       SNAPSHOT_DIR: /app/data/snapshot
+      SITE_DIR: /app/data/site
       ARCHIVE_DIR: /app/data/archive
     volumes:
       - ./backend:/app
@@ -63,6 +64,7 @@ services:
       - ./ml_models:/app/ml_models:ro
       - ./data/sample:/app/data/sample:ro
       - ./data/snapshot:/app/data/snapshot
+      - ./data/site:/app/data/site
       - ./data/archive:/app/data/archive
     depends_on:
       postgres:

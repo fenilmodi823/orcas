@@ -115,3 +115,11 @@
   left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
   width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
 }
+
+/* Phones (the desktop notice's width): the pill's notices wrap under the
+   centred warning, which then covered Dismiss. Keep the notices on top and
+   start the warning below the first of them. */
+@media (max-width: 767px) {
+  .simulation__pill { z-index: 1; }
+  .simulation__warning { top: calc(var(--space-16) + var(--space-8)); }
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   describeOrigin,
   describeProvenance,
@@ -7,6 +7,7 @@ import {
   formatEpochUtc,
   isStale,
 } from './catalog-provenance.js';
+import { resetSiteMode, setDataAsOf } from './site-mode.js';
 import { ObjType, OrbitClass } from './catalog-types.js';
 import type { CatalogSnapshot, ObjectMeta } from './catalog-types.js';
 
@@ -179,7 +180,8 @@ describe('formatCreditLine', () => {
     const line = formatCreditLine({ ...base, sources: ['celestrak', 'spacetrack-gp'] });
 
     expect(line).toContain('CelesTrak GP');
-    expect(line).toContain('Space-Track.org (18th Space Defense Squadron), GP catalogue');
+    expect(line).toContain('Space-Track.org, courtesy of USSPACECOM (18th Space Defense Squadron), GP catalogue');
+    expect(line).toContain('Object types and decay dates: CelesTrak SATCAT.');
   });
 
   it('carries the element-set epoch and says positions are propagations', () => {
@@ -191,5 +193,33 @@ describe('formatCreditLine', () => {
 
   it('shows an unrecognised source by its id rather than dropping the attribution', () => {
     expect(formatCreditLine({ ...base, sources: ['some-new-feed'] })).toContain('some-new-feed');
+  });
+});
+
+describe('published origin', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    resetSiteMode();
+  });
+
+  it('describes the published snapshot', () => {
+    expect(describeOrigin('published')).toContain('published');
+  });
+
+  it('is stale only once presentMs is clamped', () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW_MS);
+    setDataAsOf(NOW_MS);
+    expect(isStale('published')).toBe(false);
+    vi.setSystemTime(NOW_MS + 9 * DAY);
+    expect(isStale('published')).toBe(true);
+  });
+
+  it('words a cached fallback by the site that served it', () => {
+    expect(describeOrigin('cached')).toContain('backend');
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    expect(describeOrigin('cached')).toContain('published files');
   });
 });

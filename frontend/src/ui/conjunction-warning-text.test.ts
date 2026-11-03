@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
-import { DISCLAIMER, formatCountdown, quietLine, warningText } from './conjunction-warning-text.js';
+import { DISCLAIMER, formatCountdown, passText, quietLine, warningText } from './conjunction-warning-text.js';
 
 const T0 = Date.parse('2026-09-30T02:51:56Z');
 const RUN: ScreeningRun = {
@@ -17,12 +17,20 @@ const C: Conjunction = {
   secondary: { noradId: '58000', name: 'PELICAN-6', elementSetEpochMs: T0 - 0.5 * 86_400_000 },
 };
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe('formatCountdown', () => {
   it('is mm:ss, then h:mm:ss, then days', () => {
     expect(formatCountdown(252_000)).toBe('04:12');
     expect(formatCountdown(3_723_000)).toBe('1:02:03');
     expect(formatCountdown(90_061_000)).toBe('1 d 01:01:01');
     expect(formatCountdown(-31_000)).toBe('00:31');
+  });
+});
+
+describe('passText', () => {
+  it('gives the pair, the miss in metres and the closest-approach time', () => {
+    expect(passText(C)).toEqual({ pair: 'STARLINK-4158 and PELICAN-6', miss: '28 m', tca: '2026-09-30 02:51:56 UTC' });
   });
 });
 
@@ -69,6 +77,10 @@ describe('quietLine', () => {
   it('never reads "not screened" or "unreachable" as all clear', () => {
     expect(quietLine({ kind: 'not-screened' }, now)).toEqual({ text: 'No screening run yet', goThere: false });
     expect(quietLine({ kind: 'unavailable' }, now).text).toBe('Close-approach warnings unavailable: the backend is not reachable');
+  });
+  it('names the published files, not the backend, on the static site', () => {
+    vi.stubEnv('VITE_DATA_MODE', 'static');
+    expect(quietLine({ kind: 'unavailable' }, now).text).toBe('Close-approach warnings unavailable: the published screening files could not be loaded');
   });
   it('says "1 day" and "less than a day" correctly', () => {
     const run = { ...RUN, completedAtMs: now - 86_400_000 };

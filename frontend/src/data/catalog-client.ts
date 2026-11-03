@@ -1,3 +1,5 @@
+import { isStaticSite, readSiteFile, setDataAsOf } from './site-mode.js';
+
 const DEFAULT_API_BASE_URL = 'http://localhost:8000';
 
 export function apiBaseUrl(): string {
@@ -14,6 +16,40 @@ export class CatalogFetchError extends Error {
   }
 }
 
+export const REPLAY_LOCAL_ONLY =
+  'Replays of other days run in the local version (docker compose up, github.com/fenilmodi823/orcas).';
+
+const isoMs = (v: unknown): number => (typeof v === 'string' ? Date.parse(v) : Number.NaN);
+
+async function siteFile(path: string): Promise<Record<string, unknown>> {
+  try {
+    return await readSiteFile(path);
+  } catch (err) {
+    throw new CatalogFetchError(`the published file ${path} could not be loaded`, err);
+  }
+}
+
+/** The baked catalogue (spec §3); remembers the instant its data stands for. */
+async function publishedRecords(): Promise<readonly unknown[]> {
+  const body = await siteFile('catalog.json.gz');
+  const asOf = isoMs(body.data_as_of);
+  if (!Array.isArray(body.records) || !Number.isFinite(asOf)) {
+    throw new CatalogFetchError('the published catalogue did not match the expected shape');
+  }
+  setDataAsOf(asOf);
+  return body.records;
+}
+
+/** Watch's replay of the screened day is the baked catalogue: it is the screen's input (spec §4). */
+async function publishedReplay(atMs: number): Promise<readonly unknown[]> {
+  const top = await siteFile('conjunctions/top.json.gz');
+  const run = top.run;
+  const start = typeof run === 'object' && run !== null && 'window_start' in run ? isoMs(run.window_start) : Number.NaN;
+  const end = typeof run === 'object' && run !== null && 'window_end' in run ? isoMs(run.window_end) : Number.NaN;
+  if (!(atMs >= start && atMs <= end)) throw new CatalogFetchError(REPLAY_LOCAL_ONLY);
+  return publishedRecords();
+}
+
 export interface CatalogMetaResponse {
   readonly objectCount: number;
   readonly newestEpoch: string | null;
@@ -26,9 +62,11 @@ export interface CatalogMetaResponse {
  * decompresses the gzip response transparently (Content-Encoding: gzip),
  * same as httpx/requests on the Python side — see
  * backend/app/api/v1/catalog.py. This is the one legitimate client-side
- * caller; never called from a backend request handler.
+ * caller; never called from a backend request handler. The static site
+ * reads /data/catalog.json.gz instead.
  */
 export async function fetchCatalogSnapshot(): Promise<readonly unknown[]> {
+  if (isStaticSite()) return publishedRecords();
   let res: Response;
   try {
     res = await fetch(`${apiBaseUrl()}/api/v1/catalog/snapshot`);
@@ -59,6 +97,7 @@ function detailOf(body: unknown): string | null {
  * the error message, so the UI can say it rather than a bare status code.
  */
 export async function fetchCatalogReplay(atMs: number): Promise<readonly unknown[]> {
+  if (isStaticSite()) return publishedReplay(atMs);
   const at = encodeURIComponent(new Date(atMs).toISOString());
   let res: Response;
   try {
