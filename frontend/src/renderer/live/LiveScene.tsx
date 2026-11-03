@@ -19,7 +19,6 @@ import { PanelErrorBoundary } from '../../ui/PanelErrorBoundary.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import type { LiveSceneState } from './use-live-scene.js';
-import { keepRenderOrder } from './render-order.js';
 import { SceneLabels } from './SceneLabels.js';
 import './LiveScene.css';
 
@@ -123,10 +122,11 @@ export function LiveScene({ scene, canvasChildren }: { scene: LiveSceneState; ca
           camera={{ position: [CAMERA_DISTANCE_KM, 0, 0], fov: 35 }}
           // P7.D2: reversed float depth, so a metre-scale near plane and the
           // Moon at 400,000 km share one depth buffer. three falls back to the
-          // ordinary buffer where EXT_clip_control is missing.
+          // ordinary buffer where EXT_clip_control is missing. Since r187
+          // three keeps renderOrder under it by itself, so no custom sort
+          // (three-render-order.test.ts; r185–r186 needed one).
           gl={{ reversedDepthBuffer: true }}
           onCreated={({ gl }) => {
-            keepRenderOrder(gl);
             setCanvasEl(gl.domElement);
           }}
         >
