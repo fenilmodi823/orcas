@@ -32,7 +32,7 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://orcas:orcas@localhost:5432/orcas
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
       - run: uv sync
       - run: uv run ruff check .
       - run: uv run mypy app/domain app/services
