@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:24-slim AS base
+FROM node:26-slim AS base
 RUN groupadd -r orcas && useradd -r -m -g orcas orcas && install -d -o orcas -g orcas /app
 WORKDIR /app
 
@@ -25,6 +25,6 @@ COPY --chown=orcas:orcas packages/ packages/
 COPY --chown=orcas:orcas frontend/ frontend/
 RUN npm run build:frontend
 
-FROM nginx:1.29-alpine AS prod
+FROM nginx:1.31-alpine AS prod
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 EXPOSE 80

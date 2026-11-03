@@ -1,12 +1,12 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: orcas
       POSTGRES_PASSWORD: orcas
       POSTGRES_DB: orcas
     volumes:
-      - orcas-postgres-data:/var/lib/postgresql/data
+      - orcas-postgres18-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U orcas -d orcas"]
       interval: 5s
@@ -86,7 +86,7 @@ services:
       - backend
 
 volumes:
-  orcas-postgres-data:
+  orcas-postgres18-data:
   orcas-backend-venv:
   orcas-worker-venv:
   orcas-frontend-node-modules:
