@@ -25,8 +25,8 @@ export function centreGmKm3S2(centre: number): number | null {
   return planet ? planet.gmKm3S2 : null;
 }
 
-const inJump = (etS: number, jumps: readonly Span[]) => jumps.some(([a, b]) => etS >= a && etS <= b);
-const straddles = (e0: number, e1: number, jumps: readonly Span[]) => jumps.some(([a, b]) => e0 < a && e1 > b);
+export const inJump = (etS: number, jumps: readonly Span[]) => jumps.some(([a, b]) => etS >= a && etS <= b);
+export const straddles = (e0: number, e1: number, jumps: readonly Span[]) => jumps.some(([a, b]) => e0 < a && e1 > b);
 
 /**
  * A spacecraft's trail: one orbit about its centre now (one year if that is the barycentre), as points in ICRF km
