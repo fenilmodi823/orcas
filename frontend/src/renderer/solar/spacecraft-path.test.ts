@@ -53,6 +53,17 @@ describe('writeMissionPath', () => {
     expect(kinds[n - 2]).toBe(SEGMENT_PREDICTED);
     expect(kinds.subarray(0, n - 1).includes(SEGMENT_HIDDEN)).toBe(true);
   });
+  it('keeps 2+ points in every span when many short spans follow a long one', () => {
+    const spans: Span[] = [[E0, E0 + 10_000 * PERIOD]];
+    for (let i = 0; i < 100; i++) spans.push([E0 + (10_001 + 2 * i) * PERIOD, E0 + (10_002 + 2 * i) * PERIOD]);
+    out.fill(0);
+    const n = writeMissionPath(circular(spans), -1, 399, Infinity, [], out, kinds);
+    expect(n).toBeLessThanOrEqual(MISSION_PATH_MAX_POINTS);
+    expect(n).toBeGreaterThanOrEqual(2 * spans.length);
+    for (let i = 0; i < n * 3; i++) expect(Number.isNaN(out[i])).toBe(false);
+    // 100 hidden joins plus the segments nobody could draw: every short span shows at least one visible segment
+    expect([...kinds.subarray(0, n - 1)].filter((k) => k === SEGMENT_HIDDEN).length).toBe(spans.length - 1);
+  });
   it('real file: Juno about Jupiter, its cruise hidden', () => {
     const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));
     const index = createHorizonsIndex(parseHorizonsEphemeris(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)));

@@ -2,10 +2,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { GM_EARTH } from '@orcas/physics';
+import { GM_EARTH, GM_MOON } from '@orcas/physics';
 import { etSecondsFromUtcMs } from '../../data/planet-ephemeris.js';
 import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex, type HorizonsIndex } from '../../data/horizons-index.js';
+import { PLANETS } from './planets.js';
 import { sheetDateEndUtcMs } from '../../data/horizons-manifest.js';
 import {
   SEGMENT_FLOWN,
@@ -44,6 +45,16 @@ describe('writeSpacecraftTrail', () => {
     writeSpacecraftTrail(circular(), -1, NOW, NOW - 1000, [], out, kinds);
     expect(kinds.at(-1)).toBe(SEGMENT_PREDICTED);
     expect(kinds[0]).toBe(SEGMENT_FLOWN);
+    // the flown date between samples 50 and 51: segment 50 has its earlier end before it and its later end after
+    const toMid = (2 * Math.PI / W) * (1 - 50.5 / 180);
+    writeSpacecraftTrail(circular(), -1, NOW, NOW - toMid * 1000, [], out, kinds);
+    expect(kinds[49]).toBe(SEGMENT_FLOWN);
+    expect(kinds[50]).toBe(SEGMENT_PREDICTED);
+  });
+  it('hides exactly the segment a narrow jump falls inside', () => {
+    const mid = etSecondsFromUtcMs(NOW) - (2 * Math.PI / W) * (1 - 50.5 / 180);
+    writeSpacecraftTrail(circular(), -1, NOW, Infinity, [[mid - 1, mid + 1]], out, kinds);
+    expect([...kinds].flatMap((k, i) => (k === SEGMENT_HIDDEN ? [i] : []))).toEqual([50]);
   });
   it('never draws across a change of centre', () => {
     const et = etSecondsFromUtcMs(NOW);
@@ -80,6 +91,8 @@ describe('writeSpacecraftTrail', () => {
   it('maps centres to GM, null for the barycentre', () => {
     expect(centreGmKm3S2(399)).toBe(GM_EARTH);
     expect(centreGmKm3S2(0)).toBeNull();
+    expect(centreGmKm3S2(301)).toBe(GM_MOON);
+    expect(centreGmKm3S2(499)).toBe(PLANETS.find((p) => p.naifId === 499)!.gmKm3S2);
   });
   it('real file: Voyager 1 cruise trail straddles its flown boundary', () => {
     const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));

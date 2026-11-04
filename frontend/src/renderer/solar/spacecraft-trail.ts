@@ -21,12 +21,18 @@ const _s = new Float64Array(6);
 export function centreGmKm3S2(centre: number): number | null {
   if (centre === 399) return GM_EARTH;
   if (centre === 301) return GM_MOON;
-  const planet = PLANETS.find((p) => p.naifId === centre);
-  return planet ? planet.gmKm3S2 : null;
+  for (let i = 0; i < PLANETS.length; i++) if (PLANETS[i]!.naifId === centre) return PLANETS[i]!.gmKm3S2;
+  return null;
 }
 
-export const inJump = (etS: number, jumps: readonly Span[]) => jumps.some(([a, b]) => etS >= a && etS <= b);
-export const straddles = (e0: number, e1: number, jumps: readonly Span[]) => jumps.some(([a, b]) => e0 < a && e1 > b);
+export function inJump(etS: number, jumps: readonly Span[]): boolean {
+  for (let i = 0; i < jumps.length; i++) if (etS >= jumps[i]![0] && etS <= jumps[i]![1]) return true;
+  return false;
+}
+export function straddles(e0: number, e1: number, jumps: readonly Span[]): boolean {
+  for (let i = 0; i < jumps.length; i++) if (e0 < jumps[i]![0] && e1 > jumps[i]![1]) return true;
+  return false;
+}
 
 /**
  * A spacecraft's trail: one orbit about its centre now (one year if that is the barycentre), as points in ICRF km
@@ -34,7 +40,7 @@ export const straddles = (e0: number, e1: number, jumps: readonly Span[]) => jum
  * (`kinds`). A sample with no state, or another centre, repeats the previous point and hides both segments touching
  * it; samples before the first valid one take its point and hide. A segment in or across a jump span (ET s) is
  * hidden; otherwise it is predicted if its later end is after `flownUntilUtcMs` (UTC ms), else flown.
- * Returns the centre now (NAIF id), or null with nothing written if the spacecraft has no data at `epochMs`.
+ * `epochMs` is UTC ms. Returns the centre now (NAIF id), or null with nothing written if the spacecraft has no data then.
  */
 export function writeSpacecraftTrail(
   index: HorizonsIndex,
@@ -60,7 +66,9 @@ export function writeSpacecraftTrail(
     const ok = index.stateInto(naifId, etS, _s) === centre;
     if (ok) {
       if (firstValid < 0) firstValid = i;
-      outKm.set(_s.subarray(0, 3), i * 3);
+      outKm[i * 3] = _s[0] ?? NaN;
+      outKm[i * 3 + 1] = _s[1] ?? NaN;
+      outKm[i * 3 + 2] = _s[2] ?? NaN;
     } else if (firstValid >= 0) {
       outKm.copyWithin(i * 3, (i - 1) * 3, i * 3);
     }

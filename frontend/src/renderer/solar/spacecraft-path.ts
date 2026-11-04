@@ -32,7 +32,13 @@ export function writeMissionPath(
   // ponytail: uniform in time, so a long orbit tour gets about one point a day and its periapses look faceted;
   // adaptive by curvature if it reads badly.
   const counts = spans.map(([a, b]) => Math.max(2, Math.round((MISSION_PATH_MAX_POINTS * (b - a)) / (total || 1))));
-  counts[counts.length - 1]! -= counts.reduce((x, y) => x + y, 0) - MISSION_PATH_MAX_POINTS;
+  // Take any overshoot from the largest spans, one point at a time, so every span keeps at least 2.
+  for (let excess = counts.reduce((x, y) => x + y, 0) - MISSION_PATH_MAX_POINTS; excess > 0; excess--) {
+    let big = 0;
+    for (let i = 1; i < counts.length; i++) if (counts[i]! > counts[big]!) big = i;
+    if (counts[big]! <= 2) break;
+    counts[big]!--;
+  }
   let k = 0;
   let firstValid = -1;
   let prevEtS = NaN;
