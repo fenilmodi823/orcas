@@ -3,16 +3,24 @@ import { parseHorizonsManifest, type HorizonsManifest } from './horizons-manifes
 
 const MANIFEST_URL = '/ephemeris/horizons/manifest.json';
 let loading: Promise<HorizonsManifest | null> | null = null;
+let settled: HorizonsManifest | null | undefined;
 
-function loadHorizonsManifest(): Promise<HorizonsManifest | null> {
+/** The manifest if it has settled, for the renderer's per-frame reads: undefined until then, null if it failed. */
+export function horizonsManifestNow(): HorizonsManifest | null | undefined {
+  return settled;
+}
+
+export function loadHorizonsManifest(): Promise<HorizonsManifest | null> {
   loading ??= fetch(MANIFEST_URL)
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json() as Promise<unknown>;
     })
     .then(parseHorizonsManifest)
+    .then((m) => (settled = m))
     .catch((error: unknown) => {
       console.warn(`Horizons export details not shown: ${MANIFEST_URL} could not be loaded.`, error);
+      settled = null;
       return null;
     });
   return loading;
