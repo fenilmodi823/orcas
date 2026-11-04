@@ -37,7 +37,7 @@ export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
   const epochMs = currentTime.getTime();
   const readouts = bodyReadouts(body, epochMs, ephemeris);
   // A moon wears its planet's hue, as its trail does (NASA: children inherit the parent's); the Moon keeps --moon.
-  const token = body.horizons ? (body.parent ?? body.id) : body.id;
+  const token = body.kind === 'spacecraft' ? 'spacecraft' : body.horizons ? (body.parent ?? body.id) : body.id;
   const badge = body.kind === 'star' ? 'var(--text-hi)' : `var(--${token})`;
   const facts = { ephemerisLoaded: ephemeris !== null, centreFromHorizons: planetCentreFromHorizons(body.poleNaifId, epochMs), manifest };
 

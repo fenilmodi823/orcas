@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { bodyById } from './bodies.js';
+import { BODIES, bodyById } from './bodies.js';
 import { CENTRE_BODY, SPACECRAFT } from './spacecraft.js';
 
 const manifest = JSON.parse(
@@ -28,7 +28,8 @@ describe('the spacecraft list (S6c)', () => {
   it('has URL-safe ids that are never all digits and never a body’s', () => {
     for (const s of SPACECRAFT) {
       expect(s.id).toMatch(/^[a-z][a-z0-9-]*$/);
-      expect(bodyById(s.id)).toBeUndefined();
+      expect(bodyById(s.id)?.kind).toBe('spacecraft');
+      expect(BODIES.filter((b) => b.kind !== 'spacecraft').map((b) => b.id)).not.toContain(s.id);
     }
     expect(new Set(SPACECRAFT.map((s) => s.id)).size).toBe(SPACECRAFT.length);
   });

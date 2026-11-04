@@ -16,13 +16,13 @@ const AT_MS = Date.UTC(2026, 9, 6, 12);
 
 describe('the selectable bodies (S5a)', () => {
   it('are the Sun, the planets, and each planet’s moons after it, with URL-safe ids', () => {
-    expect(BODIES.map((b) => b.id)).toEqual([
+    expect(BODIES.filter((b) => b.kind !== 'spacecraft').map((b) => b.id)).toEqual([
       'sun', 'mercury', 'venus', 'earth', 'moon', 'mars', 'phobos', 'deimos',
       'jupiter', 'io', 'europa', 'ganymede', 'callisto',
       'saturn', 'mimas', 'enceladus', 'tethys', 'dione', 'rhea', 'titan', 'iapetus',
       'uranus', 'miranda', 'ariel', 'umbriel', 'titania', 'oberon', 'neptune', 'triton',
     ]);
-    expect(BODIES.every((b) => /^[a-z]+$/.test(b.id))).toBe(true);
+    expect(BODIES.filter((b) => b.kind !== 'spacecraft').every((b) => /^[a-z]+$/.test(b.id))).toBe(true);
   });
 
   it('never mistakes a NORAD catalogue number for a body', () => {
@@ -104,5 +104,32 @@ describe('bodyPositionKm for a moon (S6b)', () => {
     const centre = bodyPositionKm(jupiter, AT_MS, ephemeris, new Vector3())!;
     expect(centre.distanceTo(bary)).toBeGreaterThan(0);
     expect(centre.distanceTo(bary)).toBeLessThanOrEqual(221);
+  });
+});
+
+describe('the spacecraft as bodies (S6c)', () => {
+  afterEach(() => resetMoonSystems());
+
+  it('lists the spacecraft after the planets and moons, by their ids', () => {
+    expect(bodyById('voyager-1')?.kind).toBe('spacecraft');
+    expect(BODIES.filter((b) => b.kind === 'spacecraft')).toHaveLength(25);
+    expect(BODIES.at(-25)?.id).toBe('jwst');
+  });
+
+  it('names its data years in the chip, as NASA’s “Spacecraft · 2011 – Present”', () => {
+    expect(bodySubtitle(bodyById('voyager-1')!)).toBe('Spacecraft · 1977 – 2053');
+  });
+
+  it('places a spacecraft from its own file, and not before it loads', () => {
+    const at = Date.UTC(2026, 10, 4);
+    resetMoonSystems();
+    expect(bodyPositionKm(bodyById('juno')!, at, ephemeris, new Vector3())).toBeNull();
+    const sc = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));
+    const buffer = sc.buffer.slice(sc.byteOffset, sc.byteOffset + sc.byteLength);
+    resetMoonSystems({ spacecraft: createHorizonsIndex(parseHorizonsEphemeris(buffer)) });
+    const juno = bodyPositionKm(bodyById('juno')!, at, ephemeris, new Vector3());
+    const jupiter = bodyPositionKm(bodyById('jupiter')!, at, ephemeris, new Vector3());
+    expect(juno?.distanceTo(jupiter!)).toBeGreaterThan(5_174_878 - 50_000);
+    expect(juno?.distanceTo(jupiter!)).toBeLessThan(5_174_878 + 50_000);
   });
 });
