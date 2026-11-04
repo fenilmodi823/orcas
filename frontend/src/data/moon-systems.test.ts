@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   moonSystem,
   moonSystemStatus,
+  moonSystemUrl,
   requestMoonSystem,
   resetMoonSystems,
   subscribeMoonSystems,
@@ -75,6 +76,23 @@ describe('moon systems (S6b)', () => {
     expect(moonSystem('saturn')).not.toBeNull();
     expect(other).toHaveBeenCalled();
     expect(warn).toHaveBeenCalledWith('Listener threw during moon system notification:', expect.any(Error));
+    warn.mockRestore();
+  });
+});
+
+describe('the spacecraft file (S6c)', () => {
+  it('serves the spacecraft file from its own URL', () => {
+    expect(moonSystemUrl('spacecraft')).toBe('/ephemeris/horizons/spacecraft.bin');
+  });
+
+  it('a failed spacecraft file is final for the page and says so', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const fetcher = vi.fn(() => Promise.resolve({ ok: false, status: 404, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }));
+    requestMoonSystem('spacecraft', fetcher);
+    await vi.waitFor(() => expect(moonSystemStatus('spacecraft')).toBe('failed'));
+    requestMoonSystem('spacecraft', fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toContain('Spacecraft not drawn');
     warn.mockRestore();
   });
 });
