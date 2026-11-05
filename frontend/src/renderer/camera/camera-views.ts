@@ -2,10 +2,10 @@ import { Vector3, type PerspectiveCamera } from 'three';
 import type { PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { whenMoonSystemSettles } from '../../data/moon-systems.js';
 import { useSelectionStore } from '../../state/selection-store.js';
-import { bodyById, type Body } from '../solar/bodies.js';
+import { bodyById, bodyPositionKm, type Body } from '../solar/bodies.js';
 import { bodyTarget, ECLIPTIC_NORTH_J2000, HOME_DISTANCE_KM, homeOffsetKm } from '../solar/body-target.js';
 import { moonSystemOf } from '../solar/moons.js';
-import { systemMembers, systemPlaneNormal } from '../solar/system-members.js';
+import { spacecraftSystemBody, systemMembers, systemPlaneNormal } from '../solar/system-members.js';
 import type { CameraSystem } from './camera-system.js';
 import { useCameraStatus, type CameraView } from './camera-status.js';
 import { OUTER_SYSTEM_DISTANCE_KM, SYSTEM_MIN_DISTANCE_KM, systemViewOffsetKm } from './system-view.js';
@@ -55,20 +55,21 @@ export function subscribeCameraViews(deps: CameraViewDeps): () => void {
     return true;
   };
 
-  const flySystem = (body: Body): boolean => {
+  const flySystem = (body: Body, extraKm?: Vector3): boolean => {
     const at = epochMs();
     const target = { ...bodyTarget(body, ephemerisRef), key: `${body.id}-system` };
     const centre = at > 0 ? target.positionKm(at, new Vector3()) : null;
     if (!centre) return false;
-    const planeNormal = systemPlaneNormal(body, at, new Vector3());
+    const sun = body.id === 'sun'; // only reached through a spacecraft in cruise; the Sun has no pole to look down
+    const planeNormal = sun ? ECLIPTIC_NORTH_J2000.clone() : systemPlaneNormal(body, at, new Vector3());
     const arrivalOffsetKm = systemViewOffsetKm(
       {
         cameraOffsetKm: camera.position.clone().sub(centre),
         planeNormal,
-        members: systemMembers(body, at, ephemerisRef.current, centre),
+        members: systemMembers(body, at, ephemerisRef.current, centre, extraKm),
         fovVerticalDeg: camera.fov,
         aspect: camera.aspect,
-        minDistanceKm: SYSTEM_MIN_DISTANCE_KM[body.id] ?? 0,
+        minDistanceKm: sun ? HOME_DISTANCE_KM : (SYSTEM_MIN_DISTANCE_KM[body.id] ?? 0),
       },
       new Vector3(),
     );
@@ -91,6 +92,25 @@ export function subscribeCameraViews(deps: CameraViewDeps): () => void {
     const body = id === null ? undefined : bodyById(id);
     if (!body) return;
     if (view === 'nearby') return deps.followBody(body.id);
+    if (body.kind === 'spacecraft') {
+      // The body it is near now, with the spacecraft kept in view; its centre needs the export, so wait for it.
+      let offMoons: (() => void) | undefined;
+      const frame = () => {
+        const at = epochMs();
+        const near = spacecraftSystemBody(body, at);
+        const craftKm = near && bodyPositionKm(body, at, ephemerisRef.current, new Vector3());
+        if (!near || !craftKm) return flewOrNearby(false);
+        const moons = moonSystemOf(near.id);
+        if (!moons) return flewOrNearby(flySystem(near, craftKm));
+        offMoons = whenMoonSystemSettles(moons, () => flewOrNearby(flySystem(near, craftKm)));
+      };
+      const offCraft = whenMoonSystemSettles('spacecraft', frame);
+      cancelWait = () => {
+        offCraft();
+        offMoons?.();
+      };
+      return;
+    }
     const system = systemBodyOf(body);
     if (!system) return;
     const moons = moonSystemOf(system.id);
