@@ -12,6 +12,7 @@ import type { ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { createPlanetBodies } from '../solar/planet-bodies.js';
 import { createMoonBodies } from '../solar/moon-bodies.js';
 import { writeMoonShadows } from '../solar/moon-shadows.js';
+import { createSpacecraftBodies } from '../solar/spacecraft-bodies.js';
 import { createSceneLabelWriter } from '../solar/scene-labels.js';
 import { clampNearToBodies } from '../solar/near-clamp.js';
 import { layerFade, SATELLITE_LAYER_RADIUS_KM } from '../scale-fade.js';
@@ -42,6 +43,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const system = useMemo(() => createEarthSunMoon(), []);
   const planets = useMemo(() => createPlanetBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
   const moons = useMemo(() => createMoonBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
+  const craft = useMemo(() => createSpacecraftBodies(), []);
   const labelWriter = useMemo(() => createSceneLabelWriter(planets, moons), [planets, moons]);
   const analyticSunKm = useMemo(() => new Vector3(), []);
   const ephemerisRef = usePlanetEphemeris();
@@ -52,8 +54,9 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
       system.dispose();
       planets.dispose();
       moons.dispose();
+      craft.dispose();
     };
-  }, [gl, system, planets, moons]);
+  }, [gl, system, planets, moons, craft]);
 
   useFrame(({ camera, size }) => {
     const epochMs = frameStateRef.current.epochMs;
@@ -73,6 +76,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
       sunKm = analyticSunKm.set(s.x, s.y, s.z);
     }
     moons.update(epochMs, ephemerisRef.current, planets.placed ? planets.planetKm : null, sunKm, camera, viewport, hoveredBody, selectedBody);
+    craft.update(epochMs, ephemerisRef.current, camera, viewport, hoveredBody, selectedBody);
     writeMoonShadows(planets.materials, planets.planetKm, moons.moonKm, moons.drawn);
     system.update(epochMs, camera, fov, viewport, sunKm, hoveredBody === 'moon');
     labelWriter.write(at, camera, size.width, size.height, sunKm, system.moonKm);
@@ -94,6 +98,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
       <primitive object={system.group} />
       <primitive object={planets.group} />
       <primitive object={moons.group} />
+      <primitive object={craft.group} />
     </>
   );
 }
