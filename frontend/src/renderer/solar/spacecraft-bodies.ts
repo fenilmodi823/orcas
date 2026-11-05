@@ -87,7 +87,9 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
   const pathKinds = new Uint8Array(MISSION_PATH_MAX_POINTS - 1);
   const pathLine = createPathLine(colour, TRAIL_WIDTH_PX);
   group.add(pathLine.line);
-  let pathKey: string | null = null;
+  let pathNaif = NaN;
+  let pathCentre = NaN;
+  let pathKey: string | null = null; // built only when the pair changes
   let pathCount = 0;
 
   const dotGeometry = new BufferGeometry();
@@ -124,8 +126,12 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
       pathLine.line.visible = false;
       dotGeometry.setDrawRange(0, 0);
       const cam = camera.position;
-      const hovered = SPACECRAFT.findIndex((s) => s.id === hoveredId);
-      const selected = SPACECRAFT.findIndex((s) => s.id === selectedId);
+      let hovered = -1;
+      let selected = -1;
+      for (let i = 0; i < SPACECRAFT.length; i++) {
+        if (SPACECRAFT[i]?.id === hoveredId) hovered = i;
+        if (SPACECRAFT[i]?.id === selectedId) selected = i;
+      }
       if (cam.length() > SPACECRAFT_LOAD_DISTANCE_KM || hovered >= 0 || selected >= 0) {
         request('spacecraft');
         void loadManifest();
@@ -174,9 +180,10 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
         trail.visible = trail.material.opacity > 0;
 
         if (i !== selected) continue;
-        const key = `${sc.naifId}:${centre}`;
-        if (key !== pathKey) {
-          pathKey = key;
+        if (sc.naifId !== pathNaif || centre !== pathCentre) {
+          pathNaif = sc.naifId;
+          pathCentre = centre;
+          pathKey = `${sc.naifId}:${centre}`;
           pathCount = writeMissionPath(index, sc.naifId, centre, flownOf[i] ?? 0, jumpsOf[i] ?? [], pathKm, pathKinds);
           if (pathCount >= 2) pathLine.rebuild(pathKinds, pathCount);
         }

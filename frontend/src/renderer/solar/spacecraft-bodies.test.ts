@@ -2,13 +2,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { PerspectiveCamera, type Vector3 } from 'three';
+import { PerspectiveCamera, Vector3, type Points } from 'three';
 import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { parseHorizonsManifest, type HorizonsManifest } from '../../data/horizons-manifest.js';
 import { resetMoonSystems } from '../../data/moon-systems.js';
 import { parsePlanetEphemeris, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { SPACECRAFT } from './spacecraft.js';
+import { centreGeocentricKm } from './system-centres.js';
 import { createSpacecraftBodies, SPACECRAFT_LOAD_DISTANCE_KM } from './spacecraft-bodies.js';
 
 const read = (path: string) => {
@@ -131,9 +132,51 @@ describe('spacecraft on screen (S6c1)', () => {
     expect(craft.selectedPathKey()).toBe('-61:5');
     const orbit = alphaOn(craft.path);
     expect(orbit).toBeGreaterThan(0);
-    expect(orbit).not.toBe(cruise); // no segment draws from cruise: only the frame's own stretch
+    expect(orbit).not.toBe(cruise);
+    // No segment draws from cruise: every drawn end point lies in the Jupiter-centred stretch (cruise is 5-8e8 km out).
+    const t = Date.UTC(2016, 5, 3);
+    const jupiter = centreGeocentricKm(5, t, planets, new Vector3())!;
+    const seg = dataOf(craft.path, 'instanceStart');
+    const alpha = dataOf(craft.path, 'instanceColorStart');
+    let checked = 0;
+    for (let k = 0; k < alpha.length / 8; k++) {
+      if (!(alpha[k * 8 + 3]! > 0 || alpha[k * 8 + 7]! > 0)) continue;
+      for (let e = 0; e < 2; e++) {
+        const rel = new Vector3(seg[k * 6 + e * 3], seg[k * 6 + e * 3 + 1], seg[k * 6 + e * 3 + 2]).add(craft.path.position).sub(jupiter);
+        expect(rel.length()).toBeLessThan(1e8);
+      }
+      // A segment drawn from a cruise sample would be collapsed onto the stretch's first point: zero length.
+      expect(Math.hypot(seg[k * 6]! - seg[k * 6 + 3]!, seg[k * 6 + 1]! - seg[k * 6 + 4]!, seg[k * 6 + 2]! - seg[k * 6 + 5]!)).toBeGreaterThan(0);
+      checked += 1;
+    }
+    expect(checked).toBe(orbit);
     craft.update(Date.UTC(2016, 5, 3), planets, cam, viewport, null, null);
     expect(craft.path.visible).toBe(false);
+    craft.dispose();
+  });
+
+  it('draws nothing, and does not throw, when the spacecraft file has failed or is absent', () => {
+    resetMoonSystems();
+    const { craft } = make();
+    expect(() => craft.update(NOV_4, planets, camera(7e8), viewport, null, 'voyager-1')).not.toThrow();
+    expect(craft.drawn.some(Boolean)).toBe(false);
+    expect(craft.trails.some((t) => t.visible)).toBe(false);
+    expect(craft.path.visible).toBe(false);
+    const dots = craft.group.children.find((c) => c.type === 'Points') as Points;
+    expect(dots.geometry.drawRange.count).toBe(0);
+    craft.dispose();
+  });
+
+  it('fades a body-centred trail with distance from its centre, and never a barycentre one', () => {
+    load();
+    const { craft } = make();
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, null);
+    const lro = craft.trails[at('lro')]!;
+    expect(lro.visible).toBe(false); // Moon-centred, 7e8 km away: gone
+    expect(lro.material.opacity).toBe(0);
+    const voyager = craft.trails[at('voyager-1')]!;
+    expect(voyager.visible).toBe(true);
+    expect(voyager.material.opacity).toBe(1);
     craft.dispose();
   });
 
