@@ -44,7 +44,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
   const planets = useMemo(() => createPlanetBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
   const moons = useMemo(() => createMoonBodies(Math.min(8, gl.capabilities.getMaxAnisotropy())), [gl]);
   const craft = useMemo(() => createSpacecraftBodies(), []);
-  const labelWriter = useMemo(() => createSceneLabelWriter(planets, moons), [planets, moons]);
+  const labelWriter = useMemo(() => createSceneLabelWriter(planets, moons, craft), [planets, moons, craft]);
   const analyticSunKm = useMemo(() => new Vector3(), []);
   const ephemerisRef = usePlanetEphemeris();
 
@@ -90,6 +90,7 @@ export function EarthSunMoon({ frameStateRef, labelsRef }: Props) {
     // The Lagrange labels belong to the Earth-scale layers, which fade out past ~2 × 10⁶ km (B.21).
     const fade = layerFade(SATELLITE_LAYER_RADIUS_KM, camera.position.length());
     labels.moons.forEach((p, i) => place(refs.moons[i] ?? null, p, moons.fade[i] ?? 0));
+    labels.spacecraft.forEach((p, i) => place(refs.spacecraft[i] ?? null, p));
     labels.lagrange.forEach((p, i) => place(refs.lagrange[i] ?? null, p, fade));
   });
 
