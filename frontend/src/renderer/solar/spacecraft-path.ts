@@ -12,13 +12,27 @@ export const MIN_SAMPLES_PER_ORBIT = 16;
 const _s = new Float64Array(6);
 
 /**
+ * How long the path takes to curve through a full turn at this state (ICRF km, km/s about a centre of μ km³/s²), s:
+ * the osculating period on an ellipse; on a hyperbola, 2π over the velocity's turning rate μh/(r³v²), which is long on
+ * a near-straight approach and short at a flyby's closest point.
+ */
+function curveTimeS(s: Float64Array, gm: number): number {
+  const [x = 0, y = 0, z = 0, vx = 0, vy = 0, vz = 0] = s;
+  const r = Math.hypot(x, y, z);
+  const v2 = vx * vx + vy * vy + vz * vz;
+  if (v2 / 2 - gm / r < 0) return osculatingPeriodS(s, gm);
+  const h = Math.hypot(y * vz - z * vy, z * vx - x * vz, x * vy - y * vx);
+  return (2 * Math.PI * r * r * r * v2) / (gm * h);
+}
+
+/**
  * The selected spacecraft's whole path in the frame it is in now: points in ICRF km relative to `centre` (NAIF id),
  * 3 per point in time order across every span of the export, and one kind per segment. Samples are uniform in time,
  * shared between the spans in proportion to their length (at least 2 each). A sample whose centre is not `centre`
  * repeats the previous point and hides its segments; the segment joining two spans is hidden; jumps (ET s) and the
  * flown date (UTC ms) are handled as in `writeSpacecraftTrail`. A sample spaced more than 1/`MIN_SAMPLES_PER_ORBIT` of its
- * osculating orbit about `centre` hides its segments too (LRO's 2 h orbit at one sample an hour draws chords across the
- * Moon); the trail still shows its orbit. Returns the point count (>= 2), or 0 with nothing
+ * curve time about `centre` (`curveTimeS`) hides its segments too (LRO's 2 h orbit at one sample an hour draws chords across the
+ * Moon); the trail still shows its orbit. Returns the point count (>= 2), or 0 with no point
  * written when no sample has that centre. Called once per selection, so it allocates.
  */
 export function writeMissionPath(
@@ -55,7 +69,7 @@ export function writeMissionPath(
     for (let j = 0; j < n; j++, k++) {
       const etS = a + ((b - a) * j) / (n - 1);
       const valid = index.stateInto(naifId, etS, _s) === centre;
-      const ok = valid && (gm === null || stepS * MIN_SAMPLES_PER_ORBIT <= osculatingPeriodS(_s, gm));
+      const ok = valid && (gm === null || stepS * MIN_SAMPLES_PER_ORBIT <= curveTimeS(_s, gm));
       if (valid) {
         if (firstValid < 0) firstValid = k;
         outKm.set(_s.subarray(0, 3), k * 3);

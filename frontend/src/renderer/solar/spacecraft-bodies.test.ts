@@ -155,6 +155,27 @@ describe('spacecraft on screen (S6c1)', () => {
     craft.dispose();
   });
 
+  it("sizes the predicted dashes where the camera is: 1 AU from Voyager 1, not at the barycentre 172 AU away", () => {
+    load();
+    const { craft } = make();
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, 'voyager-1');
+    const near = camera(0);
+    near.position.copy(craft.scKm[at('voyager-1')]!).add(new Vector3(1.496e8, 0, 0));
+    near.updateMatrixWorld();
+    craft.update(NOV_4, planets, near, viewport, null, 'voyager-1');
+    // The last 1,000 segments (2044-2053) are all predicted; a 5e6 km segment at 1 AU is ~45 px, so one-segment dashes.
+    const alpha = dataOf(craft.path, 'instanceColorStart');
+    const segments = alpha.length / 8;
+    let run = 0;
+    let longest = 0;
+    for (let k = segments - 1000; k < segments - 1; k++) {
+      run = alpha[k * 8 + 3]! > 0 ? run + 1 : 0;
+      longest = Math.max(longest, run);
+    }
+    expect(longest).toBe(1);
+    craft.dispose();
+  });
+
   it('draws nothing, and does not throw, when the spacecraft file has failed or is absent', () => {
     resetMoonSystems();
     const { craft } = make();

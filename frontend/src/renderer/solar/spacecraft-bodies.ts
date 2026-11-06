@@ -188,8 +188,10 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
           if (pathCount >= 2) pathLine.rebuild(pathKinds, pathCount, pathKm);
         }
         if (pathCount < 2) continue;
-        // Perspective: projectionMatrix[5] is 1 / tan(fov / 2).
-        const pxPerKm = ((camera.projectionMatrix.elements[5] ?? 1) * viewport.cssHeight) / 2 / Math.max(_offset.length(), 1);
+        // Perspective: projectionMatrix[5] is 1 / tan(fov / 2). Measured at the nearer of the craft and the centre: in
+        // cruise the centre is the barycentre, so beside Voyager 1 its 172 AU would make 1,500 px dashes.
+        const nearKm = Math.min(_offset.length(), cam.distanceTo(at));
+        const pxPerKm = ((camera.projectionMatrix.elements[5] ?? 1) * viewport.cssHeight) / 2 / Math.max(nearKm, 1);
         pathLine.place(pathKm, pathCount, _offset, cam, pxPerKm);
         pathLine.line.material.resolution.copy(trail.material.resolution);
         pathLine.line.visible = true;

@@ -79,6 +79,7 @@ describe('writeMissionPath', () => {
     const etAt = (i: number) => a + ((b - a) * i) / (n - 1);
     const ARRIVAL_ET_S = (Date.UTC(2016, 6, 6) - Date.UTC(2000, 0, 1, 12)) / 1000;
     let visible = 0;
+    let approach = 0;
     for (let i = 0; i < n - 1; i++) {
       if (etAt(i) < 518_073_599 - 86_400) expect(kinds[i]).toBe(SEGMENT_HIDDEN);
       if (kinds[i] === SEGMENT_HIDDEN) continue;
@@ -87,18 +88,21 @@ describe('writeMissionPath', () => {
         const d = Math.hypot(out[p * 3]!, out[p * 3 + 1]!, out[p * 3 + 2]!);
         expect(d).toBeLessThan(2.5e7);
         if (etAt(p) > ARRIVAL_ET_S) expect(d).toBeLessThan(1e7);
+        else if (d > 1e7) approach++;
       }
     }
     expect(visible).toBeGreaterThan(0);
+    // The hyperbolic approach curves slowly, so it draws (an osculating "period" there would hide it as chords).
+    expect(approach).toBeGreaterThan(0);
   });
   it('real file: LRO about the Moon draws no chords (a sample every 86 min against a 2 h orbit)', () => {
     const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));
     const index = createHorizonsIndex(parseHorizonsEphemeris(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)));
     const n = writeMissionPath(index, -85, 301, Infinity, [], out, kinds);
     expect(n).toBeGreaterThan(2);
-    // Visible is only the 2009 approach, 162,639 km out and beyond; the 1,800 km mapping orbit draws nothing.
+    // Visible is only the 2009 approach (95,386 km out and beyond); the 1,800 km mapping orbit draws nothing.
     for (let i = 0; i < n - 1; i++) {
-      if (kinds[i] !== SEGMENT_HIDDEN) expect(Math.hypot(out[i * 3]!, out[i * 3 + 1]!, out[i * 3 + 2]!)).toBeGreaterThan(1e5);
+      if (kinds[i] !== SEGMENT_HIDDEN) expect(Math.hypot(out[i * 3]!, out[i * 3 + 1]!, out[i * 3 + 2]!)).toBeGreaterThan(1e4);
     }
   });
   it('real file: Artemis II about the Earth, flown, its jump hidden (the live clock cannot reach April 2026)', () => {
