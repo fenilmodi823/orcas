@@ -12,6 +12,7 @@ import { EARTH_IMAGERY_CREDIT } from '../renderer/earth/earth-materials.js';
 import { LAGRANGE_CREDIT } from '../renderer/earth/lagrange-labels.js';
 import { PLANET_CREDIT } from '../renderer/solar/planets.js';
 import { MOON_CREDIT } from '../renderer/solar/moons.js';
+import { SPACECRAFT_CREDIT } from '../renderer/solar/spacecraft.js';
 import { PLANET_MAP_CREDIT } from '../renderer/solar/planet-maps.js';
 import { MOON_MAP_CREDIT } from '../renderer/solar/moon-maps.js';
 import { isBodyId } from '../renderer/solar/bodies.js';
@@ -144,7 +145,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
             summoned. The rest open from Sources (Fenil, 2026-10-23, B.30). */}
         <CreditLine
           required={`${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`}
-          sources={[EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT]}
+          sources={[EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, SPACECRAFT_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT]}
         />
       </div>
     </main>

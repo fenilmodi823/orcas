@@ -10,7 +10,7 @@ import type { DetailField, DetailGroup } from '../ui/object-detail-model.js';
 export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null | undefined): DetailGroup[] {
   const moon = MOONS.find((m) => m.id === body.id);
   const planet = body.parent ? bodyById(body.parent) : undefined;
-  if (!moon || !planet || !body.horizons) return [];
+  if (body.kind !== 'moon' || !moon || !planet || !body.horizons) return [];
   const [a, b, c] = moon.radiiKm;
   const map = MOON_MAPS[moon.id];
   const irregular = moon.system === 'mars' ? ' Phobos and Deimos are irregular bodies, which an ellipsoid only approximates.' : '';
@@ -60,8 +60,8 @@ export function moonDetailGroups(body: Body, manifest: HorizonsManifest | null |
 
 /** What the panel says while a moon has no position (Rules §4: never blank, never a guess). */
 export function moonPendingNote(body: Body, ephemerisLoaded: boolean): string {
-  if (!body.horizons || !ephemerisLoaded) return 'Computing position…';
-  const status = moonSystemStatus(body.horizons.system);
+  if (body.kind !== 'moon' || !body.horizons || !ephemerisLoaded) return 'Computing position…';
+  const status = moonSystemStatus(body.horizons.file);
   if (status === 'failed') return 'Position unavailable: this moon’s data did not load.';
   if (status === 'ready') return 'No data at this time: the JPL Horizons export does not cover it.';
   return 'Loading this moon’s trajectory…';

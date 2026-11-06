@@ -9,7 +9,7 @@ import { parsePlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { bodyById, bodyPositionKm } from './bodies.js';
 import { ECLIPTIC_NORTH_J2000 } from './body-target.js';
 import { RING_OUTER_KM } from './saturn-rings.js';
-import { systemMembers, systemPlaneNormal } from './system-members.js';
+import { spacecraftSystemBody, systemMembers, systemPlaneNormal } from './system-members.js';
 
 const read = (path: string) => {
   const f = readFileSync(resolve(process.cwd(), path));
@@ -44,5 +44,29 @@ describe("what a System view frames (S6b, NASA's `_goToSystem` children)", () =>
     expect(tilt).toBeGreaterThan(4.9);
     expect(tilt).toBeLessThan(5.4);
     expect(systemMembers(bodyById('earth')!, AT, planets, new Vector3())).toHaveLength(2); // the Earth and the Moon
+  });
+});
+
+describe('a spacecraft in a System view (S6c1)', () => {
+  const craftIndex = () => createHorizonsIndex(parseHorizonsEphemeris(read('public/ephemeris/horizons/spacecraft.bin')));
+  const NOV_4 = Date.UTC(2026, 10, 4);
+
+  it('adds a radius-0 member at the spacecraft, from the centre', () => {
+    const jupiter = bodyById('jupiter')!;
+    const centre = bodyPositionKm(jupiter, NOV_4, planets, new Vector3())!;
+    const extra = centre.clone().add(new Vector3(5e6, 0, 0));
+    const members = systemMembers(jupiter, NOV_4, planets, centre, extra);
+    const last = members.at(-1)!;
+    expect(last.radiusKm).toBe(0);
+    expect(last.offsetKm.x).toBeCloseTo(5e6, 3);
+  });
+
+  it('names the body each spacecraft is near now, from CENTRE_BODY', () => {
+    resetMoonSystems({ spacecraft: craftIndex() });
+    expect(spacecraftSystemBody(bodyById('juno')!, NOV_4)?.id).toBe('jupiter');
+    expect(spacecraftSystemBody(bodyById('voyager-1')!, NOV_4)?.id).toBe('sun');
+    expect(spacecraftSystemBody(bodyById('lro')!, NOV_4)?.id).toBe('moon');
+    expect(spacecraftSystemBody(bodyById('juno')!, Date.UTC(1900, 0, 1))).toBeNull();
+    expect(spacecraftSystemBody(bodyById('io')!, NOV_4)).toBeNull();
   });
 });

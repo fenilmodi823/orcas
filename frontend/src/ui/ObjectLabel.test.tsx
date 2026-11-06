@@ -91,4 +91,9 @@ describe('ObjectLabel', () => {
     expect(rootOf('Earth–Moon L4').dataset.marker).toBe('stable');
     expect(rootOf('HST').dataset.marker).toBeUndefined();
   });
+
+  it('marks a spacecraft with its hexagon marker', () => {
+    render(<ObjectLabel name="Voyager 1" marker="spacecraft" />);
+    expect(rootOf('Voyager 1').dataset.marker).toBe('spacecraft');
+  });
 });

@@ -3,6 +3,7 @@ import { ObjectLabel, type ObjectLabelHandle } from '../../ui/ObjectLabel.js';
 import { LAGRANGE_LABELS } from './lagrange-labels.js';
 import { MOONS } from '../solar/moons.js';
 import { PLANETS } from '../solar/planets.js';
+import { SPACECRAFT } from '../solar/spacecraft.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 
 export interface BodyLabelRefs {
@@ -11,6 +12,7 @@ export interface BodyLabelRefs {
   /** In `PLANETS` order (S4). */
   planets: (ObjectLabelHandle | null)[];
   moons: (ObjectLabelHandle | null)[]; // in MOONS order (S6b)
+  spacecraft: (ObjectLabelHandle | null)[]; // in SPACECRAFT order (S6c1)
   /** In `LAGRANGE_LABELS` order (S2). */
   lagrange: (ObjectLabelHandle | null)[];
 }
@@ -63,6 +65,18 @@ export function BodyLabels({ labelsRef }: { readonly labelsRef: MutableRefObject
           }}
           name={m.name}
           {...controls(m.id)}
+        />
+      ))}
+      {/* NASA's spacecraft: a hexagon marker, a label a control (S6c1). */}
+      {SPACECRAFT.map((s, i) => (
+        <ObjectLabel
+          key={s.id}
+          ref={(handle) => {
+            labelsRef.current.spacecraft[i] = handle;
+          }}
+          name={s.name}
+          marker="spacecraft"
+          {...controls(s.id)}
         />
       ))}
       {LAGRANGE_LABELS.map((l, i) => (

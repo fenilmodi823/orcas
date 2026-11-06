@@ -72,6 +72,13 @@
   background: var(--text-mid);
 }
 
+/* A spacecraft is NASA's hexagon, filled in the spacecraft colour. */
+.object-label[data-marker='spacecraft'] .object-label__marker {
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
+  background: var(--spacecraft);
+  border: 0;
+}
+
 /* NASA Eyes' tiers read through opacity (0.75 / 0.35 / 1 on hover). ORCAS
    tiers by token instead: 0.35 white fails the 4.5:1 rule (Design.md §9),
    and these labels are controls. */
