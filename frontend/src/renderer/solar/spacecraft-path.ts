@@ -1,10 +1,13 @@
 // frontend/src/renderer/solar/spacecraft-path.ts
 import type { HorizonsIndex, Span } from '../../data/horizons-index.js';
 import { etSecondsFromUtcMs } from '../../data/planet-ephemeris.js';
-import { SEGMENT_FLOWN, SEGMENT_HIDDEN, SEGMENT_PREDICTED, inJump, straddles } from './spacecraft-trail.js';
+import { osculatingPeriodS } from './moon-trails.js';
+import { SEGMENT_FLOWN, SEGMENT_HIDDEN, SEGMENT_PREDICTED, centreGmKm3S2, inJump, straddles } from './spacecraft-trail.js';
 
 /** Points in a selected spacecraft's whole path. */
 export const MISSION_PATH_MAX_POINTS = 8192;
+/** Fewer samples than this per osculating orbit and the segments are chords, not the orbit: hidden. */
+export const MIN_SAMPLES_PER_ORBIT = 16;
 
 const _s = new Float64Array(6);
 
@@ -13,7 +16,9 @@ const _s = new Float64Array(6);
  * 3 per point in time order across every span of the export, and one kind per segment. Samples are uniform in time,
  * shared between the spans in proportion to their length (at least 2 each). A sample whose centre is not `centre`
  * repeats the previous point and hides its segments; the segment joining two spans is hidden; jumps (ET s) and the
- * flown date (UTC ms) are handled as in `writeSpacecraftTrail`. Returns the point count (>= 2), or 0 with nothing
+ * flown date (UTC ms) are handled as in `writeSpacecraftTrail`. A sample spaced more than 1/`MIN_SAMPLES_PER_ORBIT` of its
+ * osculating orbit about `centre` hides its segments too (LRO's 2 h orbit at one sample an hour draws chords across the
+ * Moon); the trail still shows its orbit. Returns the point count (>= 2), or 0 with nothing
  * written when no sample has that centre. Called once per selection, so it allocates.
  */
 export function writeMissionPath(
@@ -29,6 +34,7 @@ export function writeMissionPath(
   const total = spans.reduce((sum, [a, b]) => sum + (b - a), 0);
   if (spans.length === 0) return 0;
   const flownUntilEtS = etSecondsFromUtcMs(flownUntilUtcMs);
+  const gm = centreGmKm3S2(centre);
   // ponytail: uniform in time, so a long orbit tour gets about one point a day and its periapses look faceted;
   // adaptive by curvature if it reads badly.
   const counts = spans.map(([a, b]) => Math.max(2, Math.round((MISSION_PATH_MAX_POINTS * (b - a)) / (total || 1))));
@@ -45,10 +51,12 @@ export function writeMissionPath(
   let prevOk = false;
   spans.forEach(([a, b], s) => {
     const n = counts[s]!;
+    const stepS = (b - a) / (n - 1);
     for (let j = 0; j < n; j++, k++) {
       const etS = a + ((b - a) * j) / (n - 1);
-      const ok = index.stateInto(naifId, etS, _s) === centre;
-      if (ok) {
+      const valid = index.stateInto(naifId, etS, _s) === centre;
+      const ok = valid && (gm === null || stepS * MIN_SAMPLES_PER_ORBIT <= osculatingPeriodS(_s, gm));
+      if (valid) {
         if (firstValid < 0) firstValid = k;
         outKm.set(_s.subarray(0, 3), k * 3);
       } else if (firstValid >= 0) {

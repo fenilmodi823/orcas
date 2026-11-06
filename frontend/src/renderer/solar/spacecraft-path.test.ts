@@ -6,19 +6,21 @@ import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex, type HorizonsIndex, type Span } from '../../data/horizons-index.js';
 import { SEGMENT_FLOWN, SEGMENT_HIDDEN, SEGMENT_PREDICTED } from './spacecraft-trail.js';
 import { MISSION_PATH_MAX_POINTS, writeMissionPath } from './spacecraft-path.js';
+import { etSecondsFromUtcMs } from '../../data/planet-ephemeris.js';
+import { flownBoundary, jumpSpans, parseHorizonsManifest } from '../../data/horizons-manifest.js';
 
 const GM = 398_600.435507;
 const R = 7000;
 const W = Math.sqrt(GM / R ** 3);
 const E0 = 1e8;
 const PERIOD = (2 * Math.PI) / W;
-function circular(spans: readonly Span[]): HorizonsIndex {
+function circular(spans: readonly Span[], centre = 399): HorizonsIndex {
   return {
     targets: [-1],
     spans: () => spans,
     stateInto(_t, etS, out) {
       out.set([R * Math.cos(W * etS), R * Math.sin(W * etS), 0, 0, 0, 0]);
-      return 399;
+      return centre;
     },
   };
 }
@@ -57,7 +59,8 @@ describe('writeMissionPath', () => {
     const spans: Span[] = [[E0, E0 + 10_000 * PERIOD]];
     for (let i = 0; i < 100; i++) spans.push([E0 + (10_001 + 2 * i) * PERIOD, E0 + (10_002 + 2 * i) * PERIOD]);
     out.fill(0);
-    const n = writeMissionPath(circular(spans), -1, 399, Infinity, [], out, kinds);
+    // About the barycentre (no μ), so the 10,000-orbit span's sparse samples are not hidden as chords.
+    const n = writeMissionPath(circular(spans, 0), -1, 0, Infinity, [], out, kinds);
     expect(n).toBeLessThanOrEqual(MISSION_PATH_MAX_POINTS);
     expect(n).toBeGreaterThanOrEqual(2 * spans.length);
     for (let i = 0; i < n * 3; i++) expect(Number.isNaN(out[i])).toBe(false);
@@ -87,5 +90,42 @@ describe('writeMissionPath', () => {
       }
     }
     expect(visible).toBeGreaterThan(0);
+  });
+  it('real file: LRO about the Moon draws no chords (a sample every 86 min against a 2 h orbit)', () => {
+    const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));
+    const index = createHorizonsIndex(parseHorizonsEphemeris(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)));
+    const n = writeMissionPath(index, -85, 301, Infinity, [], out, kinds);
+    expect(n).toBeGreaterThan(2);
+    // Visible is only the 2009 approach, 162,639 km out and beyond; the 1,800 km mapping orbit draws nothing.
+    for (let i = 0; i < n - 1; i++) {
+      if (kinds[i] !== SEGMENT_HIDDEN) expect(Math.hypot(out[i * 3]!, out[i * 3 + 1]!, out[i * 3 + 2]!)).toBeGreaterThan(1e5);
+    }
+  });
+  it('real file: Artemis II about the Earth, flown, its jump hidden (the live clock cannot reach April 2026)', () => {
+    const file = readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/spacecraft.bin'));
+    const index = createHorizonsIndex(parseHorizonsEphemeris(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)));
+    const manifest = parseHorizonsManifest(JSON.parse(readFileSync(resolve(process.cwd(), 'public/ephemeris/horizons/manifest.json'), 'utf8')) as unknown);
+    const s = new Float64Array(6);
+    expect(index.stateInto(-1024, etSecondsFromUtcMs(Date.UTC(2026, 3, 6, 23)), s)).toBe(399);
+    // The plan measured 413,123 km at the nearest keyframe; 23:00 itself is interpolated.
+    expect(Math.hypot(s[0]!, s[1]!, s[2]!)).toBeCloseTo(413_123, -4);
+    const jumps = jumpSpans(manifest, -1024);
+    const n = writeMissionPath(index, -1024, 399, flownBoundary(manifest, -1024).utcMs, jumps, out, kinds);
+    expect(n).toBeGreaterThan(2);
+    const [jumpStart, jumpEnd] = jumps[0]!;
+    const etAt = (i: number) => {
+      let k = i;
+      for (const [a, b] of index.spans(-1024)) {
+        const c = Math.max(2, Math.round((MISSION_PATH_MAX_POINTS * (b - a)) / index.spans(-1024).reduce((t, [x, y]) => t + y - x, 0)));
+        if (k < c) return a + ((b - a) * k) / (c - 1);
+        k -= c;
+      }
+      return NaN;
+    };
+    for (let i = 0; i < n - 1; i++) {
+      expect(kinds[i]).not.toBe(SEGMENT_PREDICTED);
+      if (etAt(i) < jumpEnd && etAt(i + 1) > jumpStart) expect(kinds[i]).toBe(SEGMENT_HIDDEN);
+    }
+    expect([...kinds.subarray(0, n - 1)].filter((k) => k === SEGMENT_FLOWN).length).toBeGreaterThan(0);
   });
 });
