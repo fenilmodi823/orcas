@@ -185,10 +185,12 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
           pathCentre = centre;
           pathKey = `${sc.naifId}:${centre}`;
           pathCount = writeMissionPath(index, sc.naifId, centre, flownOf[i] ?? 0, jumpsOf[i] ?? [], pathKm, pathKinds);
-          if (pathCount >= 2) pathLine.rebuild(pathKinds, pathCount);
+          if (pathCount >= 2) pathLine.rebuild(pathKinds, pathCount, pathKm);
         }
         if (pathCount < 2) continue;
-        pathLine.place(pathKm, pathCount, _offset, cam);
+        // Perspective: projectionMatrix[5] is 1 / tan(fov / 2).
+        const pxPerKm = ((camera.projectionMatrix.elements[5] ?? 1) * viewport.cssHeight) / 2 / Math.max(_offset.length(), 1);
+        pathLine.place(pathKm, pathCount, _offset, cam, pxPerKm);
         pathLine.line.material.resolution.copy(trail.material.resolution);
         pathLine.line.visible = true;
       }
