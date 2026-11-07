@@ -240,10 +240,10 @@ export function useCameraController({
     if (pendingBody !== null) followBodyRef.current?.(pendingBody); // re-pends until the body has a position
     sys.approachBlend = tunablesRef.current.approachBlend;
     sys.update(dt, frameStateRef.current);
-    // Publish flight state for pick suppression. The store only writes on a
-    // CHANGE, so this is a comparison per frame, not a React update.
+    // Publish flight and scene for pick suppression and the toggle; the store writes only on CHANGE.
     const kind = sys.state.kind;
     useCameraStatus.getState().setFlying(kind === 'focusFlight' || kind === 'exit');
+    useCameraStatus.getState().setScene(sys.farFromEarth ? 'solar' : 'earth');
     if (radiusKmRef) radiusKmRef.current = sys.radiusKm;
     if (targetDistanceKmRef) targetDistanceKmRef.current = sys.targetDistanceKm;
   });

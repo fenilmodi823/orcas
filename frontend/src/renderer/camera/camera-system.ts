@@ -11,7 +11,6 @@ import { applyImmediateArrival, buildFlightEndpoints, targetPositionAt } from '.
 import { accumulateManualInput, type ManualInput } from './manual-input.js';
 import { makeDeferred, type Deferred, type FlyOpts } from './flight.js';
 import { INITIAL_CAMERA_STATE, reduceCameraState, type CameraEvent, type CameraState } from './camera-state-machine.js';
-import { useCameraStatus } from './camera-status.js';
 import type { CameraSystem, CameraSystemOpts } from './camera-system-types.js';
 import { BodyCamera, EARTH_TARGET, type BodyFlyOpts, type BodyTarget } from './body-camera.js';
 import { FREE_ORBIT_MIN_RADIUS_KM, OBJECT_MIN_RADIUS_KM, reexpressAsFreeOrbit, updateFreeOrbitRig, updateObjectRig } from './camera-rig-updates.js';
@@ -58,6 +57,8 @@ class CameraSystemImpl implements CameraSystem {
   get targetDistanceKm(): number { return this._targetDistanceKm; }
   get reducedMotion(): boolean { return this.opts.reducedMotion ?? false; }
   set reducedMotion(value: boolean) { this.opts.reducedMotion = value; }
+  /** True when the camera is out at the planets rather than about the Earth. */
+  get farFromEarth(): boolean { return this.bodies.isFar(this.rig); }
   get approachBlend(): number { return this.flights.approachBlend; }
   set approachBlend(p: number) { this.flights.approachBlend = p; }
   get nearFarKm(): Readonly<{ nearKm: number; farKm: number }> { return this._nearFar; }
@@ -93,7 +94,8 @@ class CameraSystemImpl implements CameraSystem {
 
   flyToEarth(opts?: FlyOpts): Promise<void> {
     const far = this.bodies.isFar(this.rig);
-    if (this._state.kind === 'object') this.dispatch({ type: 'deselect' }); else this._state = { kind: 'exit' };
+    if (this._state.kind === 'object') this.dispatch({ type: 'deselect' });
+    else this._state = { kind: 'exit' };
     this.targetIndex = -1;
     if (!far) {
       this.bodies.cancel();
@@ -187,7 +189,8 @@ class CameraSystemImpl implements CameraSystem {
       case 'freeOrbit':
         updateFreeOrbitRig(this.rig, this.targetRig, this.refUp, dt);
         break;
-      case 'focusFlight': case 'exit':
+      case 'focusFlight':
+      case 'exit':
         this.updateFlight(dt);
         break;
       case 'object': {
@@ -202,7 +205,6 @@ class CameraSystemImpl implements CameraSystem {
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
     this._nearFar = applyNearFar(this.camera, this.rig.radiusKm);
-    useCameraStatus.getState().setScene(this.bodies.isFar(this.rig) ? 'solar' : 'earth');
     // Measured AFTER the pose is final, against the object's position NOW, not the flight's pivot.
     if (this.targetIndex >= 0) {
       targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp);

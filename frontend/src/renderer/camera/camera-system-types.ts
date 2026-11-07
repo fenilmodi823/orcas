@@ -26,6 +26,7 @@ export interface CameraSystem {
    * reciprocal — flight-path.ts's `blendRadiusKm`. Settable mid-flight so
    * the dev panel can retune a move that is already playing. */
   approachBlend: number;
+  readonly farFromEarth: boolean;
   /** Live, because the OS preference can be toggled mid-session and an
    * in-app override can be flipped at any time (brief §6.5 note 1). Settable
    * rather than a constructor option so a change does not tear down and
