@@ -34,12 +34,10 @@ describe('picking versus the LOD cross-fade', () => {
 });
 
 describe('the pick and drawn minimum sizes (Q43)', () => {
-  it('pick pass has a 12 px target; the drawn pass has a 3 px floor and no pick minimum', () => {
+  it('the drawn pass has a 3 px floor; the click target is 12 px', () => {
     expect(PICK_MIN_PX).toBe(12);
     expect(MIN_POINT_PX).toBe(3);
-    expect(createPickMaterial().uniforms.uPickMinPx.value).toBe(12);
     const drawn = createPointsMaterial();
     expect(drawn.uniforms.uMinPointPx.value).toBe(3);
-    expect(drawn.uniforms.uPickMinPx.value).toBe(0);
   });
 });

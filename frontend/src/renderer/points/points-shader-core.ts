@@ -24,7 +24,6 @@ attribute float aStale;
 
 uniform float uPixelsPerRadian;
 uniform float uMinPointPx;
-uniform float uPickMinPx; // 0 when drawn; 12 in the pick pass (Q43: a 12 px target whatever the drawn size)
 uniform float uDpr;
 uniform float uBaseBrightness;
 uniform float uFloorBrightness;
@@ -76,7 +75,7 @@ void main() {
   // 1. apparent size, with a floor that does NOT flatten brightness.
   float truePx = aRadius * uPixelsPerRadian / dist;
   float drawPx = max(truePx, uMinPointPx);
-  gl_PointSize = max(drawPx, uPickMinPx) * uDpr;
+  gl_PointSize = drawPx * uDpr;
 
   // 2. compensate: an object drawn larger than reality is dimmed by the
   //    area ratio, so distant debris stays visible but recedes.

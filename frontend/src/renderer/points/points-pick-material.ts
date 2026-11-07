@@ -1,7 +1,6 @@
 import { ShaderMaterial } from 'three';
 import { POINTS_VERTEX_SHADER } from './points-shader-core.js';
 import { LOD_BAND_PX } from '../lod/lod-band.js';
-import { PICK_MIN_PX } from './points-material.js';
 import { TIER_POINT } from './points-pick-id.js';
 
 const PICK_FRAGMENT_SHADER = /* glsl */ `
@@ -42,7 +41,6 @@ export function createPickMaterial(): ShaderMaterial {
     uniforms: {
       uLodLoPx: { value: LOD_BAND_PX.loPx },
       uLodHiPx: { value: LOD_BAND_PX.hiPx },
-      uPickMinPx: { value: PICK_MIN_PX },
     },
     fragmentShader: PICK_FRAGMENT_SHADER,
     transparent: false,

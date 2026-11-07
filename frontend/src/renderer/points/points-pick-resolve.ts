@@ -1,7 +1,12 @@
 import type { NoradId, ObjectMeta } from '../../data/catalog-types.js';
 import { unpackIdBytes } from './points-pick-id.js';
 
+import { PICK_MIN_PX } from './points-material.js';
+
 const HOVER_DEBOUNCE_FRAMES = 2; // brief §D.4
+
+/** Pick window edge, px (Q43): a 12 px target; odd, so the cursor is the centre pixel. */
+export const PICK_WINDOW_SIZE = PICK_MIN_PX + 1;
 
 /**
  * Scans a windowSize x windowSize RGBA readback and returns the byte

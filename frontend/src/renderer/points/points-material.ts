@@ -43,7 +43,7 @@ const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
  */
 /** Minimum drawn point size, CSS px (Q43). */
 export const MIN_POINT_PX = 3;
-/** Minimum pick-pass sprite size, CSS px (Q43): a 12 px click target whatever the drawn size. */
+/** The click/hover target, CSS px (Q43): the pick window is PICK_MIN_PX + 1 wide. */
 export const PICK_MIN_PX = 12;
 
 export function createPointsMaterial(): ShaderMaterial {
@@ -56,7 +56,6 @@ export function createPointsMaterial(): ShaderMaterial {
     uniforms: {
       uPixelsPerRadian: { value: 0 },
       uMinPointPx: { value: MIN_POINT_PX }, // Q43: 3 px, so a lone satellite reads up close (1.5 px peaked at RGB (8, 40, 114) at best)
-      uPickMinPx: { value: 0 }, // the pick pass raises this; the drawn pass never does
       uDpr: { value: Math.min(window.devicePixelRatio, 2) }, // Rules.md perf ceiling: dpr capped at 2
       uBaseBrightness: { value: 1.0 },
       // 0.6, not 0.05: with PLACEHOLDER_RADIUS_KM this small, truePx is
