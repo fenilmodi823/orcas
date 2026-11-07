@@ -6,7 +6,7 @@ import { sunPositionJ2000Km } from '@orcas/physics';
 import { OrbitClass, type ObjectMeta } from '../../data/catalog-types.js';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
-import { readCyanToken } from '../scene-colors.js';
+import { readColorToken, readCyanToken } from '../scene-colors.js';
 import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { buildActiveSet, createActiveSetBuffer } from '../../simulation/active-set.js';
@@ -85,6 +85,8 @@ export function Tier1Objects({
   const hoveredIndexRef = useRef(-1);
   // Read once — colour tokens, like every other colour in the renderer.
   const selectedColor = useMemo(() => readCyanToken(), []);
+  // Instance colours tint only the diffuse term, so the shadow-side emissive is one uniform token.
+  const proxyEmissive = useMemo(() => readColorToken('--text-mid', '#a6b2c6'), []);
   const orbitClassColors = useMemo(() => ORBIT_CLASS_ORDER.map((orbitClass) => readOrbitClassColor(orbitClass)), []);
   const geometry = useMemo(() => createSatelliteProxyGeometry(), []);
   useEffect(() => () => geometry.dispose(), [geometry]);
@@ -172,7 +174,8 @@ export function Tier1Objects({
 
   return (
     <instancedMesh ref={meshRef} args={[geometry, undefined, TIER1_CAP]} frustumCulled={false}>
-      <meshStandardMaterial roughness={0.6} />
+      {/* a faint self-tint so a proxy in the Earth's shadow reads as a silhouette (Stage A, B.32 #7); not sunlight */}
+      <meshStandardMaterial roughness={0.6} emissive={proxyEmissive} emissiveIntensity={0.12} />
     </instancedMesh>
   );
 }

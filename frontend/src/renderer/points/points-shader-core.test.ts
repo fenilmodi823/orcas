@@ -48,3 +48,10 @@ describe('Tier 0 cross-fade', () => {
     expect(POINTS_VERTEX_SHADER).not.toContain('smoothstep(6.0');
   });
 });
+
+describe('the pick-pass minimum size (Q43)', () => {
+  it('declares uPickMinPx and sizes the sprite by the larger of drawn and pick size', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('uniform float uPickMinPx;');
+    expect(POINTS_VERTEX_SHADER).toContain('gl_PointSize = max(drawPx, uPickMinPx) * uDpr;');
+  });
+});

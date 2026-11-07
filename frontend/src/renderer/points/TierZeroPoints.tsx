@@ -192,7 +192,7 @@ export function TierZeroPoints({
 
     // Two tethers, one shared projection (brief §D.6: at most one for
     // `selected`, one for `hover`). The SELECTED one is what makes a
-    // fly-to legible — without it the target is a 1.5 px dot for most of
+    // fly-to legible — without it the target is a 3 px dot for most of
     // the flight and the M1.7a review reported not being able to see what
     // it was flying to at all.
     const positions = frameStateRef.current.positions;

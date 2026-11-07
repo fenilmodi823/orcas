@@ -55,3 +55,10 @@
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+.orbit-class-legend__note {
+  margin: var(--space-2, 0.5rem) 0 0;
+  color: var(--text-mid);
+  font: var(--t-small);
+  font-family: var(--font-ui);
+}

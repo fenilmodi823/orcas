@@ -50,6 +50,7 @@ export function OrbitClassLegend() {
           </li>
         ))}
       </ul>
+      <p className="orbit-class-legend__note">Markers are not to scale.</p>
     </GlassSurface>
   );
 }
