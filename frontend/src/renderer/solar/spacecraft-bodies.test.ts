@@ -6,7 +6,7 @@ import { PerspectiveCamera, Vector3, type Points } from 'three';
 import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { parseHorizonsManifest, type HorizonsManifest } from '../../data/horizons-manifest.js';
-import { resetMoonSystems } from '../../data/moon-systems.js';
+import { moonSystem, resetMoonSystems } from '../../data/moon-systems.js';
 import { parsePlanetEphemeris, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { SPACECRAFT } from './spacecraft.js';
 import { centreGeocentricKm } from './system-centres.js';
@@ -198,6 +198,36 @@ describe('spacecraft on screen (S6c1)', () => {
     const voyager = craft.trails[at('voyager-1')]!;
     expect(voyager.visible).toBe(true);
     expect(voyager.material.opacity).toBe(1);
+    craft.dispose();
+  });
+
+  it('does not resample trails while the clock stands still, and does when it moves a sample', () => {
+    load();
+    const index = moonSystem('spacecraft')!;
+    const spy = vi.spyOn(index, 'stateInto');
+    const { craft } = make();
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, null);
+    const first = spy.mock.calls.length;
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, null);
+    const second = spy.mock.calls.length - first;
+    // at most one state per spacecraft (its dot, which is also its trail's end), never a 181-point resample
+    expect(second).toBeLessThanOrEqual(2 * SPACECRAFT.length);
+    craft.update(NOV_4 + 30 * 86_400_000, planets, camera(7e8), viewport, null, null);
+    expect(spy.mock.calls.length - first - second).toBeGreaterThan(16 * 100);
+    craft.dispose();
+  });
+
+  it("keeps a trail's last point on the spacecraft on a frame that does not resample", () => {
+    load();
+    const { craft } = make();
+    const cam = camera(7e8);
+    const i = at('voyager-1');
+    craft.update(NOV_4, planets, cam, viewport, null, null);
+    craft.update(NOV_4 + 1000, planets, cam, viewport, null, null); // 1 s
+    const seg = dataOf(craft.trails[i]!, 'instanceStart');
+    const sc = craft.scKm[i] as Vector3;
+    const want = [sc.x - cam.position.x, sc.y - cam.position.y, sc.z - cam.position.z];
+    for (let k = 0; k < 3; k++) expect(Math.abs(seg[seg.length - 3 + k]! - want[k]!)).toBeLessThan(Math.abs(want[k]!) * 1e-6 + 1); // float32
     craft.dispose();
   });
 
