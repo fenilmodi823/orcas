@@ -35,4 +35,12 @@ describe('computeNearFarKm', () => {
     expect(computeNearFarKm(35629, 42000).farKm).toBeGreaterThan(42000 + neptuneFarKm);
     expect(computeNearFarKm(7e9, 1.5e10).farKm).toBeGreaterThan(1.5e10 + neptuneFarKm);
   });
+
+  it('reaches Voyager 1 at the export end (267.8 AU) from a camera 1,000 AU out', () => {
+    const auKm = 149_597_870.7;
+    const camKm = 1000 * auKm;
+    const { farKm } = computeNearFarKm(1e6, camKm);
+    // worst case: Voyager on the far side of the Sun from the camera
+    expect(farKm).toBeGreaterThan(camKm + 267.8 * auKm);
+  });
 });

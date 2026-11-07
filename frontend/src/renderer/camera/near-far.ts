@@ -2,9 +2,9 @@ const R_EARTH_A_KM = 6378.137;
 const R_GEO_KM = 42164;
 const NEAR_FLOOR_KM = 0.001; // 1 m
 const FAR_MULT = 2.2;
-/** Neptune's greatest distance from the Earth (aphelion 30.3 AU + 1.02 AU), rounded up (S4).
- * Covers the Moon (M1.11), the Sun and every planet and orbit line. */
-const SOLAR_SYSTEM_REACH_KM = 32 * 149_597_870.7;
+/** The farthest thing drawn from the Earth: Voyager 1 at its export end, 267.8 AU (measured 2026-11-06), rounded
+ * up to 300 AU. Covers the Moon (M1.11), the Sun, every planet and orbit line, and every spacecraft (S6c1). */
+const SOLAR_SYSTEM_REACH_KM = 300 * 149_597_870.7;
 
 /**
  * Per-frame near/far for a SINGLE render pass — the reduction of brief §C.7.
@@ -20,7 +20,7 @@ const SOLAR_SYSTEM_REACH_KM = 32 * 149_597_870.7;
  * Earth (far) vs. points / the focused object (near), which never z-fight.
  *
  *   near = max(1 m, 0.5 · nearest rendered surface)
- *   far  = max((camDist + R_earth, R_GEO) · 2.2,  camDist + 32 AU)
+ *   far  = max((camDist + R_earth, R_GEO) · 2.2,  camDist + 300 AU)
  *
  * The Solar System term (S4; the Moon's in M1.11) makes far vastly larger,
  * which costs almost nothing: depth precision is set by near, and the Canvas
