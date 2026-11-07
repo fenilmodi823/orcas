@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import type { FrameState } from '../../simulation/frame-state.js';
 import { clamp } from './easing.js';
-import { createRig, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
+import { createRig, deriveAzElRadius, rigCameraPosition, syncTargetAngles, type CameraRig } from './camera-rig.js';
 import { ECI_UP } from './look-rotation.js';
 import { applyNearFar, projectToScreen, writeCameraFromRig } from './camera-output.js';
 import { CancelledError } from './errors.js';
@@ -43,7 +43,7 @@ class CameraSystemImpl implements CameraSystem {
   private targetIndex = -1;
   private readonly preFocusDir = new Vector3(1, 0, 0);
   private preFocusRadiusKm = 42164;
-  private pendingArrival: Deferred | null = null;
+  private pendingArrival: Deferred | null = null; // an un-consumed reduced-motion jump
 
   constructor(
     private readonly camera: PerspectiveCamera,
@@ -57,6 +57,8 @@ class CameraSystemImpl implements CameraSystem {
   get targetDistanceKm(): number { return this._targetDistanceKm; }
   get reducedMotion(): boolean { return this.opts.reducedMotion ?? false; }
   set reducedMotion(value: boolean) { this.opts.reducedMotion = value; }
+  /** True when the camera is out at the planets rather than about the Earth. */
+  get farFromEarth(): boolean { return this.bodies.isFar(this.rig); }
   get approachBlend(): number { return this.flights.approachBlend; }
   set approachBlend(p: number) { this.flights.approachBlend = p; }
   get nearFarKm(): Readonly<{ nearKm: number; farKm: number }> { return this._nearFar; }
@@ -79,7 +81,7 @@ class CameraSystemImpl implements CameraSystem {
   }
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void> {
-    // From a planet, cross to the Earth first, NASA's way; the satellite flight takes it from there.
+    // From a planet, cross to the Earth first; the satellite flight follows.
     if (this.bodies.isFar(this.rig)) {
       return this.flyToBody(EARTH_TARGET, { swing: false, spin: false }).then(() => this.flyTo(targetIndex, opts));
     }
@@ -101,6 +103,14 @@ class CameraSystemImpl implements CameraSystem {
     }
     const home = { arrivalOffsetKm: this.preFocusDir.clone().multiplyScalar(this.preFocusRadiusKm), refUp: ECI_UP, spin: false };
     return this.startBodyFlight(EARTH_TARGET, home);
+  }
+
+  /** The opening view (Q44): the boot rig's pose about the Earth, whatever pose the user left. */
+  flyToEarthHome(): Promise<void> {
+    const boot = createRig();
+    this.preFocusDir.copy(rigCameraPosition(boot, _tp)).normalize();
+    this.preFocusRadiusKm = boot.radiusKm;
+    return this.flyToEarth();
   }
 
   flyToBody(target: BodyTarget, opts?: BodyFlyOpts): Promise<void> {
@@ -188,24 +198,20 @@ class CameraSystemImpl implements CameraSystem {
           this.bodies.follow(this.rig, this.targetRig, this.refUp, this.frameRef.epochMs, dt, this.reducedMotion);
           break;
         }
-        const target =
-          this.targetIndex >= 0 ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
+        const target = this.targetIndex >= 0 ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
         updateObjectRig(this.rig, this.targetRig, this.refUp, target, dt);
         break;
       }
     }
     writeCameraFromRig(this.camera, this.rig, this.refUp, this.prevUp);
     this._nearFar = applyNearFar(this.camera, this.rig.radiusKm);
-    // Measured AFTER the pose is final, against the object's position NOW
-    // rather than the pivot the flight is aiming at.
+    // Measured AFTER the pose is final, against the object's position NOW, not the flight's pivot.
     if (this.targetIndex >= 0) {
       targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp);
       this._targetDistanceKm = this.camera.position.distanceTo(_tp);
     } else if (this.bodies.target?.positionKm(this.frameRef.epochMs, _tp)) {
       this._targetDistanceKm = this.camera.position.distanceTo(_tp);
-    } else {
-      this._targetDistanceKm = 0;
-    }
+    } else this._targetDistanceKm = 0;
   }
 
   private updateFlight(dt: number): void {
@@ -216,9 +222,7 @@ class CameraSystemImpl implements CameraSystem {
       this.dispatch({ type: 'flightArrived' });
       return;
     }
-    const tick = this.flights.tick(dt, this.frameRef.epochMs, (t, o) =>
-      targetPositionAt(this.frameRef, this.targetIndex, t, o),
-    );
+    const tick = this.flights.tick(dt, this.frameRef.epochMs, (t, o) => targetPositionAt(this.frameRef, this.targetIndex, t, o));
     if (!tick) return;
     this.rig.pivotKm.copy(tick.sample.pivotKm);
     deriveAzElRadius(this.rig, tick.sample.positionKm);
@@ -244,4 +248,3 @@ class CameraSystemImpl implements CameraSystem {
 export function createCameraSystem(camera: PerspectiveCamera, opts?: CameraSystemOpts): CameraSystem {
   return new CameraSystemImpl(camera, opts ?? {});
 }
-

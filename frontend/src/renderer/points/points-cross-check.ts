@@ -3,6 +3,7 @@ import { satrecFromOmm, propagate, temeToJ2000Matrix, applyMat3 } from '@orcas/p
 import type { ObjectMeta } from '../../data/catalog-types.js';
 import type { SimulationLoopHandle } from '../../simulation/use-simulation-loop.js';
 import { computePointShading } from './points-shading.js';
+import { MIN_POINT_PX } from './points-material.js';
 import { PLACEHOLDER_RADIUS_KM } from './points-attributes.js';
 
 const CROSS_CHECK_COUNT = 10;
@@ -53,7 +54,7 @@ function buildCrossCheckRows(
       Math.hypot(directKm.x - renderedKm.x, directKm.y - renderedKm.y, directKm.z - renderedKm.z) * 1000;
 
     const distanceKm = Math.hypot(directKm.x, directKm.y, directKm.z);
-    const { drawPx } = computePointShading(PLACEHOLDER_RADIUS_KM, distanceKm, pixelsPerRadian, 1.5, 1, 0.05);
+    const { drawPx } = computePointShading(PLACEHOLDER_RADIUS_KM, distanceKm, pixelsPerRadian, MIN_POINT_PX, 1, 0.05);
 
     rows.push({ norad: object.norad, renderedKm, directKm, deltaM, drawPx });
   }

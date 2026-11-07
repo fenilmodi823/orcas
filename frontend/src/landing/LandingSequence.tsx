@@ -10,6 +10,7 @@ import {
 } from './landing-timeline.js';
 import './LandingSequence.css';
 import './LandingReadout.css';
+import { useCameraStatus } from '../renderer/camera/camera-status.js';
 import { useReducedMotion } from '../state/use-reduced-motion.js';
 
 export interface LandingSequenceProps {
@@ -47,6 +48,7 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
   const [instant, setInstant] = useState(mode === 'skip');
   // "Establishing link NN": decorative, as on the portfolio's loader — it measures nothing (Fenil, 2026-11-03).
   const [percent, setPercent] = useState(0);
+  const requestEarth = useCameraStatus((s) => s.requestEarth);
   const ringRef = useRef<SVGPathElement>(null);
 
   useLayoutEffect(() => {
@@ -119,7 +121,14 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
     >
       {showChrome && <div className="landing-sequence__backdrop" data-dismissed={dismissed ? '' : undefined} />}
 
-      <div className="landing-sequence__brand" data-settled={settled ? '' : undefined}>
+      <button
+        type="button"
+        className="landing-sequence__brand"
+        aria-label="ORCAS: back to the Earth"
+        disabled={!settled}
+        onClick={requestEarth}
+        data-settled={settled ? '' : undefined}
+      >
         <svg
           className="landing-sequence__mark"
           viewBox={MARK_VIEW_BOX}
@@ -162,7 +171,7 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
           </g>
         </svg>
         <span className="landing-sequence__word">ORCAS</span>
-      </div>
+      </button>
 
       {showChrome && (
         <div className="landing-sequence__readout" aria-hidden="true">

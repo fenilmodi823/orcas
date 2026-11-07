@@ -40,7 +40,7 @@ export function straddles(e0: number, e1: number, jumps: readonly Span[]): boole
  * (`kinds`). A sample with no state, or another centre, repeats the previous point and hides both segments touching
  * it; samples before the first valid one take its point and hide. A segment in or across a jump span (ET s) is
  * hidden; otherwise it is predicted if its later end is after `flownUntilUtcMs` (UTC ms), else flown.
- * `epochMs` is UTC ms. Returns the centre now (NAIF id), or null with nothing written if the spacecraft has no data then.
+ * `epochMs` is UTC ms. `lengthOut[0]`, if given, receives the trail length used, s. Returns the centre now (NAIF id), or null with nothing written if the spacecraft has no data then.
  */
 export function writeSpacecraftTrail(
   index: HorizonsIndex,
@@ -50,12 +50,14 @@ export function writeSpacecraftTrail(
   jumps: readonly Span[],
   outKm: Float64Array,
   kinds: Uint8Array,
+  lengthOut?: Float64Array,
 ): number | null {
   const etNow = etSecondsFromUtcMs(epochMs);
   const centre = index.stateInto(naifId, etNow, _s);
   if (centre === null) return null;
   const gm = centreGmKm3S2(centre);
   const lengthS = gm === null ? CRUISE_TRAIL_S : osculatingPeriodS(_s, gm);
+  if (lengthOut) lengthOut[0] = lengthS;
   const last = SPACECRAFT_TRAIL_SAMPLES - 1;
   const flownUntilEtS = etSecondsFromUtcMs(flownUntilUtcMs);
   let firstValid = -1;

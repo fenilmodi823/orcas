@@ -17,7 +17,8 @@ import { SPACECRAFT } from './spacecraft.js';
 import { MISSION_PATH_MAX_POINTS, writeMissionPath } from './spacecraft-path.js';
 import { createPathLine, writeOffsetSegments } from './spacecraft-path-line.js';
 import { SPACECRAFT_TRAIL_SAMPLES, writeSpacecraftTrail } from './spacecraft-trail.js';
-import { centreGeocentricKm, horizonsGeocentricKm } from './system-centres.js';
+import { createCentreCache, createTrailCache, needsResample } from './spacecraft-trail-cache.js';
+import { horizonsRelativeState } from './system-centres.js';
 
 /** Fetch the data (decision 2) only past this distance from the origin, km, or for a spacecraft hovered or selected. */
 export const SPACECRAFT_LOAD_DISTANCE_KM = 2e6;
@@ -81,8 +82,10 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
     group.add(line);
     return line;
   });
-  const trailKm = new Float64Array(SPACECRAFT_TRAIL_SAMPLES * 3);
-  const kinds = new Uint8Array(LAST);
+  const caches = SPACECRAFT.map(createTrailCache);
+  const centres = createCentreCache();
+  const rel6 = new Float64Array(6); // the craft's state relative to its centre, km and km/s
+  const lengthOut = new Float64Array(1); // the trail length a resample used, s
   const pathKm = new Float64Array(MISSION_PATH_MAX_POINTS * 3);
   const pathKinds = new Uint8Array(MISSION_PATH_MAX_POINTS - 1);
   const pathLine = createPathLine(colour, TRAIL_WIDTH_PX);
@@ -146,6 +149,7 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
           jumpsOf[i] = jumpSpans(manifest, s.naifId);
         });
       }
+      centres.reset();
       dots.position.copy(cam);
       dots.material.uniforms.uDotPx.value = DOT_CSS_PX * viewport.dpr;
       let dotCount = 0;
@@ -154,7 +158,10 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
         const at = scKm[i];
         const trail = trails[i];
         if (!sc || !at || !trail) continue;
-        if (horizonsGeocentricKm('spacecraft', sc.naifId, epochMs, planets, at) === null) continue;
+        const centre = horizonsRelativeState('spacecraft', sc.naifId, epochMs, rel6);
+        const centreAt = centre === null ? null : centres.get(centre, epochMs, planets);
+        if (centre === null || !centreAt) continue;
+        at.set(centreAt.x + (rel6[0] ?? NaN), centreAt.y + (rel6[1] ?? NaN), centreAt.z + (rel6[2] ?? NaN));
         drawn[i] = true;
         dotPositions[dotCount * 3] = at.x - cam.x;
         dotPositions[dotCount * 3 + 1] = at.y - cam.y;
@@ -162,20 +169,36 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
         dotCount += 1;
         if (!manifest) continue;
 
-        const centre = writeSpacecraftTrail(index, sc.naifId, epochMs, flownOf[i] ?? 0, jumpsOf[i] ?? [], trailKm, kinds);
-        if (centre === null || centreGeocentricKm(centre, epochMs, planets, _centre) === null) continue;
-        let extentKm = 0;
-        for (let k = 0; k < SPACECRAFT_TRAIL_SAMPLES; k++) {
-          extentKm = Math.max(extentKm, Math.hypot(trailKm[k * 3] ?? 0, trailKm[k * 3 + 1] ?? 0, trailKm[k * 3 + 2] ?? 0));
+        const cache = caches[i];
+        if (!cache) continue;
+        const { trailKm, kinds } = cache;
+        if (needsResample(cache, centre, manifest, epochMs)) {
+          if (writeSpacecraftTrail(index, sc.naifId, epochMs, flownOf[i] ?? 0, jumpsOf[i] ?? [], trailKm, kinds, lengthOut) === null) continue;
+          cache.valid = true;
+          cache.epochMs = epochMs;
+          cache.centre = centre;
+          cache.manifest = manifest;
+          cache.lengthS = lengthOut[0] ?? 0;
+          let extentKm = 0;
+          for (let k = 0; k < SPACECRAFT_TRAIL_SAMPLES; k++) {
+            extentKm = Math.max(extentKm, Math.hypot(trailKm[k * 3] ?? 0, trailKm[k * 3 + 1] ?? 0, trailKm[k * 3 + 2] ?? 0));
+          }
+          cache.extentKm = extentKm;
+          writeSegmentAlpha(trail.geometry, kinds, SPACECRAFT_TRAIL_SAMPLES, baseAlpha); // kinds and base alpha only: not hover
+        } else {
+          // the end follows the spacecraft; the other 180 points stay
+          trailKm[LAST * 3] = rel6[0] ?? NaN;
+          trailKm[LAST * 3 + 1] = rel6[1] ?? NaN;
+          trailKm[LAST * 3 + 2] = rel6[2] ?? NaN;
         }
-        const fade = centre === 0 ? 1 : layerFade(extentKm, cam.distanceTo(_centre));
+        _centre.copy(centreAt);
+        const fade = centre === 0 ? 1 : layerFade(cache.extentKm, cam.distanceTo(_centre));
         const isHovered = i === hovered;
         trail.material.opacity = fade * (isHovered ? 1 / TRAIL_ALPHA : 1); // hover: full opacity, NASA's
         trail.material.linewidth = isHovered ? TRAIL_HOVER_WIDTH_PX : TRAIL_WIDTH_PX;
         trail.material.resolution.set(viewport.cssWidth * viewport.dpr, viewport.cssHeight * viewport.dpr);
         _offset.copy(_centre).sub(cam);
         writeOffsetSegments(trail.geometry, trailKm, SPACECRAFT_TRAIL_SAMPLES, _offset);
-        writeSegmentAlpha(trail.geometry, kinds, SPACECRAFT_TRAIL_SAMPLES, baseAlpha);
         trail.position.copy(cam);
         trail.visible = trail.material.opacity > 0;
 

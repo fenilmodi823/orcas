@@ -10,6 +10,8 @@ import { create } from 'zustand';
  * (Rules.md: React state must not be updated every frame).
  */
 /** NASA Eyes' camera views (CameraViewBlock): Nearby / System, and the Sun's Inner / Outer (S6b). */
+/** Which scene is on screen: the Earth, or the Solar System (the camera is far from the Earth). */
+export type CameraScene = 'earth' | 'solar';
 export type CameraView = 'nearby' | 'system' | 'inner' | 'outer';
 
 interface CameraStatus {
@@ -27,6 +29,11 @@ interface CameraStatus {
   view: CameraView;
   /** Bumped with each request, so asking for the same view again still flies. */
   viewRequests: number;
+  scene: CameraScene;
+  /** Bumped by the Earth button and the logo: fly back to the opening view. */
+  earthRequests: number;
+  setScene(scene: CameraScene): void;
+  requestEarth(): void;
   setFlying(flying: boolean): void;
   requestView(view: CameraView): void;
   setView(view: CameraView): void;
@@ -40,6 +47,10 @@ export const useCameraStatus = create<CameraStatus>((set) => ({
   homeRequests: 0,
   view: 'nearby',
   viewRequests: 0,
+  scene: 'earth',
+  earthRequests: 0,
+  setScene: (scene) => set((s) => (s.scene === scene ? s : { scene })),
+  requestEarth: () => set((s) => ({ earthRequests: s.earthRequests + 1 })),
   setFlying: (flying) => set((s) => (s.flying === flying ? s : { flying })),
   requestView: (view) => set((s) => ({ view, viewRequests: s.viewRequests + 1 })),
   setView: (view) => set((s) => (s.view === view ? s : { view })),

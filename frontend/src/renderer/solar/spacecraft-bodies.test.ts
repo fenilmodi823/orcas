@@ -6,9 +6,10 @@ import { PerspectiveCamera, Vector3, type Points } from 'three';
 import { parseHorizonsEphemeris } from '../../data/horizons-ephemeris.js';
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { parseHorizonsManifest, type HorizonsManifest } from '../../data/horizons-manifest.js';
-import { resetMoonSystems } from '../../data/moon-systems.js';
+import { moonSystem, resetMoonSystems } from '../../data/moon-systems.js';
 import { parsePlanetEphemeris, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { SPACECRAFT } from './spacecraft.js';
+import { createTrailCache, needsResample } from './spacecraft-trail-cache.js';
 import { centreGeocentricKm } from './system-centres.js';
 import { createSpacecraftBodies, SPACECRAFT_LOAD_DISTANCE_KM } from './spacecraft-bodies.js';
 
@@ -199,6 +200,65 @@ describe('spacecraft on screen (S6c1)', () => {
     expect(voyager.visible).toBe(true);
     expect(voyager.material.opacity).toBe(1);
     craft.dispose();
+  });
+
+  it('does not resample trails while the clock stands still, and does when it moves a sample', () => {
+    load();
+    const index = moonSystem('spacecraft')!;
+    const spy = vi.spyOn(index, 'stateInto');
+    const { craft } = make();
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, null);
+    const first = spy.mock.calls.length;
+    craft.update(NOV_4, planets, camera(7e8), viewport, null, null);
+    const second = spy.mock.calls.length - first;
+    // at most one state per spacecraft (its dot, which is also its trail's end), never a 181-point resample
+    expect(second).toBeLessThanOrEqual(SPACECRAFT.length);
+    craft.update(NOV_4 + 30 * 86_400_000, planets, camera(7e8), viewport, null, null);
+    expect(spy.mock.calls.length - first - second).toBeGreaterThan(16 * 100);
+    craft.dispose();
+  });
+
+  it("keeps a trail's last point on the spacecraft on a frame that does not resample", () => {
+    load();
+    const index = moonSystem('spacecraft')!;
+    const spy = vi.spyOn(index, 'stateInto');
+    const { craft } = make();
+    const cam = camera(7e8);
+    const i = at('voyager-1');
+    craft.update(NOV_4, planets, cam, viewport, null, null);
+    const before = spy.mock.calls.length;
+    craft.update(NOV_4 + 6 * 3_600_000, planets, cam, viewport, null, null); // 6 h: Voyager 1 moves ~3.7e5 km, under a resample
+    // Voyager 1 alone: one state for its dot, never a 181-point resample (other, faster craft do resample)
+    const voyager = SPACECRAFT[i]!.naifId;
+    expect(spy.mock.calls.slice(before).filter((c) => c[0] === voyager).length).toBeLessThanOrEqual(1);
+    const seg = dataOf(craft.trails[i]!, 'instanceStart');
+    const sc = craft.scKm[i] as Vector3;
+    const want = [sc.x - cam.position.x, sc.y - cam.position.y, sc.z - cam.position.z];
+    for (let k = 0; k < 3; k++) expect(Math.abs(seg[seg.length - 3 + k]! - want[k]!)).toBeLessThan(Math.abs(want[k]!) * 1e-6 + 1); // float32
+    craft.dispose();
+  });
+
+  it.each([
+    ['unchanged', {}, false],
+    ['a backwards jump of a sample', { dt: -250_000 }, true],
+    ['a centre change', { centre: 5 }, true],
+    ['a manifest change', { manifest: {} as HorizonsManifest }, true],
+    ['just under a quarter sample', { dt: 249_999 }, false],
+    ['exactly a quarter sample', { dt: 250_000 }, true],
+  ])('needsResample: %s', (_name, change, want) => {
+    // lengthS = 180,000 s over 180 segments: a quarter sample is 0.25 * 180000 * 1000 / 180 = 250,000 ms
+    const m = {} as HorizonsManifest;
+    const c = { ...createTrailCache(), valid: true, epochMs: 1e12, centre: 0, lengthS: 180_000, manifest: m };
+    const { dt = 0, centre = 0, manifest = m } = change as { dt?: number; centre?: number; manifest?: HorizonsManifest };
+    expect(needsResample(c, centre, manifest, 1e12 + dt)).toBe(want);
+  });
+
+  it('needsResample: an invalid cache or a NaN length always resamples', () => {
+    const m = {} as HorizonsManifest;
+    const ok = { ...createTrailCache(), valid: true, epochMs: 0, centre: 0, lengthS: 3600, manifest: m };
+    expect(needsResample(ok, 0, m, 0)).toBe(false);
+    expect(needsResample({ ...ok, valid: false }, 0, m, 0)).toBe(true);
+    expect(needsResample({ ...ok, lengthS: NaN }, 0, m, 0)).toBe(true);
   });
 
   it('hides everything first, so a frame with no planets leaves no stale dot or line', () => {

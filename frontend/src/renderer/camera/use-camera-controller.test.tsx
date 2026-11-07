@@ -10,12 +10,14 @@ import { WATCH_FRAMING_KM } from './camera-tunables.js';
 
 // vi.mock is hoisted above imports; vi.hoisted (async) runs in the same
 // phase and lets us build a real PerspectiveCamera without `require`.
-const { mockCamera, frameCallbacks, flyCalls } = await vi.hoisted(async () => {
+const { mockCamera, frameCallbacks, flyCalls, homeCalls, farStub } = await vi.hoisted(async () => {
   const { PerspectiveCamera } = await import('three');
   return {
     mockCamera: new PerspectiveCamera(35, 1, 1, 1e6),
     frameCallbacks: [] as ((s: unknown, dt: number) => void)[],
     flyCalls: [] as (FlyOpts | undefined)[],
+    homeCalls: [] as number[],
+    farStub: { value: false },
   };
 });
 
@@ -30,6 +32,12 @@ vi.mock('./camera-system.js', async (importOriginal) => {
       sys.flyTo = (index, opts) => {
         flyCalls.push(opts);
         return flyTo(index, opts);
+      };
+      Object.defineProperty(sys, 'farFromEarth', { get: () => farStub.value });
+      const home = sys.flyToEarthHome.bind(sys);
+      sys.flyToEarthHome = () => {
+        homeCalls.push(1);
+        return home();
       };
       return sys;
     },
@@ -172,6 +180,39 @@ describe('useCameraController', () => {
       useSelectionStore.getState().setWatchPair(null);
       expect(flyCalls).toEqual([]);
       reset();
+      unmount();
+    });
+  });
+
+  it('publishes the scene from the camera system each frame', () => {
+    frameCallbacks.length = 0;
+    const { unmount } = render(<Harness />);
+    farStub.value = true;
+    frameCallbacks.at(-1)?.({}, 1 / 60);
+    expect(useCameraStatus.getState().scene).toBe('solar');
+    farStub.value = false;
+    frameCallbacks.at(-1)?.({}, 1 / 60);
+    expect(useCameraStatus.getState().scene).toBe('earth');
+    unmount();
+  });
+
+  describe('Earth home request', () => {
+    it('flies home and clears the selection', () => {
+      homeCalls.length = 0;
+      useSelectionStore.getState().setSelected(null);
+      const { unmount } = render(<Harness />);
+      useSelectionStore.getState().setSelected('90000' as never);
+      useCameraStatus.getState().requestEarth();
+      expect(homeCalls).toHaveLength(1);
+      expect(useSelectionStore.getState().selectedNorad).toBeNull();
+      unmount();
+    });
+
+    it('does nothing before the first frame has an epoch', () => {
+      homeCalls.length = 0;
+      const { unmount } = render(<Harness state={{ ...frame, epochMs: 0 }} />);
+      useCameraStatus.getState().requestEarth();
+      expect(homeCalls).toHaveLength(0);
       unmount();
     });
   });

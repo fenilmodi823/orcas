@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LandingSequence } from './LandingSequence.js';
 import { resetLandingSequenceForTests } from './landing-timeline.js';
+import { useCameraStatus } from '../renderer/camera/camera-status.js';
 
 function mockReducedMotion(matches: boolean) {
   window.matchMedia = (query: string) =>
@@ -107,5 +108,20 @@ describe('LandingSequence', () => {
 
     expect(screen.queryByRole('button', { name: 'Skip intro animation' })).toBeNull();
     expect(second).toHaveBeenCalledOnce();
+  });
+
+  it('makes the brand a button back to the Earth, live only once settled', () => {
+    render(<LandingSequence />);
+    const logo = screen.getByRole('button', { name: 'ORCAS: back to the Earth' }) as HTMLButtonElement;
+    const before = useCameraStatus.getState().earthRequests;
+
+    expect(logo.disabled).toBe(true);
+    fireEvent.click(logo);
+    expect(useCameraStatus.getState().earthRequests).toBe(before);
+
+    act(() => vi.advanceTimersByTime(3300));
+    expect(logo.disabled).toBe(false);
+    fireEvent.click(logo);
+    expect(useCameraStatus.getState().earthRequests).toBe(before + 1);
   });
 });

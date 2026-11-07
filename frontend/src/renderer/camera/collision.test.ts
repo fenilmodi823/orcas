@@ -16,7 +16,7 @@ describe('clampFreeOrbitRadiusKm', () => {
   });
 
   it('stops zooming out at the ceiling', () => {
-    expect(clampFreeOrbitRadiusKm(1e11)).toBe(MAX_CAMERA_RADIUS_KM);
+    expect(clampFreeOrbitRadiusKm(1e12)).toBe(MAX_CAMERA_RADIUS_KM);
   });
 
   // S2: Sun–Earth L2 is ~1.5 million km out (1,506,039 km on 2026-10-05), so
@@ -25,11 +25,12 @@ describe('clampFreeOrbitRadiusKm', () => {
     expect(clampFreeOrbitRadiusKm(1.9e6)).toBe(1.9e6);
   });
 
-  // S4 (B.21): one continuous space out to ~100 AU, past Neptune's 30 AU.
-  it('lets the camera stand back to 100 AU, and no further', () => {
+  // Stage A (Q41): out to 1,000 AU, so Voyager 1 (267.8 AU at the export's end) can be framed with the Sun.
+  it('lets the camera stand back to 1,000 AU, and no further', () => {
     const auKm = 149_597_870.7;
     expect(clampFreeOrbitRadiusKm(40 * auKm)).toBe(40 * auKm);
-    expect(MAX_CAMERA_RADIUS_KM).toBe(100 * auKm);
+    expect(MAX_CAMERA_RADIUS_KM).toBe(1000 * auKm);
+    expect(clampFreeOrbitRadiusKm(5000 * auKm)).toBe(1000 * auKm);
   });
 });
 

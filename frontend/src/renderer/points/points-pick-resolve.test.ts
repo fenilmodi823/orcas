@@ -6,6 +6,7 @@ import {
   INITIAL_HOVER_TRACKING,
   advanceHover,
   debounceHover,
+  PICK_WINDOW_SIZE,
   findBestPixel,
   resolveEntityIndexToNorad,
 } from './points-pick-resolve.js';
@@ -131,5 +132,32 @@ describe('advanceHover', () => {
     t = advanceHover(null, t); // resolved: window empty -> clear immediately
     expect(t.debounce.value).toBeNull();
     expect(t.lastResolved).toBeNull();
+  });
+});
+
+describe('the 12 px pick window (Q43)', () => {
+  const W = PICK_WINDOW_SIZE;
+  const at = (col: number, row: number) => (row * W + col) * 4;
+
+  it('is 13 wide, and odd so the cursor is the centre pixel', () => {
+    expect(PICK_WINDOW_SIZE).toBe(13);
+    expect(PICK_WINDOW_SIZE % 2).toBe(1);
+  });
+
+  it('finds a single hit 6 px from the centre', () => {
+    const pixels = new Uint8Array(W * W * 4);
+    pixels.set(packIdBytes(3, TIER_POINT), at(12, 6));
+    expect(findBestPixel(pixels, W)).toBe(at(12, 6));
+  });
+
+  it('with two hits, the nearer the centre wins whatever their buffer order', () => {
+    const near = at(8, 6); // 2 px right of centre
+    const far = at(0, 0);
+    for (const [first, second] of [[near, far], [far, near]]) {
+      const pixels = new Uint8Array(W * W * 4);
+      pixels.set(packIdBytes(1, TIER_POINT), first);
+      pixels.set(packIdBytes(2, TIER_POINT), second);
+      expect(findBestPixel(pixels, W)).toBe(near);
+    }
   });
 });

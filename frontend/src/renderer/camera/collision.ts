@@ -5,11 +5,10 @@ export const R_EARTH_A_KM = 6378.137;
 const R_EARTH_B_KM = 6356.752;
 
 const FREE_ORBIT_MIN_ALT_KM = 120; // atmosphere shell inner boundary / near-plane clipping
-/** Zoom-out ceiling: 100 AU, past Neptune's 30 AU (S4, B.21). One continuous
- * space: positions stay float64 on the CPU and reach the GPU camera-relative,
- * where float64 still resolves ~1.5 mm at 100 AU. Unbounded, the wheel reached
- * 1e11 km. */
-export const MAX_CAMERA_RADIUS_KM = 100 * AU_KM;
+/** Zoom-out ceiling: 1,000 AU (Stage A, Q41), far enough to frame Voyager 1 at its export end (267.8 AU) with the
+ * Sun in a 35° view. One continuous space: positions stay float64 on the CPU and reach the GPU camera-relative,
+ * where float64 still resolves ~3 cm at 1,000 AU. Unbounded, the wheel reached 1e11 km. */
+export const MAX_CAMERA_RADIUS_KM = 1000 * AU_KM;
 const FLIGHT_CLEARANCE_ALT_KM = 200;
 const SOFT_REPULSION_BAND_CAP_KM = 300;
 const SOFT_REPULSION_BAND_RATIO = 2;

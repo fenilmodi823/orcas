@@ -6,10 +6,11 @@ import { PICK_LAYER } from './points-shader-core.js';
 import { createPickMaterial } from './points-pick-material.js';
 import { useCameraStatus } from '../camera/camera-status.js';
 import { shouldIssuePick } from './points-pick-schedule.js';
-import { findBestPixel } from './points-pick-resolve.js';
+import { PICK_WINDOW_SIZE, findBestPixel } from './points-pick-resolve.js';
 import { unpackIdBytes } from './points-pick-id.js';
 
-const WINDOW_SIZE = 5; // brief §D.2
+const WINDOW_SIZE = PICK_WINDOW_SIZE; // Q43: a 12 px target; odd, so the cursor is the centre pixel
+const HALF = (WINDOW_SIZE - 1) / 2;
 
 interface PendingRead {
   fence: WebGLSync;
@@ -51,7 +52,7 @@ export interface PointsPickingHandle {
  * The pick pass (brief §D.2). Never a synchronous `readPixels`: every
  * readback goes through one reused pixel-pack buffer plus a fence,
  * polled non-blockingly across frames. `camera.setViewOffset` restricts
- * the render to a 5x5 window — "25 fragments, not W×H" — rendered into a
+ * the render to a 13x13 window (Q43) — "169 fragments, not W×H" — rendered into a
  * dedicated tiny WebGLRenderTarget (never the screen), and
  * `clearViewOffset()`/layer restoration run in a `finally` so they
  * happen even if the render itself throws.
@@ -129,7 +130,7 @@ export function usePointsPicking(pointsRef: MutableRefObject<Points | null>): Po
 
     try {
       camera.layers.set(PICK_LAYER);
-      camera.setViewOffset(size.width, size.height, px - 2, py - 2, WINDOW_SIZE, WINDOW_SIZE);
+      camera.setViewOffset(size.width, size.height, px - HALF, py - HALF, WINDOW_SIZE, WINDOW_SIZE);
       points.material = pickMaterial;
 
       gl.setRenderTarget(renderTarget);

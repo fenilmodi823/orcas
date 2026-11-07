@@ -41,6 +41,11 @@ const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
  * a GLSL uniform can't reference a CSS variable, so this is the one-time
  * bridge that keeps colour literals out of the renderer (Rules.md).
  */
+/** Minimum drawn point size, CSS px (Q43). */
+export const MIN_POINT_PX = 3;
+/** The click/hover target, CSS px (Q43): the pick window is PICK_MIN_PX + 1 wide. */
+export const PICK_MIN_PX = 12;
+
 export function createPointsMaterial(): ShaderMaterial {
   return new ShaderMaterial({
     vertexShader: POINTS_VERTEX_SHADER,
@@ -50,7 +55,7 @@ export function createPointsMaterial(): ShaderMaterial {
     blending: AdditiveBlending,
     uniforms: {
       uPixelsPerRadian: { value: 0 },
-      uMinPointPx: { value: 1.5 }, // chosen empirically, tune in Task 7
+      uMinPointPx: { value: MIN_POINT_PX }, // Q43: 3 px, so a lone satellite reads up close (1.5 px peaked at RGB (8, 40, 114) at best)
       uDpr: { value: Math.min(window.devicePixelRatio, 2) }, // Rules.md perf ceiling: dpr capped at 2
       uBaseBrightness: { value: 1.0 },
       // 0.6, not 0.05: with PLACEHOLDER_RADIUS_KM this small, truePx is

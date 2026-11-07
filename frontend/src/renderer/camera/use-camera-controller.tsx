@@ -165,6 +165,12 @@ export function useCameraController({
     });
 
     // Esc → clear selection (which the subscription turns into flyToEarth).
+    const unsubEarth = useCameraStatus.subscribe((state, prev) => {
+      if (state.earthRequests === prev.earthRequests || frameStateRef.current.epochMs <= 0) return;
+      clearSelectionQuietly();
+      sys.flyToEarthHome().catch(() => undefined);
+    });
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') useSelectionStore.getState().clearSelection();
     };
@@ -201,6 +207,7 @@ export function useCameraController({
     return () => {
       unsub();
       unsubReset();
+      unsubEarth();
       unsubViews();
       window.removeEventListener('keydown', onKey);
       el.removeEventListener('pointerdown', onPointerDown as EventListener);
@@ -233,10 +240,10 @@ export function useCameraController({
     if (pendingBody !== null) followBodyRef.current?.(pendingBody); // re-pends until the body has a position
     sys.approachBlend = tunablesRef.current.approachBlend;
     sys.update(dt, frameStateRef.current);
-    // Publish flight state for pick suppression. The store only writes on a
-    // CHANGE, so this is a comparison per frame, not a React update.
+    // Publish flight and scene for pick suppression and the toggle; the store writes only on CHANGE.
     const kind = sys.state.kind;
     useCameraStatus.getState().setFlying(kind === 'focusFlight' || kind === 'exit');
+    useCameraStatus.getState().setScene(sys.farFromEarth ? 'solar' : 'earth');
     if (radiusKmRef) radiusKmRef.current = sys.radiusKm;
     if (targetDistanceKmRef) targetDistanceKmRef.current = sys.targetDistanceKm;
   });
