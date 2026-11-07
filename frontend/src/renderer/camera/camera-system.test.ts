@@ -241,3 +241,19 @@ describe('CameraSystem — reduced motion (P4.D21)', () => {
     expect(sys.state.kind).toBe('freeOrbit');
   });
 });
+
+describe('CameraSystem — flyToEarthHome', () => {
+  it('flies home to the opening pose: 42,164 km out, the boot direction', async () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    const boot = cam.position.clone().normalize(); // the createRig() pose, before any input
+    sys.applyManualInput({ dScreenYawRad: 1.5, dScreenPitchRad: 0.5, dLnRadius: -1 });
+    for (let i = 0; i < 120; i++) sys.update(1 / 60, frame);
+    expect(cam.position.length()).toBeLessThan(30000);
+    await runFlight(sys, sys.flyToEarthHome(), frame);
+    expect(cam.position.length()).toBeCloseTo(42164, -1);
+    expect(cam.position.clone().normalize().dot(boot)).toBeGreaterThan(0.999);
+  });
+});

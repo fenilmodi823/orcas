@@ -165,6 +165,12 @@ export function useCameraController({
     });
 
     // Esc → clear selection (which the subscription turns into flyToEarth).
+    const unsubEarth = useCameraStatus.subscribe((state, prev) => {
+      if (state.earthRequests === prev.earthRequests || frameStateRef.current.epochMs <= 0) return;
+      clearSelectionQuietly();
+      sys.flyToEarthHome().catch(() => undefined);
+    });
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') useSelectionStore.getState().clearSelection();
     };
@@ -201,6 +207,7 @@ export function useCameraController({
     return () => {
       unsub();
       unsubReset();
+      unsubEarth();
       unsubViews();
       window.removeEventListener('keydown', onKey);
       el.removeEventListener('pointerdown', onPointerDown as EventListener);

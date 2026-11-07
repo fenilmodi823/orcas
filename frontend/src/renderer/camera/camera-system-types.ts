@@ -38,6 +38,8 @@ export interface CameraSystem {
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void>;
   flyToEarth(opts?: FlyOpts): Promise<void>;
+  /** The opening view: the boot rig's pose about the Earth, from wherever the camera is. */
+  flyToEarthHome(): Promise<void>;
   /** NASA Eyes' flight to a body, then follow it (S5a, Reference §4.5). */
   flyToBody(target: BodyTarget, opts?: BodyFlyOpts): Promise<void>;
   exitToFree(): Promise<void>;
