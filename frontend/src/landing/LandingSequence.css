@@ -21,6 +21,12 @@
 }
 
 .landing-sequence__brand {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   position: fixed;
   top: var(--space-6);
   left: var(--space-6);
@@ -35,6 +41,9 @@
     )
     scale(5);
   transition: transform var(--motion-camera) var(--ease-camera);
+}
+.landing-sequence__brand:disabled {
+  cursor: default;
 }
 .landing-sequence__brand[data-settled] {
   transform: translate(0, 0) scale(1);

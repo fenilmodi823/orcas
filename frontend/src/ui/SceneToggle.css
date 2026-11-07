@@ -1,0 +1,33 @@
+/* The breadcrumb's old "Solar System" root, unchanged in look until Stage B (rules copied from Breadcrumb.css). */
+.scene-toggle {
+  min-height: var(--space-6); /* WCAG 2.5.8, UI audit B.30 */
+  padding: 0;
+  border: none;
+  background: none;
+  font: var(--t-small);
+  color: var(--text-mid);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.scene-toggle:hover {
+  color: var(--text-hi);
+}
+
+.scene-toggle:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+/* The separator the old root crumb gave the first crumb. */
+.scene-toggle + nav {
+  display: flex;
+  align-items: center;
+}
+.scene-toggle + nav::before {
+  content: '›';
+  margin-inline: var(--space-2);
+  color: var(--text-mid);
+  font: var(--t-small);
+}
