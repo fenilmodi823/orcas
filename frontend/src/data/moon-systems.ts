@@ -5,12 +5,16 @@ import { createHorizonsIndex, type HorizonsIndex } from './horizons-index.js';
 export const MOON_SYSTEMS = ['mars', 'jupiter', 'saturn', 'uranus', 'neptune'] as const;
 export type MoonSystemId = (typeof MOON_SYSTEMS)[number];
 export type MoonSystemStatus = 'idle' | 'loading' | 'ready' | 'failed';
+/** Every Horizons file the client loads: a planet's moons, or the spacecraft (S6c). */
+export type HorizonsFileId = MoonSystemId | 'spacecraft';
+const FILES: readonly HorizonsFileId[] = [...MOON_SYSTEMS, 'spacecraft'];
 type Fetcher = (url: string) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>;
 
-export const moonSystemUrl = (id: MoonSystemId): string => `/ephemeris/horizons/moons-${id}.bin`;
+export const moonSystemUrl = (id: HorizonsFileId): string =>
+  id === 'spacecraft' ? '/ephemeris/horizons/spacecraft.bin' : `/ephemeris/horizons/moons-${id}.bin`;
 
-const loaded = new Map<MoonSystemId, HorizonsIndex>();
-const status = new Map<MoonSystemId, MoonSystemStatus>();
+const loaded = new Map<HorizonsFileId, HorizonsIndex>();
+const status = new Map<HorizonsFileId, MoonSystemStatus>();
 const listeners = new Set<() => void>();
 let version = 0;
 
@@ -26,11 +30,11 @@ function notifyListeners(): void {
 }
 
 /** A system's index once its file has loaded; null before, and for good if it failed. */
-export function moonSystem(id: MoonSystemId): HorizonsIndex | null {
+export function moonSystem(id: HorizonsFileId): HorizonsIndex | null {
   return loaded.get(id) ?? null;
 }
 
-export function moonSystemStatus(id: MoonSystemId): MoonSystemStatus {
+export function moonSystemStatus(id: HorizonsFileId): MoonSystemStatus {
   return status.get(id) ?? 'idle';
 }
 
@@ -39,7 +43,7 @@ export function moonSystemStatus(id: MoonSystemId): MoonSystemStatus {
  * fades in or one of its bodies is hovered or selected. A failure is final for the page: the moons are not
  * drawn, the panel says why, the console has the reason (Rules §4). A malformed file fails the same way.
  */
-export function requestMoonSystem(id: MoonSystemId, fetcher: Fetcher = (url) => fetch(url)): void {
+export function requestMoonSystem(id: HorizonsFileId, fetcher: Fetcher = (url) => fetch(url)): void {
   if (status.has(id)) return;
   status.set(id, 'loading');
   const url = moonSystemUrl(id);
@@ -55,14 +59,14 @@ export function requestMoonSystem(id: MoonSystemId, fetcher: Fetcher = (url) => 
       notifyListeners();
     })
     .catch((error: unknown) => {
-      console.warn(`Moons of ${id} not drawn: ${url} could not be loaded.`, error);
+      console.warn(`${id === 'spacecraft' ? 'Spacecraft' : `Moons of ${id}`} not drawn: ${url} could not be loaded.`, error);
       status.set(id, 'failed');
       notifyListeners();
     });
 }
 
 /** Run `fn` once the system has loaded or failed, at once if it already has; asks for it. Returns a cancel. */
-export function whenMoonSystemSettles(id: MoonSystemId, fn: () => void, fetcher?: Fetcher): () => void {
+export function whenMoonSystemSettles(id: HorizonsFileId, fn: () => void, fetcher?: Fetcher): () => void {
   requestMoonSystem(id, fetcher);
   const settled = () => moonSystemStatus(id) === 'ready' || moonSystemStatus(id) === 'failed';
   if (settled()) {
@@ -90,10 +94,10 @@ export function subscribeMoonSystems(listener: () => void): () => void {
 }
 
 /** Tests only: forget every system, or start with some already loaded. */
-export function resetMoonSystems(preloaded: Partial<Record<MoonSystemId, HorizonsIndex>> = {}): void {
+export function resetMoonSystems(preloaded: Partial<Record<HorizonsFileId, HorizonsIndex>> = {}): void {
   loaded.clear();
   status.clear();
-  for (const id of MOON_SYSTEMS) {
+  for (const id of FILES) {
     const index = preloaded[id];
     if (!index) continue;
     loaded.set(id, index);

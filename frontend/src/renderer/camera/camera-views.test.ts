@@ -9,6 +9,7 @@ import { moonSystemStatus, resetMoonSystems } from '../../data/moon-systems.js';
 import { parsePlanetEphemeris } from '../../data/planet-ephemeris.js';
 import { useSelectionStore } from '../../state/selection-store.js';
 import { bodyById } from '../solar/bodies.js';
+import { ECLIPTIC_NORTH_J2000 } from '../solar/body-target.js';
 import { useCameraStatus } from './camera-status.js';
 import { subscribeCameraViews, systemBodyOf } from './camera-views.js';
 
@@ -16,6 +17,8 @@ const read = (path: string) => {
   const f = readFileSync(resolve(process.cwd(), path));
   return f.buffer.slice(f.byteOffset, f.byteOffset + f.byteLength);
 };
+const craftIndex = () => createHorizonsIndex(parseHorizonsEphemeris(read('public/ephemeris/horizons/spacecraft.bin')));
+const NOV_4 = Date.UTC(2026, 10, 4);
 const ephemerisRef = { current: parsePlanetEphemeris(read('public/ephemeris/planets-de421.bin')) };
 const AT = Date.UTC(2026, 9, 12);
 
@@ -143,5 +146,61 @@ describe('camera views (S6b, NASA Eyes’ CameraViewBlock)', () => {
     expect(systemBodyOf(bodyById('moon')!)?.id).toBe('earth');
     expect(systemBodyOf(bodyById('venus')!)?.id).toBe('venus');
     expect(systemBodyOf(bodyById('sun')!)).toBeNull();
+  });
+
+  describe('a spacecraft (S6c1)', () => {
+    const jupiterIndex = () => createHorizonsIndex(parseHorizonsEphemeris(read('public/ephemeris/horizons/moons-jupiter.bin')));
+
+    it("frames Jupiter's system for Juno", async () => {
+      resetMoonSystems({ spacecraft: craftIndex(), jupiter: jupiterIndex() });
+      const h = harness(NOV_4);
+      useSelectionStore.getState().setSelectedBody('juno');
+      useCameraStatus.getState().requestView('system');
+      await vi.waitFor(() => expect(h.flyToBody).toHaveBeenCalledTimes(1));
+      expect(h.flyToBody.mock.calls[0]![0].key).toBe('jupiter-system');
+      expect(useCameraStatus.getState().view).toBe('system');
+      h.off();
+    });
+
+    it("frames the Sun's System for Voyager 1, past the 2.58 × 10¹⁰ km it is out", async () => {
+      resetMoonSystems({ spacecraft: craftIndex() });
+      const h = harness(NOV_4);
+      useSelectionStore.getState().setSelectedBody('voyager-1');
+      useCameraStatus.getState().requestView('system');
+      await vi.waitFor(() => expect(h.flyToBody).toHaveBeenCalledTimes(1));
+      const [target, opts] = h.flyToBody.mock.calls[0]!;
+      expect(target.key).toBe('sun-system');
+      expect((opts.refUp as Vector3).distanceTo(ECLIPTIC_NORTH_J2000)).toBeLessThan(1e-9);
+      expect((opts.arrivalOffsetKm as Vector3).length()).toBeGreaterThan(2.58e10);
+      h.off();
+    });
+
+    it('frames the Moon for LRO', async () => {
+      resetMoonSystems({ spacecraft: craftIndex() });
+      const h = harness(NOV_4);
+      useSelectionStore.getState().setSelectedBody('lro');
+      useCameraStatus.getState().requestView('system');
+      await vi.waitFor(() => expect(h.flyToBody).toHaveBeenCalledTimes(1));
+      expect(h.flyToBody.mock.calls[0]![0].key).toBe('moon-system');
+      h.off();
+    });
+
+    it('falls back to Nearby with no data now', async () => {
+      resetMoonSystems({ spacecraft: craftIndex() });
+      const h = harness(Date.UTC(1900, 0, 1));
+      useSelectionStore.getState().setSelectedBody('juno');
+      useCameraStatus.getState().requestView('system');
+      await vi.waitFor(() => expect(useCameraStatus.getState().view).toBe('nearby'));
+      expect(h.flyToBody).not.toHaveBeenCalled();
+      h.off();
+    });
+
+    it('Nearby follows the spacecraft itself', () => {
+      const h = harness(NOV_4);
+      useSelectionStore.getState().setSelectedBody('juno');
+      useCameraStatus.getState().requestView('nearby');
+      expect(h.followBody).toHaveBeenCalledWith('juno');
+      h.off();
+    });
   });
 });

@@ -14,6 +14,7 @@ import { useSelectionStore } from '../state/selection-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { bodyDetailGroups, bodyReadouts, cameraViewOptions } from './body-detail.js';
 import { moonPendingNote } from './moon-detail.js';
+import { spacecraftPendingNote } from './spacecraft-detail.js';
 import '../ui/ObjectPanel.css';
 
 interface SimulationBodyPanelProps {
@@ -37,7 +38,7 @@ export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
   const epochMs = currentTime.getTime();
   const readouts = bodyReadouts(body, epochMs, ephemeris);
   // A moon wears its planet's hue, as its trail does (NASA: children inherit the parent's); the Moon keeps --moon.
-  const token = body.horizons ? (body.parent ?? body.id) : body.id;
+  const token = body.kind === 'spacecraft' ? 'spacecraft' : body.horizons ? (body.parent ?? body.id) : body.id;
   const badge = body.kind === 'star' ? 'var(--text-hi)' : `var(--${token})`;
   const facts = { ephemerisLoaded: ephemeris !== null, centreFromHorizons: planetCentreFromHorizons(body.poleNaifId, epochMs), manifest };
 
@@ -62,7 +63,7 @@ export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
             ))}
           </div>
         ) : (
-          <p className="object-panel__pending">{moonPendingNote(body, ephemeris !== null)}</p>
+          <p className="object-panel__pending">{body.kind === 'spacecraft' ? spacecraftPendingNote(body, ephemeris !== null, manifest) : moonPendingNote(body, ephemeris !== null)}</p>
         )}
         <ObjectDetail groups={bodyDetailGroups(body, facts)} />
       </div>

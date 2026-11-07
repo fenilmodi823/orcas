@@ -5,6 +5,8 @@ import { layoutBodyLabels, type BodyLabelInput, type Occluder } from '../earth/b
 import { LAGRANGE_LABELS, writeLagrangeLabels } from '../earth/lagrange-labels.js';
 import type { MoonBodies } from './moon-bodies.js';
 import { MOONS } from './moons.js';
+import { SPACECRAFT } from './spacecraft.js';
+import type { SpacecraftBodies } from './spacecraft-bodies.js';
 import { EARTH_NAIF_ID, PLANETS } from './planets.js';
 import type { PlanetBodies } from './planet-bodies.js';
 
@@ -16,6 +18,8 @@ interface SceneLabels {
   /** In `PLANETS` order. */
   readonly planets: readonly BodyScreenPosition[];
   readonly moons: readonly BodyScreenPosition[]; // in MOONS order
+  /** In `SPACECRAFT` order. */
+  readonly spacecraft: readonly BodyScreenPosition[];
   /** In `LAGRANGE_LABELS` order. */
   readonly lagrange: readonly BodyScreenPosition[];
 }
@@ -31,15 +35,16 @@ export interface SceneLabelWriter {
  * One pass over every body label, NASA Eyes' way (Reference §4.2, S4): each is
  * hidden behind any body, and the weightier wins where two overlap. Weight:
  * the Sun, the planets nearest the camera first, the Moon, the major moons
- * nearest first, then the Lagrange points. `planets` may not be placed yet (the ephemeris is still
+ * nearest first, the spacecraft nearest first, then the Lagrange points. `planets` may not be placed yet (the ephemeris is still
  * loading); their labels stay hidden until it is.
  */
-export function createSceneLabelWriter(planets: PlanetBodies, moons: MoonBodies): SceneLabelWriter {
+export function createSceneLabelWriter(planets: PlanetBodies, moons: MoonBodies, craft: SpacecraftBodies): SceneLabelWriter {
   const labels = {
     sun: hidden(),
     moon: hidden(),
     planets: PLANETS.map(hidden),
     moons: MOONS.map(hidden),
+    spacecraft: SPACECRAFT.map(hidden),
     lagrange: LAGRANGE_LABELS.map(hidden),
   };
   const sunOccluder: Occluder = { centreKm: new Vector3(), radiusKm: SUN_RADIUS_KM };
@@ -49,6 +54,8 @@ export function createSceneLabelWriter(planets: PlanetBodies, moons: MoonBodies)
   const distanceKm = new Float64Array(PLANETS.length);
   const moonOrder = MOONS.map((_, i) => i);
   const moonDistanceKm = new Float64Array(MOONS.length);
+  const craftOrder = SPACECRAFT.map((_, i) => i);
+  const craftDistanceKm = new Float64Array(SPACECRAFT.length);
 
   return {
     labels,
@@ -91,6 +98,20 @@ export function createSceneLabelWriter(planets: PlanetBodies, moons: MoonBodies)
           continue;
         }
         inputs.push({ pointKm, self: moons.occluderOf[i] ?? null });
+        outs.push(out);
+      }
+      // The spacecraft after every moon, nearest first. A point: only a body hides it.
+      SPACECRAFT.forEach((_, i) => (craftDistanceKm[i] = craft.drawn[i] ? camera.position.distanceTo(craft.scKm[i] ?? camera.position) : Infinity));
+      craftOrder.sort((a, b) => (craftDistanceKm[a] ?? 0) - (craftDistanceKm[b] ?? 0));
+      for (const i of craftOrder) {
+        const out = labels.spacecraft[i];
+        const pointKm = craft.scKm[i];
+        if (!out || !pointKm) continue;
+        if (!craft.drawn[i]) {
+          out.visible = false;
+          continue;
+        }
+        inputs.push({ pointKm, self: null });
         outs.push(out);
       }
 

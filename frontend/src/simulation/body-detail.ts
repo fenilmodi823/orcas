@@ -4,6 +4,7 @@ import type { HorizonsManifest } from '../data/horizons-manifest.js';
 import type { CameraView } from '../renderer/camera/camera-status.js';
 import type { DetailGroup } from '../ui/object-detail-model.js';
 import { moonDetailGroups } from './moon-detail.js';
+import { spacecraftCentreDistance, spacecraftDetailGroups } from './spacecraft-detail.js';
 import { BODY_KIND_LABEL, bodyById, bodyPositionKm, type Body } from '../renderer/solar/bodies.js';
 import { NO_MAP_NOTE, PLANET_MAPS } from '../renderer/solar/planet-maps.js';
 import { RING_INNER_KM, RING_OUTER_KM } from '../renderer/solar/saturn-rings.js';
@@ -48,7 +49,9 @@ export function bodyReadouts(body: Body, epochMs: number, ephemeris: PlanetEphem
   const parent = body.horizons && body.parent ? bodyById(body.parent) : undefined;
   const parentKm = parent && bodyPositionKm(parent, epochMs, ephemeris, _parent);
   const rows: BodyReadout[] = parent && parentKm ? [distance(parent.name, at.distanceTo(parentKm))] : [];
-  if (body.id !== 'earth') rows.push(distance('Earth', fromEarthKm));
+  const centre = spacecraftCentreDistance(body, epochMs);
+  if (centre) rows.push(distance(centre.label, centre.km));
+  if (body.id !== 'earth' && centre?.label !== 'Earth') rows.push(distance('Earth', fromEarthKm));
   if (body.id !== 'sun') rows.push(distance('Sun', at.distanceTo(sun)));
   rows.push(lightTime(body.id === 'earth' ? at.distanceTo(sun) : fromEarthKm));
   return rows;
@@ -96,6 +99,7 @@ export function bodyDetailGroups(
   body: Body,
   facts: { ephemerisLoaded: boolean; centreFromHorizons: boolean; manifest: HorizonsManifest | null | undefined },
 ): DetailGroup[] {
+  if (body.kind === 'spacecraft') return spacecraftDetailGroups(body, facts.manifest);
   if (body.horizons) return moonDetailGroups(body, facts.manifest);
   const extra = [mapGroup(body), body.id === 'saturn' ? RINGS : null].filter((g): g is DetailGroup => g !== null);
   return [

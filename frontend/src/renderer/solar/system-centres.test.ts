@@ -6,7 +6,8 @@ import { horizonsStateKm, parseHorizonsEphemeris, type HorizonsEphemeris } from 
 import { createHorizonsIndex } from '../../data/horizons-index.js';
 import { resetMoonSystems } from '../../data/moon-systems.js';
 import { bodyStateKm, parsePlanetEphemeris } from '../../data/planet-ephemeris.js';
-import { applyPlanetCentre, horizonsGeocentricKm, planetCentreFromHorizons } from './system-centres.js';
+import { moonPositionJ2000Km } from '@orcas/physics';
+import { applyPlanetCentre, centreGeocentricKm, horizonsGeocentricKm, horizonsRelativeState, planetCentreFromHorizons } from './system-centres.js';
 
 const read = (path: string) => {
   const file = readFileSync(resolve(process.cwd(), path));
@@ -63,5 +64,33 @@ describe("a system's centres (S6b)", () => {
       expect(applyPlanetCentre(id, AT, v)).toBe(false);
       expect(v.toArray()).toEqual([1, 2, 3]);
     }
+  });
+});
+
+describe('any Horizons centre (S6c)', () => {
+  it('puts the barycentre where the Earth is not: minus the Earth', () => {
+    const at = centreGeocentricKm(0, AT, planets, new Vector3());
+    const earth = bodyStateKm(planets, 399, AT)?.position;
+    expect(at?.x).toBeCloseTo(-(earth?.x ?? NaN), 6);
+  });
+  it('puts the Moon where the scene draws it (M1.11), not DE421', () => {
+    const m = moonPositionJ2000Km(new Date(AT));
+    expect(centreGeocentricKm(301, AT, null, new Vector3())?.toArray()).toEqual([m.x, m.y, m.z]);
+  });
+  it('puts the Earth at the origin even before DE421 loads', () => {
+    expect(centreGeocentricKm(399, AT, null, new Vector3())?.toArray()).toEqual([0, 0, 0]);
+  });
+  it('has no place for a planet before DE421 loads', () => {
+    expect(centreGeocentricKm(5, AT, null, new Vector3())).toBeNull();
+  });
+  it('flies LRO a few hundred km above the Moon, from the spacecraft file', () => {
+    resetMoonSystems({ spacecraft: createHorizonsIndex(parseHorizonsEphemeris(read('public/ephemeris/horizons/spacecraft.bin'))) });
+    const at = Date.UTC(2026, 0, 1);
+    const rel = new Float64Array(6);
+    expect(horizonsRelativeState('spacecraft', -85, at, rel)).toBe(301);
+    const r = Math.hypot(rel[0] ?? NaN, rel[1] ?? NaN, rel[2] ?? NaN);
+    expect(r).toBeGreaterThan(1737.4 + 20);
+    expect(r).toBeLessThan(1737.4 + 200);
+    expect(horizonsGeocentricKm('spacecraft', -85, at, null, new Vector3())).not.toBeNull(); // the Moon needs no DE421
   });
 });

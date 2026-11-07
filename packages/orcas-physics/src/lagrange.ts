@@ -15,8 +15,8 @@ export interface LagrangePoints {
 // GM, km^3 s^-2, JPL planetary ephemeris DE440 (JPL SSD "Astrodynamic
 // Parameters", https://ssd.jpl.nasa.gov/astro_par.html). Mass ratios are GM ratios.
 export const GM_SUN = 132_712_440_041.279419;
-const GM_EARTH = 398_600.435507;
-const GM_MOON = 4_902.800118;
+export const GM_EARTH = 398_600.435507;
+export const GM_MOON = 4_902.800118;
 
 /** CRTBP mass parameter m2 / (m1 + m2), Earth–Moon. Unitless. */
 export const EARTH_MOON_MU = GM_MOON / (GM_EARTH + GM_MOON);

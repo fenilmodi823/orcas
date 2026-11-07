@@ -13,7 +13,7 @@ export interface ObjectLabelProps {
   /** The selected object's label reads at full strength, as on hover. */
   emphasised?: boolean;
   /** A computed point rather than an object: its marker shows its stability (RA5.D8). */
-  marker?: 'saddle' | 'stable';
+  marker?: 'saddle' | 'stable' | 'spacecraft';
   /** Makes the label a control that selects its object. */
   onSelect?: () => void;
   onHover?: (hovered: boolean) => void;
