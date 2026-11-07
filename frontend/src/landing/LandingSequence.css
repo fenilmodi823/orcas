@@ -46,6 +46,8 @@
   cursor: default;
 }
 .landing-sequence__brand[data-settled] {
+  /* .landing-sequence is pointer-events: none; only the settled logo takes clicks. */
+  pointer-events: auto;
   transform: translate(0, 0) scale(1);
 }
 
