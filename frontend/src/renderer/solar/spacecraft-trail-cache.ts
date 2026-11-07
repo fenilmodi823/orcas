@@ -2,7 +2,7 @@
 import { Vector3 } from 'three';
 import type { HorizonsManifest } from '../../data/horizons-manifest.js';
 import { SPACECRAFT_TRAIL_SAMPLES } from './spacecraft-trail.js';
-import { CENTRE_BODY } from './spacecraft.js';
+import { SPACECRAFT } from './spacecraft.js';
 import { centreGeocentricKm } from './system-centres.js';
 import type { PlanetEphemeris } from '../../data/planet-ephemeris.js';
 
@@ -33,6 +33,7 @@ export const createTrailCache = (): TrailCache => ({
 export function needsResample(c: TrailCache, centre: number, manifest: HorizonsManifest, epochMs: number): boolean {
   return (
     !c.valid ||
+    !(c.lengthS > 0) ||
     c.centre !== centre ||
     c.manifest !== manifest ||
     Math.abs(epochMs - c.epochMs) >= (0.25 * c.lengthS * 1000) / (SPACECRAFT_TRAIL_SAMPLES - 1)
@@ -47,7 +48,7 @@ interface CentreSlot {
 
 /** Each centre placed at most once a frame: geocentric km, filled lazily, reset with `reset()`; allocation-free. */
 export function createCentreCache() {
-  const slots: CentreSlot[] = Object.keys(CENTRE_BODY).map(() => ({ id: -1, ok: false, v: new Vector3() }));
+  const slots: CentreSlot[] = SPACECRAFT.map(() => ({ id: -1, ok: false, v: new Vector3() }));
   let count = 0;
   return {
     reset: () => {
@@ -59,8 +60,7 @@ export function createCentreCache() {
         const s = slots[i]!;
         if (s.id === centre) return s.ok ? s.v : null;
       }
-      const s = slots[count];
-      if (!s) return centreGeocentricKm(centre, epochMs, planets, new Vector3()); // unreachable: every centre has a slot
+      const s = slots[count]!; // a frame has at most one distinct centre per spacecraft, so a slot is always free
       count += 1;
       s.id = centre;
       s.ok = centreGeocentricKm(centre, epochMs, planets, s.v) !== null;

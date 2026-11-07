@@ -186,7 +186,10 @@ export function createSpacecraftBodies(deps: SpacecraftDeps = {}): SpacecraftBod
           cache.extentKm = extentKm;
           writeSegmentAlpha(trail.geometry, kinds, SPACECRAFT_TRAIL_SAMPLES, baseAlpha); // kinds and base alpha only: not hover
         } else {
-          trailKm.set(rel6.subarray(0, 3), LAST * 3); // the end follows the spacecraft; the other 180 points stay
+          // the end follows the spacecraft; the other 180 points stay
+          trailKm[LAST * 3] = rel6[0] ?? NaN;
+          trailKm[LAST * 3 + 1] = rel6[1] ?? NaN;
+          trailKm[LAST * 3 + 2] = rel6[2] ?? NaN;
         }
         _centre.copy(centreAt);
         const fade = centre === 0 ? 1 : layerFade(cache.extentKm, cam.distanceTo(_centre));
