@@ -28,6 +28,7 @@ describe('clampFreeOrbitRadiusKm', () => {
   // Stage A (Q41): out to 1,000 AU, so Voyager 1 (267.8 AU at the export's end) can be framed with the Sun.
   it('lets the camera stand back to 1,000 AU, and no further', () => {
     const auKm = 149_597_870.7;
+    expect(clampFreeOrbitRadiusKm(40 * auKm)).toBe(40 * auKm);
     expect(MAX_CAMERA_RADIUS_KM).toBe(1000 * auKm);
     expect(clampFreeOrbitRadiusKm(5000 * auKm)).toBe(1000 * auKm);
   });
