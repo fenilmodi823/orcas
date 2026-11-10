@@ -27,6 +27,7 @@ uniform float uMinPointPx;
 uniform float uDpr;
 uniform float uBaseBrightness;
 uniform float uFloorBrightness;
+uniform float uFloorCoreBrightness;
 uniform float uDimFactor;
 uniform float uLayerFade; // S4: 0 once the camera is so far out the shell is one pixel
 uniform float uLodLoPx;
@@ -45,6 +46,8 @@ uniform vec3 uSelectedColor;
 varying float vBrightness;
 varying float vEntityId;
 varying vec3 vTint;
+varying float vDrawPx;
+varying float vCoreBrightness;
 
 void main() {
   vEntityId = aEntityId;
@@ -55,6 +58,8 @@ void main() {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     vBrightness = 0.0;
     vTint = vec3(0.0);
+    vDrawPx = 1.0;
+    vCoreBrightness = 0.0;
     return;
   }
 
@@ -76,13 +81,7 @@ void main() {
   float truePx = aRadius * uPixelsPerRadian / dist;
   float drawPx = max(truePx, uMinPointPx);
   gl_PointSize = drawPx * uDpr;
-
-  // 2. compensate: an object drawn larger than reality is dimmed by the
-  //    area ratio, so distant debris stays visible but recedes.
-  float brightness = uBaseBrightness * min(1.0, (truePx * truePx) / (drawPx * drawPx));
-  brightness = max(brightness, uFloorBrightness);
-  brightness *= occlusionFade;
-  brightness *= mix(1.0, 0.4, aStale); // brief §I: stale objects render at 40%
+  vDrawPx = drawPx;
 
   // 3. D6 focus dim — everything except the selected object dims to
   //    uDimFactor while a selection is active. isSelected uses a small
@@ -90,18 +89,30 @@ void main() {
   //    integer indices, not because exact float equality is unsafe here
   //    (both sides are small whole numbers with no accumulated error).
   float isSelected = step(abs(aEntityId - uSelectedEntityId), 0.5);
-  brightness *= mix(1.0, mix(uDimFactor, 1.0, isSelected), uFocusActive);
-  brightness *= uLayerFade;
+
+  // Every fade both the body and the floored core share: occlusion, stale
+  // (brief §I, 40%), focus dim, the layer fade and the Tier 0 / Tier 1
+  // cross-fade (brief §B.6, the band from lod-band.ts as uniforms, §F.7).
+  float fades = occlusionFade
+    * mix(1.0, 0.4, aStale)
+    * mix(1.0, mix(uDimFactor, 1.0, isSelected), uFocusActive)
+    * uLayerFade
+    * (1.0 - smoothstep(uLodLoPx, uLodHiPx, truePx));
+
+  // 2. compensate: an object drawn larger than reality is dimmed by the
+  //    area ratio, so distant debris stays visible but recedes.
+  float brightness = uBaseBrightness * min(1.0, (truePx * truePx) / (drawPx * drawPx));
+  brightness = max(brightness, uFloorBrightness);
+  vBrightness = brightness * fades;
+
+  // Stage B §5.9: a floored dot's central 1.5 px is lit at least this much,
+  // so one pixel centre always shows it whatever the sub-pixel position.
+  float floored = 1.0 - step(uMinPointPx, truePx);
+  vCoreBrightness = floored * uFloorCoreBrightness * fades;
+
   // Orbit-class colour at rest, overridden to the selection accent — the same
   // isSelected already computed above, no second comparison.
   vTint = mix(uOrbitClassColors[int(aOrbitClass)], uSelectedColor, isSelected);
-  // 4. Tier 0 / Tier 1 cross-fade (brief §B.6). Tier 1 uses the SAME band
-  //    via lod-band.ts's tier1Alpha, so the two alphas sum to 1 and the eye
-  //    sees no event at the crossover. The band arrives as uniforms exactly
-  //    so it cannot drift from the TypeScript side (§F.7).
-  brightness *= 1.0 - smoothstep(uLodLoPx, uLodHiPx, truePx);
-
-  vBrightness = brightness;
   gl_Position = projectionMatrix * mvPosition;
 }
 `;
