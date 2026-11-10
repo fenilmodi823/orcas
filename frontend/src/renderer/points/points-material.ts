@@ -54,8 +54,10 @@ const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
 export const MIN_POINT_PX = 3;
 /** The click/hover target, CSS px (Q43): the pick window is PICK_MIN_PX + 1 wide. */
 export const PICK_MIN_PX = 12;
-/** Alpha a floored dot's lit core never drops below (Stage B §5.9). */
-export const FLOOR_CORE_BRIGHTNESS = 0.8;
+/** Alpha a floored dot's lit core never drops below (Stage B §5.9). Measured live 2026-11-11 at
+ * 2026-11-04 00:00 UTC: 0.6 lifts the lone-dot peak median to (47, 95, 153), the target; 0.8 grew the
+ * opening view's saturated ring pixels by 61% (0.6: 31%); 0 (colour fix alone) gave (43, 77, 123). */
+export const FLOOR_CORE_BRIGHTNESS = 0.6;
 /** Radius of that lit core, CSS px: 1.5 px across always holds a pixel centre (Stage B §5.9). */
 export const FLOOR_CORE_RADIUS_PX = 0.75;
 
