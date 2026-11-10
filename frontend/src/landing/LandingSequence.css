@@ -161,7 +161,7 @@
 }
 
 .landing-sequence__word {
-  font: 700 20px/1 var(--font-ui);
+  font: 700 20px/1 var(--font-text);
   letter-spacing: 0.08em;
   color: var(--text-hi);
   opacity: 0;
@@ -196,8 +196,8 @@
   border: 1px solid var(--glass-edge);
   background: var(--glass-fill-solid);
   color: var(--text-mid);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   cursor: pointer;
   opacity: 1;
   transition: opacity 300ms var(--ease-quick);
@@ -205,7 +205,6 @@
 }
 .landing-sequence__skip:hover {
   color: var(--text-hi);
-  border-color: var(--glass-edge-hover);
 }
 .landing-sequence__skip:focus-visible {
   outline: none;

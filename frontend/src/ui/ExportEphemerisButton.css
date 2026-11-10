@@ -4,8 +4,8 @@
   border: none;
   background: transparent;
   color: var(--orca-cyan);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   cursor: pointer;
 }
 

@@ -10,10 +10,10 @@
   gap: var(--space-3);
   max-width: 100%;
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--glass-fill);
   color: var(--text-mid);
-  font: var(--t-caption);
+  font: var(--t-12);
   font-weight: 400;
 }
 
@@ -34,7 +34,7 @@
   align-items: center;
   min-height: var(--space-6); /* WCAG 2.5.8 */
   padding: 0 var(--space-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--text-hi);
   font-weight: 500;
   cursor: pointer;
@@ -70,7 +70,7 @@
   background: var(--glass-fill-solid);
   box-shadow: var(--elev-2);
   color: var(--text-mid);
-  font: var(--t-caption);
+  font: var(--t-12);
   font-weight: 400;
 }
 

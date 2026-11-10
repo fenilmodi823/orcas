@@ -22,13 +22,13 @@
 }
 
 .catalog-debug__header h1 {
-  font: var(--t-h2);
+  font: var(--t-19);
   color: var(--text-hi);
   margin: 0;
 }
 
 .catalog-debug__status {
-  font: var(--t-body);
+  font: var(--t-15);
   color: var(--text-mid);
   padding: var(--space-6);
   text-align: center;
@@ -39,7 +39,7 @@
 }
 
 .catalog-debug__error-detail {
-  font: var(--t-small);
+  font: var(--t-13);
   color: var(--text-mid);
 }
 
@@ -50,9 +50,7 @@
 }
 
 .catalog-debug h2 {
-  font: var(--t-tel-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font: var(--t-label);
   color: var(--text-mid);
   margin: 0 0 var(--space-2);
 }
@@ -69,7 +67,7 @@
 .catalog-debug__histogram li {
   display: flex;
   justify-content: space-between;
-  font: var(--t-small);
+  font: var(--t-13);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   color: var(--text-hi);

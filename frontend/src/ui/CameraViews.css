@@ -6,7 +6,7 @@
 }
 
 .camera-views__option {
-  font: var(--t-caption);
+  font: var(--t-12);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-mid);

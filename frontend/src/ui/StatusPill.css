@@ -4,9 +4,7 @@
   gap: var(--space-3);
   border-radius: var(--radius-pill);
   padding: 8px 14px 8px 12px;
-  font: var(--t-tel-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font: var(--t-label);
   color: var(--text-mid);
 }
 
@@ -29,7 +27,7 @@
 }
 
 .status-pill__value {
-  font: var(--t-caption);
+  font: var(--t-12);
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
   color: var(--text-hi);

@@ -5,26 +5,24 @@
 }
 
 .telemetry-readout__label {
-  font: var(--t-tel-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font: var(--t-label);
   color: var(--text-mid);
 }
 
 .telemetry-readout__value {
-  font: var(--t-tel-value);
+  font: var(--t-num-lead);
   font-variant-numeric: tabular-nums;
   color: var(--text-hi);
 }
 
 /* A word under a mono label: the UI face at body size, so it never outranks a measurement. */
 .telemetry-readout__value--text {
-  font: var(--t-body);
+  font: var(--t-15);
   font-weight: 500;
 }
 
 .telemetry-readout__unit {
-  font: var(--t-caption);
+  font: var(--t-12);
   font-family: var(--font-mono);
   /* --text-lo cannot clear 4.5:1 at this size on any glass tier against the
      worst-case backdrop (Design.md §9) — --text-mid can, everywhere. */

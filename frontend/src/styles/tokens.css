@@ -12,7 +12,6 @@
   /* Accent â€” bioluminescent cyan, the orca signature */
   --orca-cyan: #00e5ff;
   --orca-glow: #5cf2ff; /* hover / active */
-  --abyss-teal: #00ffcc; /* secondary, telemetry-positive */
 
   /* Semantic */
   --critical: #ff3b30; /* conjunction alert ONLY */
@@ -60,28 +59,18 @@
   --glass-fill: rgba(12, 20, 34, 0.8); /* 1 Â· base tint */
   --glass-fill-raised: rgba(12, 20, 34, 0.88); /* legibility tier */
   --glass-fill-solid: rgba(8, 13, 24, 0.97); /* no-backdrop-filter fallback */
-  --glass-blur: 30px; /* 2 Â· backdrop blur */
-  --glass-saturate: 200%; /* 3 Â· saturation lift */
+  --glass-blur: 24px; /* 2 Â· backdrop blur */
+  --glass-saturate: 160%; /* 3 Â· saturation lift */
   --glass-edge: rgba(255, 255, 255, 0.18); /* 4 Â· specular edge */
-  --glass-specular: rgba(255, 255, 255, 0.22);
-  --glass-underline: rgba(0, 0, 0, 0.28);
   --glass-shadow: 0 12px 48px rgba(0, 0, 0, 0.45); /* 5 Â· elevation */
-  --glass-edge-hover: rgba(
-    255,
-    255,
-    255,
-    0.28
-  ); /* hover brighten, "the liquid part" */
-  --glass-highlight: rgba(255, 255, 255, 0.1); /* cursor-tracked specular */
 
-  /* Radii â€” mixed scale (decision D8, overrides the larger "Apple-true" radii) */
-  --radius-xs: 6px; /* swatch, tag */
-  --radius-sm: 8px; /* chip, button */
-  --radius-md: 10px; /* telemetry cell */
-  --radius-lg: 12px; /* docked rail */
-  --radius-xl: 18px; /* floating panel */
-  --radius-2xl: 20px; /* modal */
-  --radius-pill: 999px; /* toggle, time transport */
+  /* Radii — one per nesting level (Stage B §4.1) */
+  --radius-xs: 6px; /* still used by HeatmapToggle, SearchPanel (Task 3 decides) */
+  --radius-md: 10px; /* still used by DesignLab, CreditLine */
+  --radius-control: 6px;
+  --radius-cell: 10px;
+  --radius-panel: 14px;
+  --radius-pill: 999px;
 
   /* Spacing â€” 4px base */
   --space-1: 4px;
@@ -102,22 +91,24 @@
   --elev-4: 0 24px 64px rgba(0, 0, 0, 0.6);
   --focus-ring: 0 0 0 2px var(--orca-cyan);
 
-  /* Typography */
-  --font-ui:
-    "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono:
-    "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --t-display: 700 48px/52px var(--font-ui);
-  --t-h1: 700 32px/38px var(--font-ui);
-  --t-h2: 600 24px/30px var(--font-ui);
-  --t-h3: 600 18px/24px var(--font-ui);
-  --t-body: 400 15px/24px var(--font-ui);
-  --t-small: 400 13px/20px var(--font-ui);
-  --t-caption: 500 11px/16px var(--font-ui);
-  --t-tel-label: 700 10px/14px var(--font-mono);
-  --t-tel-value: 700 20px/24px var(--font-mono);
+  /* Typography — Stage B §4.1–§4.3 (Q47: Archivo; mono for measurements only) */
+  --font-text: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --t-label: 500 12px/16px var(--font-text); /* every label: sentence case, untracked, --text-mid */
+  --t-12: 400 12px/16px var(--font-text);
+  --t-13: 400 13px/20px var(--font-text);
+  --t-15: 400 15px/22px var(--font-text);
+  --t-17: 600 17px/24px var(--font-text);
+  --t-19: 600 19px/26px var(--font-text);
+  --t-22: 600 22px/28px var(--font-text);
+  --t-num-lead: 700 22px/28px var(--font-mono);
+  --t-num: 700 15px/20px var(--font-mono);
+  --t-num-sm: 500 13px/18px var(--font-mono);
+  --rule: rgba(234, 240, 250, 0.14);
 
   /* Motion */
+  --dur-micro: 100ms; /* state, never decoration */
+  --dur-short: 180ms;
   --motion-instant: 100ms ease-out;
   --motion-quick: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
   --motion-panel: 320ms; /* pair with --ease-spring, e.g. Framer Motion */

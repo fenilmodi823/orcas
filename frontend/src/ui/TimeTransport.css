@@ -10,7 +10,7 @@
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel);
   border: none;
   background: transparent;
   color: var(--text-mid);
@@ -32,10 +32,9 @@
   min-height: var(--space-6); /* WCAG 2.5.8, UI audit B.30 */
   border: none;
   background: transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   padding: 4px 8px;
-  font: var(--t-tel-label);
-  letter-spacing: 0.1em;
+  font: var(--t-label);
   color: var(--text-mid);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -51,8 +50,7 @@
    "−10 MTHS/S"). */
 .time-transport__rate {
   min-width: 11ch;
-  font: var(--t-tel-label);
-  letter-spacing: 0.1em;
+  font: var(--t-label);
   text-align: center;
   color: var(--text-mid);
   font-variant-numeric: tabular-nums;

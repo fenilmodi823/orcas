@@ -4,12 +4,12 @@
   right: var(--space-6);
   z-index: 20;
   width: 220px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel);
   background: var(--glass-fill-solid);
   border: 1px solid var(--glass-edge);
   padding: var(--space-3);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   color: var(--text-mid);
 }
 
@@ -19,7 +19,7 @@
   border: none;
   background: transparent;
   color: var(--text-hi);
-  font: var(--t-small);
+  font: var(--t-13);
   font-weight: 600;
   cursor: pointer;
 }
@@ -35,7 +35,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font: var(--t-caption);
+  font: var(--t-12);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   /* --text-lo fails 4.5:1 at this size even on --glass-fill-solid (Design.md §9) */
@@ -50,15 +50,14 @@
 .control-strip__reset {
   align-self: flex-start;
   border: 1px solid var(--glass-edge);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--text-mid);
   padding: 4px 10px;
-  font: var(--t-caption);
+  font: var(--t-12);
   cursor: pointer;
 }
 
 .control-strip__reset:hover {
   color: var(--text-hi);
-  border-color: var(--glass-edge-hover);
 }

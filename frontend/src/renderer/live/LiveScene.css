@@ -29,7 +29,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--glass-fill);
   border: 1px solid var(--glass-edge);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel);
   color: var(--text-mid);
   text-align: center;
 }

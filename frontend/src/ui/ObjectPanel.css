@@ -32,14 +32,13 @@
 
 .object-panel__name {
   margin: 0;
-  font: var(--t-h3);
+  font: var(--t-17);
   color: var(--text-hi);
   overflow-wrap: anywhere;
 }
 
 .object-panel__class {
-  font: var(--t-tel-label);
-  letter-spacing: 0.14em;
+  font: var(--t-label);
   /* --text-lo fails 4.5:1 at this size on glass (Design.md §9). */
   color: var(--text-mid);
 }
@@ -51,7 +50,7 @@
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--text-mid);
   cursor: pointer;
@@ -102,7 +101,7 @@
   margin: 0;
   padding: 0 var(--space-4) var(--space-4);
   color: var(--text-mid);
-  font: var(--t-small);
+  font: var(--t-13);
 }
 
 .object-panel__actions {

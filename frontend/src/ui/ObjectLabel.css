@@ -56,7 +56,7 @@
 
 .object-label__name {
   margin-left: 6px;
-  font: 13px/1 var(--font-ui);
+  font: 13px/1 var(--font-text);
   color: var(--text-mid);
   white-space: nowrap;
 }

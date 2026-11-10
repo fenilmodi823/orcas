@@ -6,7 +6,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font: var(--t-small);
+  font: var(--t-13);
 }
 
 .breadcrumb__item {
@@ -37,7 +37,7 @@
 
 .breadcrumb__link:focus-visible {
   outline: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   box-shadow: var(--focus-ring);
 }
 
