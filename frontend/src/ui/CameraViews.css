@@ -2,22 +2,21 @@
 .camera-views {
   display: flex;
   gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .camera-views__option {
-  font: var(--t-12);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  height: 32px;
+  font: var(--t-13);
   color: var(--text-mid);
   background: transparent;
-  border: 1px solid var(--glass-edge);
-  border-radius: var(--radius-pill);
-  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  padding: 0 var(--space-3);
   cursor: pointer;
   transition:
-    color var(--motion-quick),
-    border-color var(--motion-quick);
+    color var(--dur-micro),
+    border-color var(--dur-micro);
 }
 
 .camera-views__option:hover {
@@ -32,4 +31,10 @@
 .camera-views__option:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-views__option {
+    transition: none;
+  }
 }

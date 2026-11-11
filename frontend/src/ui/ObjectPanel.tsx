@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { GlassSurface } from './GlassSurface.js';
 import { TelemetryReadout } from './TelemetryReadout.js';
 import { ObjectDetail } from './ObjectDetail.js';
+import { objectMetaLine } from './object-meta.js';
 import type { DetailGroup } from './object-detail-model.js';
 import type { SelectableObject } from '../state/selection-store.js';
 import './ObjectPanel.css';
@@ -50,12 +51,14 @@ export function ObjectPanel({ object, readouts, groups, onClose, actions }: Obje
         <div className="object-panel__identity">
           <h2 className="object-panel__name">{object.name}</h2>
           <span className="object-panel__class">
-            {object.orbitClass.toUpperCase()} · NORAD {object.noradId}
+            {objectMetaLine(object.orbitClass, object.noradId)}
           </span>
         </div>
         <button type="button" className="object-panel__close" onClick={onClose} aria-label="Close panel (Esc)">
           <X aria-hidden size={16} />
         </button>
+        {/* Stage C puts the collapse control here. */}
+        <span data-slot="collapse" aria-hidden />
       </header>
       {/* aria-live announces the selection and its telemetry (Design.md §9). */}
       <div className="object-panel__body" role="region" aria-live="polite" aria-label={`Selected object: ${object.name}`}>

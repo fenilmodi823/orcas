@@ -79,7 +79,7 @@ export const ObjectTether = forwardRef<ObjectTetherHandle, ObjectTetherProps>(fu
         <span className="object-tether__dot" style={{ background: FILTER_CLASS_VAR[orbitClass] }} />
         <span className="object-tether__name">{name}</span>
         <span className="object-tether__meta">
-          {orbitClass.toUpperCase()} · <span ref={altitudeRef} /> km
+          {orbitClass.toUpperCase()}, <span ref={altitudeRef} /> km
         </span>
       </div>
     </div>

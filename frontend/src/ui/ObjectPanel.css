@@ -4,6 +4,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  font-stretch: 88%;
 }
 
 .object-panel__header {
@@ -11,14 +12,13 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-bottom: 1px solid var(--glass-edge);
 }
 
 .object-panel__badge {
   flex: none;
   width: 10px;
   height: 10px;
-  margin-top: 7px;
+  margin-top: 8px;
   border-radius: 50%;
 }
 
@@ -32,28 +32,44 @@
 
 .object-panel__name {
   margin: 0;
-  font: var(--t-17);
+  font: var(--t-19);
   color: var(--text-hi);
   overflow-wrap: anywhere;
 }
 
 .object-panel__class {
-  font: var(--t-label);
+  font: var(--t-13);
   /* --text-lo fails 4.5:1 at this size on glass (Design.md §9). */
   color: var(--text-mid);
 }
 
+/* The empty slot Stage C fills with the collapse control: same 32px footprint as the close button. */
+.object-panel [data-slot="collapse"] {
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+
 .object-panel__close {
+  position: relative;
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--text-mid);
   cursor: pointer;
+  transition: color var(--dur-micro);
+}
+
+/* 44px hit area around the 32px drawn button. */
+.object-panel__close::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
 }
 
 .object-panel__close:hover {
@@ -73,14 +89,13 @@
   scrollbar-color: var(--text-lo) transparent;
   /* Wheel-scrolling the panel must not zoom the scene behind it. */
   overscroll-behavior: contain;
-  padding-top: var(--space-4);
 }
 
-/* Wraps: a moon's four readouts (its planet, the Earth, the Sun, light time) overflow one row. */
+/* Three across; a moon's four readouts wrap rather than overflow. */
 .object-panel__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
   padding: 0 var(--space-4) var(--space-4);
 }
 
@@ -90,11 +105,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* Epochs and designators are long; at the 20px readout size an epoch broke
-   over three lines. Same mono, same tabular figures, one step smaller. */
+/* Epochs and designators are long; one step smaller than the lead readout. */
 .object-panel .object-detail .telemetry-readout__value {
-  font-size: 16px;
-  line-height: 22px;
+  font: var(--t-num);
 }
 
 .object-panel__pending {
@@ -105,5 +118,12 @@
 }
 
 .object-panel__actions {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: var(--space-4);
+  border-top: 1px solid var(--rule);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .object-panel__close {
+    transition: none;
+  }
 }

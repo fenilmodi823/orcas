@@ -26,7 +26,7 @@ export function ObjectSummary({ object, detailOpen, onToggleDetail, onBack }: Ob
         <span className="object-summary__name">{object.name}</span>
         <span className="object-summary__class">{object.orbitClass.toUpperCase()}</span>
         <button type="button" className="object-summary__back" onClick={onBack}>
-          Esc · back
+          Esc to go back
         </button>
       </div>
       <div className="object-summary__grid">

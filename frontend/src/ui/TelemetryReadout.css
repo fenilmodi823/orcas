@@ -22,8 +22,7 @@
 }
 
 .telemetry-readout__unit {
-  font: var(--t-12);
-  font-family: var(--font-mono);
+  font: var(--t-num-sm);
   /* --text-lo cannot clear 4.5:1 at this size on any glass tier against the
      worst-case backdrop (Design.md §9) — --text-mid can, everywhere. */
   color: var(--text-mid);

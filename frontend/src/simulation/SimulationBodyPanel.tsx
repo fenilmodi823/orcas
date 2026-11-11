@@ -48,11 +48,12 @@ export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
         <span className="object-panel__badge" style={{ background: badge }} aria-hidden />
         <div className="object-panel__identity">
           <h2 className="object-panel__name">{body.name}</h2>
-          <span className="object-panel__class">{bodySubtitle(body).toUpperCase()}</span>
+          <span className="object-panel__class">{bodySubtitle(body)}</span>
         </div>
         <button type="button" className="object-panel__close" onClick={clearSelection} aria-label="Close panel (Esc)">
           <X aria-hidden size={16} />
         </button>
+        <span data-slot="collapse" aria-hidden />
       </header>
       <CameraViews options={cameraViewOptions(body)} active={view} onSelect={requestView} />
       <div className="object-panel__body" role="region" aria-live="polite" aria-label={`Selected body: ${body.name}`}>
