@@ -133,10 +133,10 @@
   fill: var(--orca-cyan);
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping {
-  animation: landing-sequence-ping 1100ms linear forwards;
+  animation: landing-sequence-ping 800ms linear forwards;
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping + .landing-sequence__ping {
-  animation-delay: 250ms;
+  animation-delay: 180ms;
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__dot {
   animation: landing-sequence-blip 900ms var(--ease-quick) var(--dot-delay) forwards;
@@ -222,7 +222,6 @@
 .landing-sequence[data-instant] .landing-sequence__body,
 .landing-sequence[data-instant] .landing-sequence__fx,
 .landing-sequence[data-instant] .landing-sequence__ring,
-.landing-sequence[data-instant] .landing-sequence__word,
-.landing-sequence[data-instant] .landing-sequence__readout {
+.landing-sequence[data-instant] .landing-sequence__word {
   transition-duration: 150ms;
 }

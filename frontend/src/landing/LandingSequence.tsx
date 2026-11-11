@@ -9,7 +9,6 @@ import {
   type LandingPhase,
 } from './landing-timeline.js';
 import './LandingSequence.css';
-import './LandingReadout.css';
 import { useCameraStatus } from '../renderer/camera/camera-status.js';
 import { useReducedMotion } from '../state/use-reduced-motion.js';
 
@@ -46,8 +45,6 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
   const [phase, setPhase] = useState<LandingPhase>(mode === 'full' ? 'ring' : 'done');
   const [dismissed, setDismissed] = useState(mode === 'skip');
   const [instant, setInstant] = useState(mode === 'skip');
-  // "Establishing link NN": decorative, as on the portfolio's loader — it measures nothing (Fenil, 2026-11-03).
-  const [percent, setPercent] = useState(0);
   const requestEarth = useCameraStatus((s) => s.requestEarth);
   const ringRef = useRef<SVGPathElement>(null);
 
@@ -75,14 +72,9 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
       return () => clearTimeout(timer);
     }
 
-    const ticker = setInterval(() => setPercent((p) => Math.min(99, p + Math.random() * 17)), 130);
     const timers = TIMELINE.filter((step) => step.at > 0).map(({ phase: p, at }) =>
       setTimeout(() => {
         setPhase(p);
-        if (p === 'settle') {
-          clearInterval(ticker);
-          setPercent(100);
-        }
         if (p === 'done') {
           markLandingSequencePlayed();
           setDismissed(true);
@@ -91,7 +83,6 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
       }, at),
     );
     return () => {
-      clearInterval(ticker);
       timers.forEach(clearTimeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mode/onDone are stable for this component's lifetime
@@ -172,14 +163,6 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
         </svg>
         <span className="landing-sequence__word">ORCAS</span>
       </button>
-
-      {showChrome && (
-        <div className="landing-sequence__readout" aria-hidden="true">
-          <span>Establishing link</span>
-          <span className="landing-sequence__bar" />
-          <span>{String(Math.floor(percent)).padStart(2, '0')}</span>
-        </div>
-      )}
 
       {showChrome && (
         <button
