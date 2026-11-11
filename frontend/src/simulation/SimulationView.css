@@ -6,10 +6,11 @@
   position: relative;
   width: 100vw;
   height: 100vh;
-  --object-panel-width: 340px;
-  /* The legend's column at the bottom right (108 px wide, measured 2026-10-23) and a gap,
-     kept clear on both sides so the dock stays centred. */
-  --legend-column: calc(var(--space-16) + var(--space-12) + var(--space-2));
+  --panel-w: 340px;
+  /* The bottom stack's height, a constant (no measuring): 8 px inset + 32 px credit
+     (24 px control + 2 x 4 px padding) + 8 px gap + 84 px collapsed dock (8 + 32 + 8
+     transport, 24 + 12 scrubber). The open passes table stops above it. */
+  --bottom-stack-h: calc(var(--space-2) + var(--space-8) + var(--space-2) + 84px);
   /* The brand mark spans 24–130.3 px (measured 2026-10-06 at 1440 × 900); the breadcrumb sits one --space-6 past it. */
   --breadcrumb-left: calc(130px + var(--space-6));
 }
@@ -74,30 +75,30 @@
   left: var(--space-4);
   right: var(--space-4);
   bottom: var(--space-2);
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-2);
   z-index: 13;
   /* The gaps stay the scene's: drags pass through to the canvas. */
   pointer-events: none;
 }
 
+/* The dock takes what is left and shrinks first; the legend keeps its size and
+   sits beside it, so it can never be over "Now" (Stage B §5.1). */
 .simulation__bottom-row {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding: 0 var(--legend-column);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
 }
 
 .simulation__dock {
   width: min(880px, 100%);
+  justify-self: center;
   pointer-events: auto;
 }
 
 .simulation__bottom-row .orbit-class-legend,
 .simulation__bottom-row .orbit-class-legend-reopen {
-  right: 0;
-  bottom: 0;
   pointer-events: auto;
 }
 
@@ -121,7 +122,7 @@
   top: var(--space-16);
   left: var(--space-4);
   bottom: var(--space-4);
-  width: min(var(--object-panel-width), calc(100vw - 2 * var(--space-4)));
+  width: min(var(--panel-w), calc(100vw - 2 * var(--space-4)));
   z-index: 13;
 }
 
@@ -129,7 +130,7 @@
    as NASA Eyes re-centres its time controls. Snapped, not animated:
    animating left/width is banned (Rules.md §2). */
 .simulation[data-object-panel] .simulation__bottom {
-  left: calc(var(--object-panel-width) + 2 * var(--space-4));
+  left: calc(var(--panel-w) + 2 * var(--space-4));
 }
 
 /* The close-approach warning (conjunction-alert spec §3.3): top centre, below
@@ -144,8 +145,8 @@
 }
 
 .simulation[data-object-panel] .simulation__warning {
-  right: calc(var(--object-panel-width) + 2 * var(--space-4));
-  width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
+  right: calc(var(--panel-w) + 2 * var(--space-4));
+  width: min(560px, calc(100vw - var(--panel-w) - 3 * var(--space-4)));
 }
 
 /* Phones (the desktop notice's width): the epoch's notices wrap under the

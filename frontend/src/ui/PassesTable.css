@@ -1,7 +1,6 @@
 .passes-table {
   max-width: 100%;
-  /* --bottom-stack-h does not exist yet; --space-16 + --space-8 stands in for the bottom stack. */
-  max-height: calc(100dvh - 56px - var(--bottom-stack-h, calc(var(--space-16) + var(--space-8))));
+  max-height: calc(100dvh - 56px - var(--bottom-stack-h));
   overflow-y: auto;
   padding: var(--space-2) var(--space-3);
   color: var(--text-hi);

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Circle, Diamond, Square, Triangle, X } from 'lucide-react';
 import { GlassSurface } from './GlassSurface.js';
 import { useViewStore } from '../state/view-store.js';
@@ -28,6 +29,13 @@ const ROWS: readonly { readonly key: string; readonly label: string; readonly Ic
 export function OrbitClassLegend() {
   const dismissed = useViewStore((state) => state.orbitClassLegendDismissed);
   const toggle = useViewStore((state) => state.toggleOrbitClassLegend);
+
+  // Under 1100 px the legend starts folded to its 32 px button (Stage B §5.1), through the same control.
+  useEffect(() => {
+    if (!dismissed && window.matchMedia?.('(max-width: 1099px)').matches) toggle();
+    // Once, at mount: the viewer's later choice is theirs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (dismissed) {
     return (

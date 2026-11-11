@@ -155,3 +155,14 @@ export function formatCreditLine(provenance: CatalogProvenance): string {
     'Positions are SGP4 propagations, not observations.'
   );
 }
+
+const SHORT_SOURCE: Readonly<Record<string, string>> = {
+  celestrak: 'CelesTrak',
+  'spacetrack-gp': 'Space-Track.org, courtesy of USSPACECOM',
+};
+
+/** The one-line credit (Stage B §5.7, Fenil 2026-11-10): every source named; the full wording sits behind Sources. */
+export function formatShortCredit(provenance: CatalogProvenance): string {
+  const sources = provenance.sources.map((s) => SHORT_SOURCE[s] ?? s);
+  return `Data: ${[...sources, 'JPL Horizons', 'ESA/Gaia/DPAC'].join('; ')}.`;
+}

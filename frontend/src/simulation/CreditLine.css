@@ -4,7 +4,7 @@
    scene. The rest open above it from "Sources" (UI audit B.30). */
 .credit-line {
   position: relative;
-  align-self: center;
+  justify-self: center;
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -20,6 +20,12 @@
 .credit-line__required {
   margin: 0;
   text-align: center;
+  white-space: nowrap;
+}
+
+/* Wraps rather than truncates when the line no longer fits. */
+@media (max-width: 1023px) {
+  .credit-line__required { white-space: normal; }
 }
 
 .credit-line__sources,

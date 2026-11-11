@@ -4,6 +4,7 @@ import {
   describeProvenance,
   formatAge,
   formatCreditLine,
+  formatShortCredit,
   formatEpochUtc,
   isStale,
 } from './catalog-provenance.js';
@@ -193,6 +194,18 @@ describe('formatCreditLine', () => {
 
   it('shows an unrecognised source by its id rather than dropping the attribution', () => {
     expect(formatCreditLine({ ...base, sources: ['some-new-feed'] })).toContain('some-new-feed');
+  });
+});
+
+describe('formatShortCredit', () => {
+  const base = describeProvenance(snapshot([object({ source: 'celestrak', epochMs: NOW_MS - HOUR })]), 'live', NOW_MS);
+
+  it('names every source in one sentence (Stage B §5.7)', () => {
+    expect(formatShortCredit({ ...base, sources: ['celestrak', 'spacetrack-gp'] }))
+      .toBe('Data: CelesTrak; Space-Track.org, courtesy of USSPACECOM; JPL Horizons; ESA/Gaia/DPAC.');
+  });
+  it('never drops an unknown source', () => {
+    expect(formatShortCredit({ ...base, sources: ['other-feed'] })).toBe('Data: other-feed; JPL Horizons; ESA/Gaia/DPAC.');
   });
 });
 

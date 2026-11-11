@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
-import { formatCreditLine, isStale, type CatalogProvenance } from '../data/catalog-provenance.js';
+import { formatCreditLine, formatShortCredit, isStale, type CatalogProvenance } from '../data/catalog-provenance.js';
 import type { CatalogSnapshot, NoradId } from '../data/catalog-types.js';
 import { LiveScene } from '../renderer/live/LiveScene.js';
 import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-scene.js';
@@ -129,13 +129,16 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
             <OrbitClassLegend />
           </PanelErrorBoundary>
         </div>
-        {/* RA-14 §2.3 wants a provenance line wherever catalogue data is shown,
-            and both the USSPACECOM citation (RA14.D3) and ESA's Gaia
-            acknowledgement are licence conditions: neither waits to be
-            summoned. The rest open from Sources (Fenil, 2026-10-23, B.30). */}
+        {/* The credit is one line that still names every source (Fenil 2026-11-10,
+            Stage B §9.1 item 2). Attribution is a licence condition (RA-14 §2.3,
+            RA14.D3; ESA's Gaia acknowledgement), so the full wording that used to
+            be on screen is the first item behind Sources, word for word. */}
         <CreditLine
-          required={`${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`}
-          sources={[EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, SPACECRAFT_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT]}
+          required={formatShortCredit(provenance)}
+          sources={[
+            `${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`,
+            EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, SPACECRAFT_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT,
+          ]}
         />
       </div>
     </main>
