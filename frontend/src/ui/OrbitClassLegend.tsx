@@ -30,12 +30,20 @@ export function OrbitClassLegend() {
   const dismissed = useViewStore((state) => state.orbitClassLegendDismissed);
   const toggle = useViewStore((state) => state.toggleOrbitClassLegend);
 
-  // Under 1100 px the legend starts folded to its 32 px button (Stage B §5.1), through the same control.
+  const setDismissed = useViewStore((state) => state.setOrbitClassLegendDismissed);
+
+  // Under 1100 px the legend folds to its 32 px button (Stage B §5.1): at mount and whenever the
+  // window narrows. A setter, so StrictMode's double mount cannot undo it. Never unfolds on widening.
   useEffect(() => {
-    if (!dismissed && window.matchMedia?.('(max-width: 1099px)').matches) toggle();
-    // Once, at mount: the viewer's later choice is theirs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const query = window.matchMedia?.('(max-width: 1099px)');
+    if (!query) return;
+    if (query.matches) setDismissed(true);
+    const onChange = (event: { matches: boolean }) => {
+      if (event.matches) setDismissed(true);
+    };
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [setDismissed]);
 
   if (dismissed) {
     return (

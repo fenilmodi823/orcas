@@ -41,6 +41,7 @@ interface ViewState {
   toggleHeatmap: () => void;
   togglePanel: () => void;
   toggleOrbitClassLegend: () => void;
+  setOrbitClassLegendDismissed: (dismissed: boolean) => void;
 }
 
 /** Layers, filters, camera mode — Architecture.md §5. Camera mode joins P4. */
@@ -73,6 +74,7 @@ export const useViewStore = create<ViewState>((set) => ({
   toggleHeatmap: () => set((state) => ({ showHeatmap: !state.showHeatmap })),
   togglePanel: () => set((state) => ({ panelCollapsed: !state.panelCollapsed })),
   toggleOrbitClassLegend: () => set((state) => ({ orbitClassLegendDismissed: !state.orbitClassLegendDismissed })),
+  setOrbitClassLegendDismissed: (dismissed) => set({ orbitClassLegendDismissed: dismissed }),
 }));
 
 /** The effective preference: the in-app override when set, else the OS. */
