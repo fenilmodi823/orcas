@@ -61,10 +61,10 @@
   --glass-fill-solid: rgba(8, 13, 24, 0.97); /* no-backdrop-filter fallback */
   --glass-blur: 24px; /* 2 Â· backdrop blur */
   --glass-saturate: 160%; /* 3 Â· saturation lift */
-  --glass-edge: rgba(255, 255, 255, 0.18); /* 4 Â· specular edge */
+  --glass-edge: rgba(234, 240, 250, 0.14); /* 4 Â· glass edge, Stage B */
   --glass-shadow: 0 12px 48px rgba(0, 0, 0, 0.45); /* 5 Â· elevation */
 
-  /* Radii — one per nesting level (Stage B §4.1) */
+  /* Radii â€” one per nesting level (Stage B Â§4.1) */
   --radius-xs: 6px; /* still used by HeatmapToggle, SearchPanel (Task 3 decides) */
   --radius-md: 10px; /* still used by DesignLab, CreditLine */
   --radius-control: 6px;
@@ -91,7 +91,7 @@
   --elev-4: 0 24px 64px rgba(0, 0, 0, 0.6);
   --focus-ring: 0 0 0 2px var(--orca-cyan);
 
-  /* Typography — Stage B §4.1–§4.3 (Q47: Archivo; mono for measurements only) */
+  /* Typography â€” Stage B Â§4.1â€“Â§4.3 (Q47: Archivo; mono for measurements only) */
   --font-text: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --t-label: 500 12px/16px var(--font-text); /* every label: sentence case, untracked, --text-mid */

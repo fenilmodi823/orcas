@@ -30,4 +30,7 @@ describe('Stage B tokens (spec §4.1)', () => {
     expect(css).toContain('--radius-cell: 10px;');
     expect(css).toContain('--radius-panel: 14px;');
   });
+  it('has the correct glass edge value', () => {
+    expect(css).toContain('--glass-edge: rgba(234, 240, 250, 0.14);');
+  });
 });
