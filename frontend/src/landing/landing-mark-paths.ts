@@ -1,4 +1,6 @@
 /**
+ * BODY_D, MARK_HOLES and RING_D are the master mark's geometry: design/brand/orcas-mark.svg
+ * carries the same strings, and landing-mark-paths.test.ts fails if they drift apart.
  * Same geometry as public/brand/logo.svg and
  * public/brand/logo-tracks.svg's ring+star — duplicated here (not imported)
  * because the landing sequence needs stroke-dashoffset draw-on, which the
