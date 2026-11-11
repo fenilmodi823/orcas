@@ -25,6 +25,7 @@ import { HeatmapToggle } from '../ui/HeatmapToggle.js';
 import { ReplayControl, type ReplayHandle } from '../ui/ReplayControl.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
@@ -41,7 +42,6 @@ import { parseViewState } from './view-url.js';
 import { useApplyInitialView, useWriteViewUrl } from './use-view-url.js';
 import { toReplayHandle } from './replay-handle.js';
 import { usePendingView, type PendingView } from './use-pending-view.js';
-import { useChromeRect } from '../ui/use-chrome-rect.js';
 import './SimulationView.css';
 
 const FILTER_LABELS: Record<FilterClass, string> = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', debris: 'Debris' };

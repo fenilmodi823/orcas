@@ -6,9 +6,9 @@ import { useSelectionStore } from '../state/selection-store.js';
 import { Breadcrumb, type Crumb } from '../ui/Breadcrumb.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
 import { SceneToggle } from '../ui/SceneToggle.js';
-import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { SiteNotices } from '../ui/SiteNotices.js';
 import { StatusPill } from '../ui/StatusPill.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { useSelectedBody } from './use-selected-body.js';
 
 interface SimulationHeaderProps {
