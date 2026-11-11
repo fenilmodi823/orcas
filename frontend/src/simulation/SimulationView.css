@@ -136,16 +136,15 @@
    the breadcrumb and the epoch pill, re-centred beside an open object panel. */
 .simulation__warning {
   position: absolute;
-  top: var(--space-16);
-  left: 50%;
-  transform: translateX(-50%);
+  top: 56px;
+  right: var(--space-4);
   width: min(560px, calc(100vw - 2 * var(--space-4)));
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .simulation[data-object-panel] .simulation__warning {
-  left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
+  right: calc(var(--object-panel-width) + 2 * var(--space-4));
   width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
 }
 
@@ -155,5 +154,5 @@
 @media (max-width: 767px) {
   .simulation__header { height: auto; min-height: 28px; flex-wrap: wrap; row-gap: 0; }
   .simulation__epoch { align-items: flex-start; }
-  .simulation__warning { top: calc(var(--space-16) + var(--space-8)); }
+  .simulation__warning { top: calc(56px + var(--space-8)); }
 }

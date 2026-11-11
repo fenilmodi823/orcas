@@ -66,13 +66,13 @@ describe('quietLine', () => {
   });
   it('says none are due inside the window', () => {
     expect(quietLine({ kind: 'idle', run: RUN, simulationMs: T0, selectionCovered: true }, now).text).toBe(
-      "Close-approach warnings: nothing due from the run's top 10 or the selected object · screened 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC");
+      "Close-approach warnings: nothing due from the run's top 10 or the selected object, screened 2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC");
   });
   it('names the selected object only when its passes were checked', () => {
     const span = '2026-09-29 10:02:05 UTC → 2026-09-30 10:02:05 UTC';
     const idle = (selectionCovered: boolean) => quietLine({ kind: 'idle', run: RUN, simulationMs: T0, selectionCovered }, now).text;
-    expect(idle(false)).toBe(`Close-approach warnings: nothing due from the run's top 10 · screened ${span}`);
-    expect(idle(true)).toBe(`Close-approach warnings: nothing due from the run's top 10 or the selected object · screened ${span}`);
+    expect(idle(false)).toBe(`Close-approach warnings: nothing due from the run's top 10, screened ${span}`);
+    expect(idle(true)).toBe(`Close-approach warnings: nothing due from the run's top 10 or the selected object, screened ${span}`);
   });
   it('never reads "not screened" or "unreachable" as all clear', () => {
     expect(quietLine({ kind: 'not-screened' }, now)).toEqual({ text: 'No screening run yet', goThere: false });

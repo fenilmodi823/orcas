@@ -102,7 +102,7 @@ export function quietLine(state: QuietState, wallNowMs: number): QuietLine {
   const span = `${formatEpochUtc(run.windowStartMs)} → ${formatEpochUtc(run.windowEndMs)}`;
   if (simulationMs >= run.windowStartMs && simulationMs <= run.windowEndMs) {
     const scope = selectionCovered ? "the run's top 10 or the selected object" : "the run's top 10";
-    return { text: `Close-approach warnings: nothing due from ${scope} · screened ${span}`, goThere: false };
+    return { text: `Close-approach warnings: nothing due from ${scope}, screened ${span}`, goThere: false };
   }
   return {
     text: `Close-approach warnings cover ${span} (screened ${screenedAgo(run.completedAtMs, wallNowMs)})`,
