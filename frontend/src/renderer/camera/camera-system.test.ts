@@ -150,7 +150,7 @@ describe('CameraSystem — flyTo', () => {
     const before = cam.position.clone();
     sys.applyManualInput({ dScreenYawRad: 0.05, dScreenPitchRad: 0, dLnRadius: 0 });
     sys.update(1 / 60, frame);
-    expect(sys.state.kind).toBe('object'); // was freeOrbit before 2026-11-11 (Task 15 overrides brief �C.11)
+    expect(sys.state.kind).toBe('object'); // was freeOrbit before 2026-11-11 (Task 15 overrides brief §C.11)
     expect(cam.position.distanceTo(before)).toBeLessThan(before.length() * 0.1);
     await expect(p).rejects.toBeInstanceOf(CancelledError);
   });
@@ -258,7 +258,7 @@ describe('CameraSystem — flyToEarthHome', () => {
   });
 });
 
-describe('CameraSystem � a drag during the fly-in to a satellite', () => {
+describe('CameraSystem — a drag during the fly-in to a satellite', () => {
   it('orbits the satellite: state object, no jump at the grab, distance held while it moves', () => {
     const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
     const sys = createCameraSystem(cam);

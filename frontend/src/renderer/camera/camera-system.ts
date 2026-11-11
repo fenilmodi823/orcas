@@ -73,7 +73,7 @@ class CameraSystemImpl implements CameraSystem {
     accumulateManualInput(this.targetRig, input, floor, this.refUp);
   }
 
-    private grab(): void {
+  private grab(): void {
     const sat = this._state.kind === 'focusFlight' && this.targetIndex >= 0 && !this.bodies.flying ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
     this.flights.cancel();
     this.bodies.cancel();
