@@ -110,7 +110,14 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
       data-instant={instant ? '' : undefined}
       {...beats}
     >
-      {showChrome && <div className="landing-sequence__backdrop" data-dismissed={dismissed ? '' : undefined} />}
+      {/* Fades from settle so the scene shows as the mark glides; it blocks pointers until done (Stage B §4.5). */}
+      {showChrome && (
+        <div
+          className="landing-sequence__backdrop"
+          data-fading={settled ? '' : undefined}
+          data-dismissed={dismissed ? '' : undefined}
+        />
+      )}
 
       <button
         type="button"

@@ -4,7 +4,8 @@ export type LandingPhase = 'ring' | 'surface' | 'waves' | 'ping' | 'wordmark' | 
  * Storyboard from Branding.md#Logo animation (breach, ping, settle — shared
  * with the portfolio's loader since 2026-11-03). Every "at" is ms from mount;
  * Stage B §4.5: 2.8s in all, no invented percentage. The settle glide is the
- * brand's --motion-camera and may finish just after "done".
+ * brand's --motion-camera (900ms): it runs 2.2s to 3.1s, ends 300ms after
+ * "done" and blocks no pointers.
  */
 export const TIMELINE: readonly { phase: LandingPhase; at: number }[] = [
   { phase: 'ring', at: 0 },

@@ -15,8 +15,10 @@
   transition: opacity 400ms var(--ease-quick);
   pointer-events: auto;
 }
-.landing-sequence__backdrop[data-dismissed] {
+.landing-sequence__backdrop[data-fading] {
   opacity: 0;
+}
+.landing-sequence__backdrop[data-dismissed] {
   pointer-events: none;
 }
 
@@ -136,6 +138,7 @@
   animation: landing-sequence-ping 800ms linear forwards;
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping + .landing-sequence__ping {
+  /* Ring 2 ends at 1.98 s, past 4.5's 1.8 s: two staggered 800 ms rings cannot both fit (250 ms ended at 2.05 s). */
   animation-delay: 180ms;
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__dot {

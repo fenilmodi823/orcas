@@ -80,6 +80,19 @@ describe('LandingSequence', () => {
     expect(container.textContent).not.toMatch(/Establishing link/);
   });
 
+  it('fades the backdrop from settle but blocks pointers until done (Stage B 4.5)', () => {
+    const { container } = render(<LandingSequence />);
+    const backdrop = container.querySelector('.landing-sequence__backdrop') as HTMLElement;
+
+    act(() => vi.advanceTimersByTime(2100));
+    expect(backdrop.hasAttribute('data-fading')).toBe(false);
+    act(() => vi.advanceTimersByTime(100)); // 2200ms: settle
+    expect(backdrop.hasAttribute('data-fading')).toBe(true);
+    expect(backdrop.hasAttribute('data-dismissed')).toBe(false);
+    act(() => vi.advanceTimersByTime(600)); // 2800ms: done
+    expect(backdrop.hasAttribute('data-dismissed')).toBe(true);
+  });
+
   it('pings twelve decorative dots', () => {
     const { container } = render(<LandingSequence />);
 
