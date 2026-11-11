@@ -23,17 +23,13 @@
 }
 
 .time-transport__icon::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -6px;
 }
 
 .time-transport__icon:hover {
   color: var(--text-hi);
-}
-
-.time-transport__icon[aria-pressed='true'] {
-  color: var(--orca-cyan);
 }
 
 .time-transport__icon:active,
@@ -82,11 +78,11 @@
   color: var(--text-mid);
 }
 
-.time-transport__rate[data-kind='words'] {
+.time-transport__rate[data-kind="words"] {
   font: var(--t-label);
 }
 
-.time-transport__rate[data-kind='measure'] {
+.time-transport__rate[data-kind="measure"] {
   font: var(--t-num-sm);
   font-variant-numeric: tabular-nums;
 }

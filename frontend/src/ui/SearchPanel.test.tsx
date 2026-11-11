@@ -54,7 +54,7 @@ describe('SearchPanel', () => {
     render(<SearchPanel items={many} onSelect={vi.fn()} maxResults={10} />);
 
     expect(screen.getAllByRole('option')).toHaveLength(10);
-    expect(screen.getByText('Showing 10 of 120 — type to narrow')).toBeTruthy();
+    expect(screen.getByText('Showing 10 of 120. Type to narrow')).toBeTruthy();
   });
 
   it('focuses its own input on mount only when summoned with autoFocus', () => {

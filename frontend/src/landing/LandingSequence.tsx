@@ -107,6 +107,7 @@ export function LandingSequence({ onDone }: LandingSequenceProps) {
       className="landing-sequence"
       data-phase={phase}
       data-mode={mode}
+      data-js=""
       data-instant={instant ? '' : undefined}
       {...beats}
     >

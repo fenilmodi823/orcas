@@ -4,13 +4,15 @@
    corner anchor). Nothing else is on screen at rest. */
 .simulation {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   --panel-w: 340px;
   /* The bottom stack's height, a constant (no measuring): 8 px inset + 32 px credit
      (24 px control + 2 x 4 px padding) + 8 px gap + 84 px collapsed dock (8 + 32 + 8
      transport, 24 + 12 scrubber). The open passes table stops above it. */
-  --bottom-stack-h: calc(var(--space-2) + var(--space-8) + var(--space-2) + 84px);
+  --bottom-stack-h: calc(
+    var(--space-2) + var(--space-8) + var(--space-2) + 84px
+  );
   /* The brand mark spans 24–130.3 px (measured 2026-10-06 at 1440 × 900); the breadcrumb sits one --space-6 past it. */
   --breadcrumb-left: calc(130px + var(--space-6));
 }
@@ -33,13 +35,16 @@
 
 /* No band: a 40 px fade from the void keeps the line legible over the scene. */
 .simulation__header::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: calc(var(--space-12) + var(--space-10));
-  background: linear-gradient(color-mix(in srgb, var(--void) 60%, transparent), transparent);
+  background: linear-gradient(
+    color-mix(in srgb, var(--void) 60%, transparent),
+    transparent
+  );
   pointer-events: none;
   z-index: -1;
 }
@@ -122,7 +127,7 @@
   top: var(--space-16);
   left: var(--space-4);
   bottom: var(--space-4);
-  width: min(var(--panel-w), calc(100vw - 2 * var(--space-4)));
+  width: min(var(--panel-w), calc(100% - 2 * var(--space-4)));
   z-index: 13;
 }
 
@@ -139,21 +144,30 @@
   position: absolute;
   top: 56px;
   right: var(--space-4);
-  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  width: min(560px, calc(100% - 2 * var(--space-4)));
   display: flex;
   justify-content: flex-end;
 }
 
 .simulation[data-object-panel] .simulation__warning {
   right: calc(var(--panel-w) + 2 * var(--space-4));
-  width: min(560px, calc(100vw - var(--panel-w) - 3 * var(--space-4)));
+  width: min(560px, calc(100% - var(--panel-w) - 3 * var(--space-4)));
 }
 
 /* Phones (the desktop notice's width): the epoch's notices wrap under the
    centred warning, which then covered Dismiss. Keep the notices on top and
    start the warning below the first of them. */
 @media (max-width: 767px) {
-  .simulation__header { height: auto; min-height: 28px; flex-wrap: wrap; row-gap: 0; }
-  .simulation__epoch { align-items: flex-start; }
-  .simulation__warning { top: calc(56px + var(--space-8)); }
+  .simulation__header {
+    height: auto;
+    min-height: 28px;
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .simulation__epoch {
+    align-items: flex-start;
+  }
+  .simulation__warning {
+    top: calc(56px + var(--space-8));
+  }
 }

@@ -1,3 +1,4 @@
+/* Hallmark · stamp, critique and waivers: see ../index.css (this file is imported outside the swept graph) */
 /* Landing sequence — Branding.md#Logo animation. Every animated property
    here is transform, opacity, or stroke-dashoffset; nothing else (Rules.md,
    Design.md §5: never a layout property). */
@@ -44,6 +45,10 @@
     scale(5);
   transition: transform var(--motion-camera) var(--ease-camera);
 }
+.landing-sequence__brand:focus-visible {
+  outline: 2px solid var(--orca-cyan);
+  outline-offset: 8px;
+}
 .landing-sequence__brand:disabled {
   cursor: default;
 }
@@ -77,7 +82,7 @@
 }
 
 /* The breach: the orca rises from below. */
-.landing-sequence__body {
+.landing-sequence[data-js][data-mode="full"] .landing-sequence__body {
   opacity: 0;
   transform: translateY(9px) scale(0.985);
   transform-box: fill-box;
@@ -102,7 +107,7 @@
   opacity: 0;
 }
 
-.landing-sequence__wave {
+.landing-sequence[data-js][data-mode="full"] .landing-sequence__wave {
   opacity: 0;
   transform: translateY(5px);
   transition:
@@ -137,12 +142,15 @@
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping {
   animation: landing-sequence-ping 800ms linear forwards;
 }
-.landing-sequence[data-mode="full"][data-ping] .landing-sequence__ping + .landing-sequence__ping {
+.landing-sequence[data-mode="full"][data-ping]
+  .landing-sequence__ping
+  + .landing-sequence__ping {
   /* Ring 2 ends at 1.98 s, past 4.5's 1.8 s: two staggered 800 ms rings cannot both fit (250 ms ended at 2.05 s). */
   animation-delay: 180ms;
 }
 .landing-sequence[data-mode="full"][data-ping] .landing-sequence__dot {
-  animation: landing-sequence-blip 900ms var(--ease-quick) var(--dot-delay) forwards;
+  animation: landing-sequence-blip 900ms var(--ease-quick) var(--dot-delay)
+    forwards;
 }
 @keyframes landing-sequence-ping {
   from {
@@ -209,6 +217,10 @@
 .landing-sequence__skip:hover {
   color: var(--text-hi);
 }
+.landing-sequence__skip:active {
+  color: var(--text-hi);
+  border-color: var(--orca-cyan);
+}
 .landing-sequence__skip:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
@@ -227,4 +239,12 @@
 .landing-sequence[data-instant] .landing-sequence__ring,
 .landing-sequence[data-instant] .landing-sequence__word {
   transition-duration: 150ms;
+}
+
+/* Style-level backstop: script already picks the reduced mode. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-sequence[data-mode="full"] * {
+    animation: none;
+    transition: none;
+  }
 }
