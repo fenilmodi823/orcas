@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import { dampRigAngles, deriveAzElRadius, syncTargetAngles, type CameraRig } from './camera-rig.js';
 import { refUpForFreeOrbit, refUpForObjectLvlh } from './look-rotation.js';
-import { clampFreeOrbitRadiusKm, R_EARTH_A_KM } from './collision.js';
+import { clampFreeOrbitRadiusKm, MAX_CAMERA_RADIUS_KM, R_EARTH_A_KM } from './collision.js';
 import { PLACEHOLDER_RADIUS_KM } from '../object-extents.js';
 import { orbitAroundPivot } from './manual-input.js';
 
@@ -85,4 +85,37 @@ export function reexpressAsFreeOrbit(rig: CameraRig, targetRig: CameraRig, camer
   targetRig.frame.identity();
   syncTargetAngles(targetRig, rig);
   refUpForFreeOrbit(refUp);
+}
+
+/**
+ * A grab mid-flight to a satellite: re-express BOTH rigs about the satellite, pivot at `objectKm`, keeping the
+ * camera at `cameraPositionKm` (all km, scene frame; the radius is clamped to [minRadiusKm, MAX_CAMERA_RADIUS_KM],
+ * which is the only way the camera can move). "Up" becomes the satellite's local vertical, as in `updateObjectRig`.
+ */
+export function reexpressAroundObject(
+  rig: CameraRig,
+  targetRig: CameraRig,
+  cameraPositionKm: Vector3,
+  objectKm: Vector3,
+  refUp: Vector3,
+  minRadiusKm: number,
+): void {
+  rig.pivotKm.copy(objectKm);
+  rig.frame.identity();
+  deriveAzElRadius(rig, cameraPositionKm);
+  rig.radiusKm = Math.min(MAX_CAMERA_RADIUS_KM, Math.max(minRadiusKm, rig.radiusKm));
+  targetRig.pivotKm.copy(objectKm);
+  targetRig.frame.identity();
+  syncTargetAngles(targetRig, rig);
+  refUpForObjectLvlh(objectKm, refUp);
+}
+
+/** Re-express the rigs for a grab: about the satellite when `satelliteKm` is known (returns true), else free orbit (false). */
+export function reexpressOnGrab(rig: CameraRig, targetRig: CameraRig, cameraPositionKm: Vector3, satelliteKm: Vector3 | null, refUp: Vector3): boolean {
+  if (!satelliteKm) {
+    reexpressAsFreeOrbit(rig, targetRig, cameraPositionKm, refUp);
+    return false;
+  }
+  reexpressAroundObject(rig, targetRig, cameraPositionKm, satelliteKm, refUp, OBJECT_MIN_RADIUS_KM);
+  return true;
 }

@@ -48,6 +48,15 @@ describe('reduceCameraState', () => {
     expect(reduceCameraState(flight, { type: 'grabInput' })).toEqual({ kind: 'freeOrbit' });
   });
 
+  it('grabInput with keepTarget on a flight to a satellite arrives in object mode, on that target', () => {
+    const flight: CameraState = { kind: 'focusFlight', target: 7, returnTo: 'freeOrbit' };
+    expect(reduceCameraState(flight, { type: 'grabInput', keepTarget: true })).toEqual({ kind: 'object', target: 7 });
+  });
+
+  it('grabInput with keepTarget on the way home (exit) still drops to freeOrbit', () => {
+    expect(reduceCameraState({ kind: 'exit' }, { type: 'grabInput', keepTarget: true })).toEqual({ kind: 'freeOrbit' });
+  });
+
   it('grabInput in object mode is a no-op (manual authority handled elsewhere)', () => {
     const obj: CameraState = { kind: 'object', target: 7 };
     expect(reduceCameraState(obj, { type: 'grabInput' })).toBe(obj);

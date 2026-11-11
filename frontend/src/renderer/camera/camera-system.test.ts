@@ -140,7 +140,7 @@ describe('CameraSystem â€” flyTo', () => {
     await expect(p2).resolves.toBeUndefined();
   });
 
-  it('grabbing input mid-flight rejects the flight, drops to freeOrbit, keeps the pose continuous', async () => {
+  it('grabbing input mid-flight to a satellite rejects the flight, orbits the satellite, keeps the pose continuous', async () => {
     const cam = new PerspectiveCamera(35, 1, 1, 1e6);
     const sys = createCameraSystem(cam);
     const frame = fakeFrame([[7000, 0, 0]]);
@@ -150,7 +150,7 @@ describe('CameraSystem â€” flyTo', () => {
     const before = cam.position.clone();
     sys.applyManualInput({ dScreenYawRad: 0.05, dScreenPitchRad: 0, dLnRadius: 0 });
     sys.update(1 / 60, frame);
-    expect(sys.state.kind).toBe('freeOrbit');
+    expect(sys.state.kind).toBe('object'); // was freeOrbit before 2026-11-11 (Task 15 overrides brief §C.11)
     expect(cam.position.distanceTo(before)).toBeLessThan(before.length() * 0.1);
     await expect(p).rejects.toBeInstanceOf(CancelledError);
   });
@@ -255,5 +255,33 @@ describe('CameraSystem â€” flyToEarthHome', () => {
     await runFlight(sys, sys.flyToEarthHome(), frame);
     expect(cam.position.length()).toBeCloseTo(42164, -1);
     expect(cam.position.clone().normalize().dot(boot)).toBeGreaterThan(0.999);
+  });
+});
+
+describe('CameraSystem — a drag during the fly-in to a satellite', () => {
+  it('orbits the satellite: state object, no jump at the grab, distance held while it moves', () => {
+    const cam = new PerspectiveCamera(35, 16 / 9, 1, 1e6);
+    const sys = createCameraSystem(cam);
+    const frame = fakeFrame([[7000, 0, 0]]);
+    sys.update(1 / 60, frame);
+    void sys.flyTo(0);
+    let epochMs = frame.epochMs;
+    const step = (): void => {
+      epochMs += 1000 / 60;
+      frame.positions[1] = 7.6 * ((epochMs - 1_000_000) / 1000);
+      (frame as { epochMs: number }).epochMs = epochMs;
+      sys.update(1 / 60, frame);
+    };
+    for (let i = 0; i < 60; i++) step(); // halfway in
+    expect(sys.state.kind).toBe('focusFlight');
+    const before = cam.position.clone();
+    sys.applyManualInput({ dScreenYawRad: 0, dScreenPitchRad: 0, dLnRadius: 0 });
+    expect(sys.state.kind).toBe('object');
+    sys.update(0, frame); // pose from the re-expressed rig, no time passing
+    expect(cam.position.distanceTo(before) / before.length()).toBeLessThan(1e-6);
+    const sat = (): Vector3 => new Vector3(frame.positions[0], frame.positions[1], frame.positions[2]);
+    const d0 = cam.position.distanceTo(sat());
+    for (let i = 0; i < 120; i++) step();
+    expect(Math.abs(cam.position.distanceTo(sat()) - d0) / d0).toBeLessThan(0.01);
   });
 });
