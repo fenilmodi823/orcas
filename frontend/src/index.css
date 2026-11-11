@@ -1,8 +1,7 @@
 /* Hallmark · checked: 2026-11-11 · genre: atmospheric · theme: custom · shape: app screen · surface: absolute · posture: restrained · job: simulate satellites · hero: settled · nav: header, breadcrumb and time dock · footer: credit line · redesign: restyle · built: the project (ORCAS Stage B) · states: 8 · contrast: pass */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: H, the object panel and the passes list share one calm glass recipe, so the hierarchy leans on type weight rather than a second surface; left as is to keep the scene the subject */
 /* Hallmark · dropped onPointerMove={interactive ? handlePointerMove : undefined} · Stage B removed the cursor glow and rim from the glass surface, so nothing tracks the pointer any more */
-/* Hallmark · waive 72 · the simulation shows a desktop notice below 768 px · the header, breadcrumb and dock are laid out for a desktop, a phone is not a supported viewport and its layout is not designed */
-/* Hallmark · waive 39b · each label button is 13 px drawn with a 45 px hit area from its ::before · the labels sit on the scene beside a 6 px marker, a taller drawn control would cover the globe */
+/* Hallmark · waive 39b · each label button is 13 px drawn with a 25 px hit band from its ::before · labels are not icon buttons, 25 px meets WCAG 2.5.8 (24 px), and a taller band steals picks from neighbouring labels in dense clusters */
 @import "tailwindcss";
 @import "./styles/tokens.css";
 

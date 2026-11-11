@@ -39,7 +39,7 @@ export function ExportEphemerisButton({ object, startMs }: { object: ObjectMeta;
       className="export-ephemeris" onClick={exportCsv}
       title="24 h of positions from the simulated time"
     >
-      Download ephemeris (CSV)
+      Download 24 h ephemeris (CSV)
     </button>
   );
 }

@@ -90,6 +90,12 @@
   font-weight: 400;
 }
 
+/* Phones: the sheet spans the bottom stack (16 px gutters) instead of hanging off the credit line, which sat off-screen to the left. */
+@media (max-width: 767px) {
+  .credit-line { position: static; }
+  .credit-line__list { left: 0; right: 0; width: auto; max-width: none; }
+}
+
 .credit-line__list p {
   margin: 0;
 }

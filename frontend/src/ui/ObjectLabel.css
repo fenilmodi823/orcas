@@ -34,7 +34,7 @@
 .object-label__hit::before {
   content: "";
   position: absolute;
-  inset: -16px -4px;
+  inset: -6px -2px;
 }
 
 .object-label[data-hidden] .object-label__hit {
