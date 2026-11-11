@@ -116,8 +116,8 @@ describe('the spacecraft as bodies (S6c)', () => {
     expect(BODIES.at(-25)?.id).toBe('jwst');
   });
 
-  it('names its data years in the chip, as NASA’s “Spacecraft · 2011 – Present”', () => {
-    expect(bodySubtitle(bodyById('voyager-1')!)).toBe('Spacecraft · 1977 – 2053');
+  it('names its data years in the chip, as a phrase', () => {
+    expect(bodySubtitle(bodyById('voyager-1')!)).toBe('Spacecraft, data 1977 to 2053');
   });
 
   it('places a spacecraft from its own file, and not before it loads', () => {

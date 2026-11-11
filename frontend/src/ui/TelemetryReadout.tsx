@@ -12,8 +12,8 @@ export interface TelemetryReadoutProps {
 }
 
 /**
- * The atomic data component (Design.md §6): mono uppercase label, mono
- * tabular value, unit in --text-lo. Every measurement in ORCAS renders
+ * The atomic data component (Design.md §6): sentence-case label, mono
+ * tabular value, unit in --text-mid. Every measurement in ORCAS renders
  * through this.
  */
 export function TelemetryReadout({ label, value, unit, precision = 2, wide = false, text = false }: TelemetryReadoutProps) {

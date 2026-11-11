@@ -2,6 +2,7 @@ import type { Vector3 } from 'three';
 import { moonPositionJ2000Km, sunPositionJ2000Km } from '@orcas/physics';
 import { bodyStateKm, type PlanetEphemeris } from '../../data/planet-ephemeris.js';
 import type { HorizonsFileId } from '../../data/moon-systems.js';
+import { spacecraftMetaLine } from '../../ui/object-meta.js';
 import { MOONS, type Moon } from './moons.js';
 import { applyPlanetCentre, horizonsGeocentricKm } from './system-centres.js';
 import { EARTH_NAIF_ID, PLANETS, SUN_NAIF_ID } from './planets.js';
@@ -92,11 +93,11 @@ export function spacecraftOf(body: Body): Spacecraft | undefined {
   return body.kind === 'spacecraft' ? SPACECRAFT.find((s) => s.id === body.id) : undefined;
 }
 
-/** NASA Eyes' type chip: "Moon of Jupiter", "Spacecraft · 1977 – 2053" (search and panel). */
+/** NASA Eyes' type chip: "Moon of Jupiter", "Spacecraft, data 1977 to 2053" (search and panel). */
 export function bodySubtitle(body: Body): string {
   if (body.kind === 'spacecraft') {
     const s = spacecraftOf(body);
-    return s ? `Spacecraft · ${s.years[0]} – ${s.years[1]}` : BODY_KIND_LABEL.spacecraft;
+    return s ? spacecraftMetaLine(s.years[0], s.years[1]) : BODY_KIND_LABEL.spacecraft;
   }
   const parent = body.kind === 'moon' && body.parent ? bodyById(body.parent) : undefined;
   return parent ? `Moon of ${parent.name}` : BODY_KIND_LABEL[body.kind];

@@ -1,5 +1,6 @@
 /** "LEO satellite, NORAD 25544" (Stage B §4.3): a phrase, never a dot-joined string. LEO/MEO/GEO/HEO are acronyms. */
 export function objectMetaLine(orbitClass: string, noradId: string): string {
+  if (orbitClass === 'debris') return `Debris, NORAD ${noradId}`;
   return `${orbitClass.toUpperCase()} satellite, NORAD ${noradId}`;
 }
 
