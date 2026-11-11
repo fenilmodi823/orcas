@@ -19,14 +19,15 @@ describe('StatusPill', () => {
   it('renders the UTC epoch with the fresh label by default', () => {
     render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} />);
 
-    expect(screen.getByText('epoch')).toBeTruthy();
+    expect(screen.getByText('Elements as of')).toBeTruthy();
     expect(screen.getByText('16:56:00 UTC')).toBeTruthy();
   });
 
-  it('switches to the stale label and drops the live-pulse state when data is old', () => {
-    const { container } = render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} stale />);
+  it('says how old a stale epoch is, in words', () => {
+    const { container } = render(<StatusPill epoch={new Date('2009-02-10T16:56:00Z')} nowMs={Date.parse('2009-02-15T17:00:00Z')} stale />);
 
-    expect(screen.getByText('stale')).toBeTruthy();
+    expect(screen.getByText(', 5 days old')).toBeTruthy();
+    expect(container.firstElementChild?.getAttribute('aria-label')).toBe('Elements as of 2009-02-10 16:56:00 UTC, 5 days old');
     expect(container.firstElementChild?.hasAttribute('data-stale')).toBe(true);
   });
 

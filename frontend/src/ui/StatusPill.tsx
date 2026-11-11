@@ -1,4 +1,5 @@
 import { useReducedMotion } from '../state/use-reduced-motion.js';
+import { epochWords } from './epoch-words.js';
 import './StatusPill.css';
 
 export interface StatusPillProps {
@@ -11,21 +12,13 @@ export interface StatusPillProps {
   nowMs?: number;
 }
 
-function formatUtc(date: Date, nowMs?: number): string {
-  const iso = date.toISOString();
-  // The zone written out, as on every time in ORCAS (A.11).
-  const time = `${iso.slice(11, 19)} UTC`;
-  if (nowMs === undefined || iso.slice(0, 10) === new Date(nowMs).toISOString().slice(0, 10)) return time;
-  return `${iso.slice(0, 10)} ${time}`;
-}
-
 /**
- * Data epoch and freshness. Always visible somewhere — an honesty
- * requirement (Rules.md §7), not a design one: never present a propagated
- * position as live truth without showing when it was true.
+ * Data epoch and freshness, in words (Stage B §5.3). Always visible somewhere —
+ * an honesty requirement (Rules.md §7), not a design one: never present a
+ * propagated position as live truth without showing when it was true.
  */
 export function StatusPill({ epoch, stale = false, nowMs }: StatusPillProps) {
-  const value = formatUtc(epoch, nowMs);
+  const { label, value, age } = epochWords(epoch, nowMs, stale);
   const reducedMotion = useReducedMotion();
   return (
     <div
@@ -33,15 +26,11 @@ export function StatusPill({ epoch, stale = false, nowMs }: StatusPillProps) {
       data-stale={stale ? '' : undefined}
       data-reduced-motion={reducedMotion ? '' : undefined}
       role="status"
-      aria-label={stale ? `Data stale, element set epoch ${value}` : `Element set epoch ${value}`}
+      aria-label={`${label} ${value}${age ? `, ${age}` : ''}`}
     >
-      <span className="status-pill__dot" aria-hidden />
-      <span className="status-pill__label" aria-hidden>
-        {stale ? 'stale' : 'epoch'}
-      </span>
-      <span className="status-pill__value" aria-hidden>
-        {value}
-      </span>
+      <span className="status-pill__label" aria-hidden>{label}</span>{' '}
+      <span className="status-pill__value" aria-hidden>{value}</span>
+      {age && <span className="status-pill__age" aria-hidden>, {age}</span>}
     </div>
   );
 }

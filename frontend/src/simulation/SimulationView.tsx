@@ -18,8 +18,6 @@ import { MOON_MAP_CREDIT } from '../renderer/solar/moon-maps.js';
 import { isBodyId } from '../renderer/solar/bodies.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
 import { presentMs } from '../data/site-mode.js';
-import { SiteNotices } from '../ui/SiteNotices.js';
-import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
 import { DataProvenance } from '../ui/DataProvenance.js';
 import { DebrisToggle } from '../ui/DebrisToggle.js';
@@ -34,6 +32,7 @@ import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationWarning } from './SimulationWarning.js';
 import { SimulationSearch } from './SimulationSearch.js';
 import { CreditLine } from './CreditLine.js';
+import { SimulationHeader } from './SimulationHeader.js';
 import { SimulationPanels } from './SimulationPanels.js';
 import { useSelectedBody } from './use-selected-body.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
@@ -109,16 +108,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
     <main className="simulation" data-object-panel={panelOpen ? '' : undefined}>
       <LiveScene scene={scene} />
       <SimulationPanels scene={scene} provenance={provenance} />
-      <PanelErrorBoundary label="Epoch">
-        <div className="simulation__pill">
-          <StatusPill
-            epoch={new Date(provenance.medianEpochMs)}
-            stale={isStale(origin)}
-            nowMs={provenance.nowMs}
-          />
-          <SiteNotices nowMs={provenance.nowMs} />
-        </div>
-      </PanelErrorBoundary>
+      <SimulationHeader scene={scene} provenance={provenance} stale={isStale(origin)} />
       <PanelErrorBoundary label="Close-approach warning">
         <div className="simulation__warning">
           <SimulationWarning scene={scene} provenance={provenance} replay={replay} requestView={requestView} />

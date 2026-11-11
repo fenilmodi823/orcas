@@ -14,10 +14,50 @@
   --breadcrumb-left: calc(130px + var(--space-6));
 }
 
-.simulation__pill {
+.simulation__header {
   position: absolute;
-  top: var(--space-4);
+  top: 0;
+  left: var(--breadcrumb-left);
   right: var(--space-4);
+  height: var(--space-12);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font: var(--t-15);
+  z-index: 13;
+}
+
+/* No band: a 40 px fade from the void keeps the line legible over the scene. */
+.simulation__header::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--space-12) + var(--space-10));
+  background: linear-gradient(color-mix(in srgb, var(--void) 60%, transparent), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.simulation__trail {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: auto;
+}
+
+/* Reserved for Stage C's search (§5.8); drawn at 32 px, nothing in it yet. */
+.simulation__header-slot {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex: none;
+}
+
+.simulation__epoch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 /* The bottom edge, one stack: the dock and the legend in a row, the credit
@@ -69,18 +109,6 @@
   color: var(--critical);
 }
 
-/* NASA Eyes' breadcrumb (S5a), on the logo's line and just right of it: the
-   brand mark sits at top/left --space-6 and is 28px tall (LandingSequence.css). */
-.simulation__breadcrumb {
-  position: absolute;
-  top: var(--space-6);
-  left: var(--breadcrumb-left);
-  height: 28px;
-  display: flex;
-  align-items: center;
-  z-index: 13;
-}
-
 /* The selected object's panel, full height on the left under the logo (B.15,
    NASA Eyes' layout). The logo ends at 52px (LandingSequence.css). */
 .simulation__panel {
@@ -116,10 +144,11 @@
   width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
 }
 
-/* Phones (the desktop notice's width): the pill's notices wrap under the
+/* Phones (the desktop notice's width): the epoch's notices wrap under the
    centred warning, which then covered Dismiss. Keep the notices on top and
    start the warning below the first of them. */
 @media (max-width: 767px) {
-  .simulation__pill { z-index: 1; }
+  .simulation__header { height: auto; min-height: var(--space-12); flex-wrap: wrap; row-gap: 0; }
+  .simulation__epoch { align-items: flex-start; }
   .simulation__warning { top: calc(var(--space-16) + var(--space-8)); }
 }

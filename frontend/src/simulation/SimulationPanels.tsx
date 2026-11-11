@@ -1,11 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { CatalogProvenance } from '../data/catalog-provenance.js';
 import type { LiveSceneState } from '../renderer/live/use-live-scene.js';
-import { Breadcrumb, type Crumb } from '../ui/Breadcrumb.js';
-import { SceneToggle } from '../ui/SceneToggle.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
-import { bodyById } from '../renderer/solar/bodies.js';
-import { useSelectionStore } from '../state/selection-store.js';
 import { useReducedMotion } from '../state/use-reduced-motion.js';
 import { SimulationObjectPanel } from './SimulationObjectPanel.js';
 import { SimulationBodyPanel } from './SimulationBodyPanel.js';
@@ -15,30 +11,17 @@ import { useSelectedBody } from './use-selected-body.js';
 const PANEL_SPRING = { type: 'spring', stiffness: 220, damping: 26 } as const;
 
 /**
- * The left panel, for a satellite or a body (B.15, S5a), and NASA Eyes' breadcrumb above it:
- * "Solar System › Jupiter › Io". The scene button replaces the root crumb (Q44); the planet crumb flies to the planet.
+ * The left panel, for a satellite or a body (B.15, S5a). The trail above it lives in the header (Stage B §5.3).
  */
 export function SimulationPanels({ scene, provenance }: { readonly scene: LiveSceneState; readonly provenance: CatalogProvenance }) {
   const reducedMotion = useReducedMotion();
   const meta = scene.selectedObjectMeta;
   const body = useSelectedBody();
-  const setSelectedBody = useSelectionStore((s) => s.setSelectedBody);
   // Reduced motion fades the panel in place rather than sliding it (P4.D21).
   const panelOffset = reducedMotion ? { opacity: 0 } : { opacity: 0, x: -16 };
 
-  const crumbs: Crumb[] = [];
-  // A satellite sits under the Earth, a moon under its planet (S6b): NASA's "Jupiter › Moons › Io", without the Moons step.
-  const parent = meta ? bodyById('earth') : body?.parent ? bodyById(body.parent) : undefined;
-  if (parent) crumbs.push({ label: parent.name, onSelect: () => setSelectedBody(parent.id) });
-  if (meta) crumbs.push({ label: meta.name });
-  else if (body) crumbs.push({ label: body.name });
-
   return (
     <>
-      <div className="simulation__breadcrumb">
-        <SceneToggle />
-        {crumbs.length > 0 && <Breadcrumb crumbs={crumbs} />}
-      </div>
       <AnimatePresence>
         {(meta || body) && (
           <motion.div
