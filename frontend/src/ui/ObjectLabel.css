@@ -98,3 +98,9 @@
 .object-label__hit:hover .object-label__marker {
   border-color: var(--orca-cyan);
 }
+
+/* Under a panel, a label would show through the glass (Stage B 5.1); the out-fade carries it. */
+.object-label[data-under-chrome] {
+  opacity: 0 !important;
+  pointer-events: none;
+}

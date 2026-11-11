@@ -8,6 +8,7 @@ import { passesSummary } from './passes-caption.js';
 import { warningKey } from './conjunction-warning.js';
 import { DERIVATION, DISCLAIMER, HEADLINE, quietLine, warningText } from './conjunction-warning-text.js';
 import type { WarningView } from './use-conjunction-warning.js';
+import { useChromeRect } from './use-chrome-rect.js';
 import './ConjunctionWarning.css';
 
 export interface ConjunctionWarningProps {
@@ -33,6 +34,7 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
   // Dismissing unmounts the focused ×; focus moves to this always-mounted
   // wrapper (WCAG 2.4.3) instead of falling to <body>.
   const root = useRef<HTMLDivElement>(null);
+  useChromeRect(root, 'passes');
   const [open, setOpen] = useState(false);
   const dismiss = (key: string) => {
     onDismiss(key);

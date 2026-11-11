@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { CatalogProvenance } from '../data/catalog-provenance.js';
 import type { LiveSceneState } from '../renderer/live/use-live-scene.js';
 import { bodyById } from '../renderer/solar/bodies.js';
@@ -5,6 +6,7 @@ import { useSelectionStore } from '../state/selection-store.js';
 import { Breadcrumb, type Crumb } from '../ui/Breadcrumb.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
 import { SceneToggle } from '../ui/SceneToggle.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { SiteNotices } from '../ui/SiteNotices.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { useSelectedBody } from './use-selected-body.js';
@@ -27,6 +29,8 @@ export function SimulationHeader({ scene, provenance, stale }: SimulationHeaderP
   const body = useSelectedBody();
   const setSelectedBody = useSelectionStore((s) => s.setSelectedBody);
 
+  const root = useRef<HTMLElement>(null);
+  useChromeRect(root, 'header');
   const crumbs: Crumb[] = [];
   const parent = meta ? bodyById('earth') : body?.parent ? bodyById(body.parent) : undefined;
   if (parent) crumbs.push({ label: parent.name, onSelect: () => setSelectedBody(parent.id) });
@@ -34,7 +38,7 @@ export function SimulationHeader({ scene, provenance, stale }: SimulationHeaderP
   else if (body) crumbs.push({ label: body.name });
 
   return (
-    <header className="simulation__header">
+    <header ref={root} className="simulation__header">
       <div className="simulation__trail">
         <SceneToggle />
         {crumbs.length > 0 && <Breadcrumb crumbs={crumbs} />}

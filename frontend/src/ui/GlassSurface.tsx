@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import './GlassSurface.css';
 
 type GlassVariant = 'floating' | 'docked' | 'modal';
@@ -11,6 +11,7 @@ export interface GlassSurfaceProps {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -28,9 +29,11 @@ export function GlassSurface({
   className,
   style,
   children,
+  ref,
 }: GlassSurfaceProps) {
   return (
     <div
+      ref={ref}
       data-variant={variant}
       data-elevation={elevation}
       data-interactive={interactive ? '' : undefined}

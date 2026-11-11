@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
@@ -41,6 +41,7 @@ import { parseViewState } from './view-url.js';
 import { useApplyInitialView, useWriteViewUrl } from './use-view-url.js';
 import { toReplayHandle } from './replay-handle.js';
 import { usePendingView, type PendingView } from './use-pending-view.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import './SimulationView.css';
 
 const FILTER_LABELS: Record<FilterClass, string> = { leo: 'LEO', meo: 'MEO', geo: 'GEO', heo: 'HEO', debris: 'Debris' };
@@ -103,6 +104,8 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
   const provenance = useProvenance(snapshot, origin);
   const body = useSelectedBody();
   const panelOpen = scene.selectedObjectMeta !== null || body !== null;
+  const bottom = useRef<HTMLDivElement>(null);
+  useChromeRect(bottom, 'bottom');
 
   return (
     <main className="simulation" data-object-panel={panelOpen ? '' : undefined}>
@@ -118,7 +121,7 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
         <SimulationSearch objects={scene.objects} />
       </PanelErrorBoundary>
       {/* The bottom edge is one stack, so nothing covers the credit or the legend (UI audit B.30). */}
-      <div className="simulation__bottom">
+      <div ref={bottom} className="simulation__bottom">
         <div className="simulation__bottom-row">
           <div className="simulation__dock">
             <PanelErrorBoundary label="Time dock">

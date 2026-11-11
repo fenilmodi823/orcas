@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ObjectLabel, type ObjectLabelHandle } from './ObjectLabel.js';
+import { setChromeRect } from '../state/chrome-rects.js';
 
 function rootOf(name: string): HTMLElement {
   return screen.getByText(name).closest('.object-label') as HTMLElement;
@@ -96,4 +97,17 @@ describe('ObjectLabel', () => {
     render(<ObjectLabel name="Voyager 1" marker="spacecraft" />);
     expect(rootOf('Voyager 1').dataset.marker).toBe('spacecraft');
   });
+});
+
+const rect = (x: number, y: number, w: number, h: number) => ({ x, y, width: w, height: h, left: x, top: y, right: x + w, bottom: y + h, toJSON: () => ({}) }) as DOMRectReadOnly;
+
+it('hides itself under the chrome and comes back when clear (Review Focus 3)', () => {
+  const ref = createRef<ObjectLabelHandle>();
+  const { container } = render(<ObjectLabel ref={ref} name="HST" onSelect={() => {}} />);
+  setChromeRect('t', rect(0, 0, 200, 200));
+  ref.current?.setPosition(50, 50);
+  expect(container.querySelector('.object-label')?.hasAttribute('data-under-chrome')).toBe(true);
+  ref.current?.setPosition(500, 500);
+  expect(container.querySelector('.object-label')?.hasAttribute('data-under-chrome')).toBe(false);
+  setChromeRect('t', null);
 });

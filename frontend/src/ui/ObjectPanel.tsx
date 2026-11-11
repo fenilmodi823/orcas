@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { GlassSurface } from './GlassSurface.js';
@@ -7,6 +7,7 @@ import { ObjectDetail } from './ObjectDetail.js';
 import { objectMetaLine } from './object-meta.js';
 import type { DetailGroup } from './object-detail-model.js';
 import type { SelectableObject } from '../state/selection-store.js';
+import { useChromeRect } from './use-chrome-rect.js';
 import './ObjectPanel.css';
 
 const ORBIT_CLASS_VAR: Record<SelectableObject['orbitClass'], string> = {
@@ -36,6 +37,8 @@ export interface ObjectPanelProps {
  * group show at once. Esc closes it, as Esc closed the dock's object mode.
  */
 export function ObjectPanel({ object, readouts, groups, onClose, actions }: ObjectPanelProps) {
+  const root = useRef<HTMLDivElement>(null);
+  useChromeRect(root, 'object-panel');
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
@@ -45,7 +48,7 @@ export function ObjectPanel({ object, readouts, groups, onClose, actions }: Obje
   }, [onClose]);
 
   return (
-    <GlassSurface variant="floating" elevation={3} className="object-panel">
+    <GlassSurface ref={root} variant="floating" elevation={3} className="object-panel">
       <header className="object-panel__header">
         <span className="object-panel__badge" style={{ background: ORBIT_CLASS_VAR[object.orbitClass] }} aria-hidden />
         <div className="object-panel__identity">
