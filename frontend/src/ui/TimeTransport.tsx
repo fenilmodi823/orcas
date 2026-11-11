@@ -46,7 +46,7 @@ export function TimeTransport({
       <button type="button" className="time-transport__icon" onClick={() => onStepRate(-1)} aria-label="Slower">
         <Rewind aria-hidden size={16} />
       </button>
-      <span className="time-transport__rate" aria-live="polite">
+      <span className="time-transport__rate" data-kind={rate === 1 ? 'words' : 'measure'} aria-live="polite">
         {formatRate(rate)}
       </span>
       <button type="button" className="time-transport__icon" onClick={() => onStepRate(1)} aria-label="Faster">
@@ -54,7 +54,7 @@ export function TimeTransport({
       </button>
       <TimeClock time={currentTime} onSetTime={onSetTime} />
       <button type="button" className="time-transport__now" onClick={onJumpToNow}>
-        NOW
+        Now
       </button>
       <button
         type="button"

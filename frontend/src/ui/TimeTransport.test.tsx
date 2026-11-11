@@ -43,10 +43,10 @@ describe('TimeTransport', () => {
       />,
     );
 
-    expect(screen.getByText('10 SECS/S')).toBeTruthy();
+    expect(screen.getByText('10 s/s')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Faster' }));
     fireEvent.click(screen.getByRole('button', { name: 'Slower' }));
-    fireEvent.click(screen.getByText('NOW'));
+    fireEvent.click(screen.getByText('Now'));
 
     expect(onStepRate.mock.calls).toEqual([[1], [-1]]);
     expect(onJumpToNow).toHaveBeenCalledOnce();
@@ -65,8 +65,8 @@ describe('TimeTransport', () => {
       onToggleExpanded: vi.fn(),
     };
     const { rerender } = render(<TimeTransport {...props} rate={1} />);
-    expect(screen.getByText('REAL RATE')).toBeTruthy();
+    expect(screen.getByText('Real time')).toBeTruthy();
     rerender(<TimeTransport {...props} rate={-21_600} />);
-    expect(screen.getByText('−6 HRS/S')).toBeTruthy();
+    expect(screen.getByText('−6 h/s')).toBeTruthy();
   });
 });

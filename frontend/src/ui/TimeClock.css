@@ -9,8 +9,7 @@
   border-radius: var(--radius-control);
   background: transparent;
   padding: 4px 8px;
-  font: var(--t-12);
-  font-family: var(--font-mono);
+  font: var(--t-num);
   font-variant-numeric: tabular-nums;
   color: var(--text-hi);
 }

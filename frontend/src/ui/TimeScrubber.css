@@ -17,13 +17,13 @@
 .time-scrubber__track::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: var(--radius-pill);
-  background: var(--glass-edge);
+  background: var(--rule);
 }
 
 .time-scrubber__track::-moz-range-track {
   height: 3px;
   border-radius: var(--radius-pill);
-  background: var(--glass-edge);
+  background: var(--rule);
 }
 
 .time-scrubber__track::-webkit-slider-thumb {

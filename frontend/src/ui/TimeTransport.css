@@ -5,21 +5,47 @@
   padding: var(--space-2) var(--space-3);
 }
 
+/* 32 px drawn, 44 px to hit. */
 .time-transport__icon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-control);
   border: none;
   background: transparent;
   color: var(--text-mid);
   cursor: pointer;
-  transition: color var(--motion-quick) var(--ease-quick);
+  transition:
+    color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.time-transport__icon::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
 }
 
 .time-transport__icon:hover {
   color: var(--text-hi);
+}
+
+.time-transport__icon[aria-pressed='true'] {
+  color: var(--orca-cyan);
+}
+
+.time-transport__icon:active,
+.time-transport__now:active {
+  transform: scale(0.96);
+}
+
+.time-transport__icon:disabled,
+.time-transport__now:disabled {
+  color: var(--text-lo);
+  cursor: default;
+  transform: none;
 }
 
 .time-transport__icon:focus-visible,
@@ -29,6 +55,7 @@
 }
 
 .time-transport__now {
+  position: relative;
   min-height: var(--space-6); /* WCAG 2.5.8, UI audit B.30 */
   border: none;
   background: transparent;
@@ -36,22 +63,42 @@
   padding: 4px 8px;
   font: var(--t-label);
   color: var(--text-mid);
-  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: color var(--motion-quick) var(--ease-quick);
+  transition:
+    color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
 }
 
 .time-transport__now:hover {
   color: var(--orca-cyan);
 }
 
-/* A readout between ◀◀ and ▶▶, not a control. Fixed width, so the buttons
-   either side never move as the label changes length ("REAL RATE",
-   "−10 MTHS/S"). */
+/* A readout between the rate buttons, not a control. Fixed width, so the
+   buttons either side never move as the text changes length. Words in the
+   text face, a measurement in mono. */
 .time-transport__rate {
   min-width: 11ch;
-  font: var(--t-label);
   text-align: center;
   color: var(--text-mid);
+}
+
+.time-transport__rate[data-kind='words'] {
+  font: var(--t-label);
+}
+
+.time-transport__rate[data-kind='measure'] {
+  font: var(--t-num-sm);
   font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .time-transport__icon,
+  .time-transport__now {
+    transition: none;
+  }
+
+  .time-transport__icon:active,
+  .time-transport__now:active {
+    transform: none;
+  }
 }

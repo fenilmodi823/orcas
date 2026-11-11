@@ -35,22 +35,22 @@ describe('stepRate', () => {
 });
 
 describe('formatRate', () => {
-  it('names real time as NASA Eyes does', () => {
-    expect(formatRate(1)).toBe('REAL RATE');
+  it('says real time in words', () => {
+    expect(formatRate(1)).toBe('Real time');
   });
 
-  it('picks the largest whole unit and pluralises', () => {
-    expect(formatRate(3)).toBe('3 SECS/S');
-    expect(formatRate(60)).toBe('1 MIN/S');
-    expect(formatRate(10_800)).toBe('3 HRS/S');
-    expect(formatRate(259_200)).toBe('3 DAYS/S');
-    expect(formatRate(604_800)).toBe('1 WK/S');
-    expect(formatRate(2_592_000)).toBe('1 MTH/S');
-    expect(formatRate(94_608_000)).toBe('3 YRS/S');
+  it('picks the largest whole unit, as a symbol', () => {
+    expect(formatRate(3)).toBe('3 s/s');
+    expect(formatRate(60)).toBe('1 min/s');
+    expect(formatRate(10_800)).toBe('3 h/s');
+    expect(formatRate(259_200)).toBe('3 d/s');
+    expect(formatRate(604_800)).toBe('1 wk/s');
+    expect(formatRate(2_592_000)).toBe('1 mo/s');
+    expect(formatRate(94_608_000)).toBe('3 yr/s');
   });
 
   it('signs a reverse rate with a true minus sign', () => {
-    expect(formatRate(-1)).toBe('−1 SEC/S');
-    expect(formatRate(-21_600)).toBe('−6 HRS/S');
+    expect(formatRate(-1)).toBe('−1 s/s');
+    expect(formatRate(-21_600)).toBe('−6 h/s');
   });
 });
