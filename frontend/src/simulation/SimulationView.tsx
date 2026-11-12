@@ -110,8 +110,8 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
   return (
     <main className="simulation" data-object-panel={panelOpen ? '' : undefined}>
       <LiveScene scene={scene} />
-      <SimulationPanels scene={scene} provenance={provenance} />
       <SimulationHeader scene={scene} provenance={provenance} stale={isStale(origin)} />
+      <SimulationPanels scene={scene} provenance={provenance} />
       <PanelErrorBoundary label="Close-approach warning">
         <div className="simulation__warning">
           <SimulationWarning scene={scene} provenance={provenance} replay={replay} requestView={requestView} />
