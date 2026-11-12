@@ -3,6 +3,7 @@
    cursor highlight. Fills are the audited minimums (Design.md §9). */
 .glass-surface {
   position: relative;
+  overflow: hidden; /* Safari < 16 fallback */
   overflow: clip;
   background: var(--glass-fill);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));

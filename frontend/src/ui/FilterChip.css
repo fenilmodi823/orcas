@@ -23,6 +23,7 @@
 }
 
 .filter-chip__count {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
   color: var(--text-mid);
