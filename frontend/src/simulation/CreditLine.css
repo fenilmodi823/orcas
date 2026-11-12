@@ -22,14 +22,6 @@
 .credit-line__required {
   margin: 0;
   text-align: center;
-  white-space: nowrap;
-}
-
-/* Wraps rather than truncates when the line no longer fits. */
-@media (max-width: 1023px) {
-  .credit-line__required {
-    white-space: normal;
-  }
 }
 
 .credit-line__sources,
@@ -50,6 +42,7 @@
   cursor: pointer;
   list-style: none;
   text-decoration: none;
+  white-space: nowrap;
   transition: color var(--motion-quick) var(--ease-quick);
 }
 
