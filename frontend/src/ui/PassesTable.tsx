@@ -1,4 +1,6 @@
+import { useLayoutEffect, useRef } from 'react';
 import type { Conjunction, ScreeningRun } from '../data/conjunction-client.js';
+import { getChromeRect, subscribeChromeRects } from '../state/chrome-rects.js';
 import { GlassSurface } from './GlassSurface.js';
 import { warningKey } from './conjunction-warning.js';
 import { passText } from './conjunction-warning-text.js';
@@ -15,8 +17,20 @@ export interface PassesTableProps {
 
 /** The open close-passes list (Stage B §5.5): a table, the screened window as its caption. */
 export function PassesTable({ run, passes, wallNowMs, onWatch, onHide }: PassesTableProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Stops --space-2 (8 px) above the bottom stack's measured top; CSS keeps its constant until the first measure.
+  useLayoutEffect(() => {
+    const cap = () => {
+      const el = ref.current;
+      const bottom = getChromeRect('bottom');
+      if (!el || !bottom) return;
+      el.style.setProperty('--passes-max-h', `${Math.max(0, bottom.top - el.getBoundingClientRect().top - 8)}px`);
+    };
+    cap();
+    return subscribeChromeRects(cap);
+  }, []);
   return (
-    <GlassSurface variant="floating" className="raised passes-table">
+    <GlassSurface ref={ref} variant="floating" className="raised passes-table">
       <table>
         <caption>
           <span>{screenedCaption(run.windowStartMs, run.windowEndMs, wallNowMs)}</span>

@@ -1,6 +1,6 @@
 .passes-table {
   max-width: 100%;
-  max-height: calc(100dvh - 56px - var(--bottom-stack-h));
+  max-height: var(--passes-max-h, calc(100dvh - 56px - var(--bottom-stack-h)));
   overflow-y: auto;
   padding: var(--space-2) var(--space-3);
   color: var(--text-hi);

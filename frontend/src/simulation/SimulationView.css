@@ -7,7 +7,9 @@
   width: 100%;
   height: 100vh;
   --panel-w: 340px;
-  /* The bottom stack's height, a constant (no measuring): 8 px inset + 32 px credit
+  /* FALLBACK only, before the first measure: the collapsed stack's height. The open passes
+     table caps itself to the measured 'bottom' chrome rect (--passes-max-h), which grows with
+     the open legend. 8 px inset + 32 px credit
      (24 px control + 2 x 4 px padding) + 8 px gap + 84 px collapsed dock (8 + 32 + 8
      transport, 24 + 12 scrubber). The open passes table stops above it. */
   --bottom-stack-h: calc(
