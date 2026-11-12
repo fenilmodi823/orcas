@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { epochWords, relativeDays } from './epoch-words.js';
+import { epochWords } from './epoch-words.js';
 
 const epoch = new Date('2026-11-02T16:18:00Z');
 const day = 86_400_000;
@@ -17,13 +17,5 @@ describe('epochWords (Stage B §5.3)', () => {
   });
   it('gives a stale epoch under a day its hours', () => {
     expect(epochWords(epoch, epoch.getTime() + 7 * 3_600_000, true).age).toBe('7 hours old');
-  });
-});
-
-describe('relativeDays', () => {
-  it('words the age for the passes caption', () => {
-    expect(relativeDays(3 * day)).toBe('3 days ago');
-    expect(relativeDays(day)).toBe('1 day ago');
-    expect(relativeDays(3_600_000)).toBe('today');
   });
 });

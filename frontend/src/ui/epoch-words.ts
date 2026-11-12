@@ -13,13 +13,6 @@ function ageWords(ms: number): string {
   return `${hours} ${hours === 1 ? 'hour' : 'hours'} old`;
 }
 
-/** "3 days ago" — the passes caption's form of the same age (Task 7). */
-export function relativeDays(ms: number): string {
-  const days = Math.floor(ms / 86_400_000);
-  if (days >= 1) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-  return 'today';
-}
-
 /** The header's epoch (Stage B §5.3): a label, the epoch as a measurement, and when stale its age in words. */
 export function epochWords(epoch: Date, nowMs: number | undefined, stale: boolean): { label: string; value: string; age: string | null } {
   return {

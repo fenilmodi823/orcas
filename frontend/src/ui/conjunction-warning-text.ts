@@ -85,7 +85,7 @@ export interface QuietLine {
   readonly goThere: boolean;
 }
 
-function screenedAgo(completedAtMs: number, wallNowMs: number): string {
+export function screenedAgo(completedAtMs: number, wallNowMs: number): string {
   const days = Math.floor((wallNowMs - completedAtMs) / DAY_MS);
   if (days < 1) return 'less than a day ago';
   return days === 1 ? '1 day ago' : `${days} days ago`;

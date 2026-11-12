@@ -33,7 +33,7 @@ export function PassesTable({ run, passes, wallNowMs, onWatch, onHide }: PassesT
     <GlassSurface ref={ref} variant="floating" className="raised passes-table">
       <table>
         <caption>
-          <span>{screenedCaption(run.windowStartMs, run.windowEndMs, wallNowMs)}</span>
+          <span>{screenedCaption(run.windowStartMs, run.windowEndMs, run.completedAtMs, wallNowMs)}</span>
           <button type="button" className="passes-table__button" onClick={onHide}>Hide</button>
         </caption>
         <thead>
