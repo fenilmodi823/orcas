@@ -91,7 +91,7 @@
     opacity 1000ms var(--ease-quick),
     transform 1000ms var(--ease-quick);
 }
-.landing-sequence[data-surface] .landing-sequence__body {
+.landing-sequence[data-js][data-surface] .landing-sequence__body {
   opacity: 1;
   transform: none;
 }
@@ -120,7 +120,7 @@
 .landing-sequence__wave:nth-child(3) {
   transition-delay: 240ms;
 }
-.landing-sequence[data-waves] .landing-sequence__wave {
+.landing-sequence[data-js][data-waves] .landing-sequence__wave {
   opacity: 0.6;
   transform: none;
 }
