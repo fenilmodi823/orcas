@@ -31,6 +31,7 @@ import { useSelectionStore, type FilterClass } from '../state/selection-store.js
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationWarning } from './SimulationWarning.js';
+import { WarningSlot } from './WarningSlot.js';
 import { SimulationSearch } from './SimulationSearch.js';
 import { CreditLine } from './CreditLine.js';
 import { SimulationHeader } from './SimulationHeader.js';
@@ -113,9 +114,9 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
       <SimulationHeader scene={scene} provenance={provenance} stale={isStale(origin)} />
       <SimulationPanels scene={scene} provenance={provenance} />
       <PanelErrorBoundary label="Close-approach warning">
-        <div className="simulation__warning">
+        <WarningSlot>
           <SimulationWarning scene={scene} provenance={provenance} replay={replay} requestView={requestView} />
-        </div>
+        </WarningSlot>
       </PanelErrorBoundary>
       <PanelErrorBoundary label="Search">
         <SimulationSearch objects={scene.objects} />

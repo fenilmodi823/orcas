@@ -31,6 +31,8 @@ export function SimulationHeader({ scene, provenance, stale }: SimulationHeaderP
 
   const root = useRef<HTMLElement>(null);
   useChromeRect(root, 'header');
+  const epoch = useRef<HTMLDivElement>(null);
+  useChromeRect(epoch, 'epoch');
   const crumbs: Crumb[] = [];
   const parent = meta ? bodyById('earth') : body?.parent ? bodyById(body.parent) : undefined;
   if (parent) crumbs.push({ label: parent.name, onSelect: () => setSelectedBody(parent.id) });
@@ -45,7 +47,7 @@ export function SimulationHeader({ scene, provenance, stale }: SimulationHeaderP
       </div>
       <span className="simulation__header-slot" data-slot="search" aria-hidden />
       <PanelErrorBoundary label="Epoch">
-        <div className="simulation__epoch">
+        <div ref={epoch} className="simulation__epoch">
           <StatusPill epoch={new Date(provenance.medianEpochMs)} stale={stale} nowMs={provenance.nowMs} />
           <SiteNotices nowMs={provenance.nowMs} />
         </div>

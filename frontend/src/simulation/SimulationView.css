@@ -144,7 +144,7 @@
    the breadcrumb and the epoch pill, re-centred beside an open object panel. */
 .simulation__warning {
   position: absolute;
-  top: 56px;
+  top: var(--warning-top, 56px);
   right: var(--space-4);
   width: min(560px, calc(100% - 2 * var(--space-4)));
   display: flex;
@@ -169,6 +169,6 @@
     align-items: flex-start;
   }
   .simulation__warning {
-    top: calc(56px + var(--space-8));
+    top: var(--warning-top, calc(56px + var(--space-8)));
   }
 }
