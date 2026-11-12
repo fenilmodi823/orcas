@@ -67,9 +67,9 @@ export function ObjectPanel({ object, readouts, groups, onClose, actions }: Obje
       <div className="object-panel__body" role="region" aria-live="polite" aria-label={`Selected object: ${object.name}`}>
         {readouts ? (
           <div className="object-panel__summary">
-            <TelemetryReadout label="Alt" value={readouts.altitudeKm} unit="km" precision={1} />
-            <TelemetryReadout label="Vel" value={readouts.velocityKmS} unit="km/s" precision={2} />
-            <TelemetryReadout label="Inc" value={readouts.inclinationDeg} unit="°" precision={2} />
+            <TelemetryReadout label="Altitude" value={readouts.altitudeKm} unit="km" precision={1} />
+            <TelemetryReadout label="Velocity" value={readouts.velocityKmS} unit="km/s" precision={2} />
+            <TelemetryReadout label="Inclination" value={readouts.inclinationDeg} unit="°" precision={2} />
           </div>
         ) : (
           <p className="object-panel__pending">Computing position…</p>

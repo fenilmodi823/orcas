@@ -24,7 +24,7 @@ describe('ObjectPanel', () => {
     render(<ObjectPanel object={ISS} readouts={ISS} groups={GROUPS} onClose={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: 'ISS (ZARYA)' })).toBeTruthy();
-    expect(screen.getByText('Alt')).toBeTruthy();
+    expect(screen.getByText('Altitude')).toBeTruthy();
     // No "More information" disclosure: a full-height panel shows everything.
     expect(screen.getByRole('region', { name: 'Identity' })).toBeTruthy();
     expect(screen.getByRole('region', { name: 'Provenance' })).toBeTruthy();
@@ -45,7 +45,7 @@ describe('ObjectPanel', () => {
 
     expect(screen.getByRole('heading', { name: 'ISS (ZARYA)' })).toBeTruthy();
     expect(screen.getByText(/Computing position/)).toBeTruthy();
-    expect(screen.queryByText('Alt')).toBeNull();
+    expect(screen.queryByText('Altitude')).toBeNull();
   });
 
   it('renders extra actions under the groups', () => {
