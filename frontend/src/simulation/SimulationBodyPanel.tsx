@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { X } from 'lucide-react';
 import { useHorizonsManifest } from '../data/use-horizons-manifest.js';
 import { useMoonSystemsVersion } from '../data/use-moon-systems.js';
@@ -10,6 +11,7 @@ import { CameraViews } from '../ui/CameraViews.js';
 import { GlassSurface } from '../ui/GlassSurface.js';
 import { TelemetryReadout } from '../ui/TelemetryReadout.js';
 import { ObjectDetail } from '../ui/ObjectDetail.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { useSelectionStore } from '../state/selection-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { bodyDetailGroups, bodyReadouts, cameraViewOptions } from './body-detail.js';
@@ -28,6 +30,8 @@ interface SimulationBodyPanelProps {
  * selection, and the camera flies back to the Earth.
  */
 export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
+  const root = useRef<HTMLDivElement>(null);
+  useChromeRect(root, 'object-panel');
   const currentTime = useSimulationClock(scene.loop);
   const ephemeris = usePlanetEphemerisState();
   const clearSelection = useSelectionStore((s) => s.clearSelection);
@@ -43,7 +47,7 @@ export function SimulationBodyPanel({ scene, body }: SimulationBodyPanelProps) {
   const facts = { ephemerisLoaded: ephemeris !== null, centreFromHorizons: planetCentreFromHorizons(body.poleNaifId, epochMs), manifest };
 
   return (
-    <GlassSurface variant="floating" elevation={3} className="object-panel">
+    <GlassSurface ref={root} variant="floating" elevation={3} className="object-panel">
       <header className="object-panel__header">
         <span className="object-panel__badge" style={{ background: badge }} aria-hidden />
         <div className="object-panel__identity">
