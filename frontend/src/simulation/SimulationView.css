@@ -152,7 +152,6 @@
 }
 
 .simulation[data-object-panel] .simulation__warning {
-  right: calc(var(--panel-w) + 2 * var(--space-4));
   width: min(560px, calc(100% - var(--panel-w) - 3 * var(--space-4)));
 }
 
