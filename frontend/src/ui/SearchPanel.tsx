@@ -125,7 +125,7 @@ export function SearchPanel({
       {matches.length > results.length && (
         // Say that the list is cut, rather than letting it pass for everything.
         <p className="search-panel__more">
-          Showing {results.length.toLocaleString()} of {matches.length.toLocaleString()} — type to narrow
+          Showing {results.length.toLocaleString()} of {matches.length.toLocaleString()}. Type to narrow
         </p>
       )}
     </div>

@@ -4,20 +4,73 @@
    corner anchor). Nothing else is on screen at rest. */
 .simulation {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-  --object-panel-width: 340px;
-  /* The legend's column at the bottom right (108 px wide, measured 2026-10-23) and a gap,
-     kept clear on both sides so the dock stays centred. */
-  --legend-column: calc(var(--space-16) + var(--space-12) + var(--space-2));
+  --panel-w: 340px;
+  /* FALLBACK only, before the first measure: the collapsed stack's height. The open passes
+     table caps itself to the measured 'bottom' chrome rect (--passes-max-h), which grows with
+     the open legend. 8 px inset + 32 px credit
+     (24 px control + 2 x 4 px padding) + 8 px gap + 84 px collapsed dock (8 + 32 + 8
+     transport, 24 + 12 scrubber). The open passes table stops above it. */
+  --bottom-stack-h: calc(
+    var(--space-2) + var(--space-8) + var(--space-2) + 84px
+  );
   /* The brand mark spans 24–130.3 px (measured 2026-10-06 at 1440 × 900); the breadcrumb sits one --space-6 past it. */
   --breadcrumb-left: calc(130px + var(--space-6));
 }
 
-.simulation__pill {
+.simulation__header {
   position: absolute;
-  top: var(--space-4);
+  /* On the logo's line: its 28 px mark is at top --space-6, so the centre is y = 38. */
+  top: var(--space-6);
+  left: var(--breadcrumb-left);
   right: var(--space-4);
+  height: 28px;
+  /* The empty middle passes drags to the scene; the children opt back in. */
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font: var(--t-15);
+  z-index: 14; /* above the panel (13), which now follows it in the DOM */
+}
+
+/* No band: a 40 px fade from the void keeps the line legible over the scene. */
+.simulation__header::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--space-12) + var(--space-10));
+  background: linear-gradient(
+    color-mix(in srgb, var(--void) 60%, transparent),
+    transparent
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+.simulation__trail {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: auto;
+  pointer-events: auto;
+}
+
+/* Reserved for Stage C's search (§5.8); drawn at 32 px, nothing in it yet. */
+.simulation__header-slot {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex: none;
+}
+
+.simulation__epoch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: auto;
 }
 
 /* The bottom edge, one stack: the dock and the legend in a row, the credit
@@ -29,30 +82,30 @@
   left: var(--space-4);
   right: var(--space-4);
   bottom: var(--space-2);
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-2);
   z-index: 13;
   /* The gaps stay the scene's: drags pass through to the canvas. */
   pointer-events: none;
 }
 
+/* The dock takes what is left and shrinks first; the legend keeps its size and
+   sits beside it, so it can never be over "Now" (Stage B §5.1). */
 .simulation__bottom-row {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding: 0 var(--legend-column);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
 }
 
 .simulation__dock {
   width: min(880px, 100%);
+  justify-self: center;
   pointer-events: auto;
 }
 
 .simulation__bottom-row .orbit-class-legend,
 .simulation__bottom-row .orbit-class-legend-reopen {
-  right: 0;
-  bottom: 0;
   pointer-events: auto;
 }
 
@@ -69,18 +122,6 @@
   color: var(--critical);
 }
 
-/* NASA Eyes' breadcrumb (S5a), on the logo's line and just right of it: the
-   brand mark sits at top/left --space-6 and is 28px tall (LandingSequence.css). */
-.simulation__breadcrumb {
-  position: absolute;
-  top: var(--space-6);
-  left: var(--breadcrumb-left);
-  height: 28px;
-  display: flex;
-  align-items: center;
-  z-index: 13;
-}
-
 /* The selected object's panel, full height on the left under the logo (B.15,
    NASA Eyes' layout). The logo ends at 52px (LandingSequence.css). */
 .simulation__panel {
@@ -88,7 +129,7 @@
   top: var(--space-16);
   left: var(--space-4);
   bottom: var(--space-4);
-  width: min(var(--object-panel-width), calc(100vw - 2 * var(--space-4)));
+  width: min(var(--panel-w), calc(100% - 2 * var(--space-4)));
   z-index: 13;
 }
 
@@ -96,30 +137,38 @@
    as NASA Eyes re-centres its time controls. Snapped, not animated:
    animating left/width is banned (Rules.md §2). */
 .simulation[data-object-panel] .simulation__bottom {
-  left: calc(var(--object-panel-width) + 2 * var(--space-4));
+  left: calc(var(--panel-w) + 2 * var(--space-4));
 }
 
 /* The close-approach warning (conjunction-alert spec §3.3): top centre, below
    the breadcrumb and the epoch pill, re-centred beside an open object panel. */
 .simulation__warning {
   position: absolute;
-  top: var(--space-16);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  top: var(--warning-top, 56px);
+  right: var(--space-4);
+  width: min(560px, calc(100% - 2 * var(--space-4)));
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .simulation[data-object-panel] .simulation__warning {
-  left: calc(50% + (var(--object-panel-width) + var(--space-4)) / 2);
-  width: min(560px, calc(100vw - var(--object-panel-width) - 3 * var(--space-4)));
+  width: min(560px, calc(100% - var(--panel-w) - 3 * var(--space-4)));
 }
 
-/* Phones (the desktop notice's width): the pill's notices wrap under the
+/* Phones (the desktop notice's width): the epoch's notices wrap under the
    centred warning, which then covered Dismiss. Keep the notices on top and
    start the warning below the first of them. */
 @media (max-width: 767px) {
-  .simulation__pill { z-index: 1; }
-  .simulation__warning { top: calc(var(--space-16) + var(--space-8)); }
+  .simulation__header {
+    height: auto;
+    min-height: 28px;
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .simulation__epoch {
+    align-items: flex-start;
+  }
+  .simulation__warning {
+    top: var(--warning-top, calc(56px + var(--space-8)));
+  }
 }

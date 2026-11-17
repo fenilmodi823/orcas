@@ -22,8 +22,8 @@
   outline: none;
   border-radius: var(--radius-xs);
   color: var(--text-hi);
-  font: var(--t-body);
-  font-family: var(--font-ui);
+  font: var(--t-15);
+  font-family: var(--font-text);
 }
 
 .search-panel__field input:focus-visible {
@@ -55,11 +55,11 @@
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--text-mid);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   text-align: left;
   cursor: pointer;
 }

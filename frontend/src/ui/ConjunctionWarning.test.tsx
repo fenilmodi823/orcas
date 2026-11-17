@@ -65,17 +65,17 @@ describe('ConjunctionWarning', () => {
     const view: WarningView = { kind: 'idle', run: RUN, selectionCovered: true, top: [C, C2] };
     const { props, unmount } = setup({ view, simulationMs: after });
     expect(screen.getByRole('button', { name: 'Go there' })).toBeTruthy();
-    const list = screen.getByRole('list', { name: "The screened day's closest passes" });
-    expect(list.querySelectorAll('li').length).toBe(2);
-    expect(list.textContent).toContain('·');
+    expect(screen.queryByRole('table')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }));
+    expect(screen.getByRole('table').querySelectorAll('tbody tr').length).toBe(2);
     fireEvent.click(screen.getByRole('button', { name: 'Watch STARLINK-4158 and PELICAN-7' }));
     expect(props.onWatch).toHaveBeenCalledWith(C2);
     unmount();
     setup({ view, simulationMs: T0 - 252_000 });
-    expect(screen.queryByRole('list')).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
     cleanup();
     setup({ view: { ...view, top: [] }, simulationMs: after });
-    expect(screen.queryByRole('list')).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
   });
 
   it('keeps focus inside the warning after a dismiss, not on <body>', () => {
@@ -126,5 +126,22 @@ describe('ConjunctionWarning', () => {
       expect(region?.textContent).toBe('history starts at 2026-08-01');
       unmount();
     }
+  });
+});
+
+describe('ConjunctionWarning passes list (Stage B §5.5)', () => {
+  const idleProps = { view: { kind: 'idle', run: RUN, selectionCovered: true, top: [C] } as WarningView, simulationMs: Date.parse('2026-10-23T14:00:00Z') };
+  it('collapses the passes list to one line until "Show" (Stage B §5.5)', () => {
+    setup(idleProps);
+    expect(screen.queryByRole('table')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }));
+    expect(screen.getByRole('table')).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: /^Watch / }).length).toBe(1);
+  });
+
+  it('never collapses a warning (Review Focus 2)', () => {
+    setup();
+    expect(screen.queryByRole('button', { name: 'Show' })).toBeNull();
+    expect(screen.getByText(/Maximum P_c/)).toBeTruthy();
   });
 });

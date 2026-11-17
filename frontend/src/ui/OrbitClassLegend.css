@@ -1,7 +1,6 @@
 .orbit-class-legend {
-  position: absolute;
-  right: var(--space-4, 1rem);
-  bottom: var(--space-4, 1rem);
+  /* Sits in the bottom stack's row, not on the scene (Stage B §5.1); the dismiss button anchors to it. */
+  position: relative;
   /* The right padding is the dismiss button's own column, so it never sits on a label. */
   padding: var(--space-3, 0.75rem) var(--space-8, 2rem) var(--space-3, 0.75rem) var(--space-4, 1rem);
 }
@@ -20,16 +19,15 @@
   align-items: center;
   gap: var(--space-2, 0.5rem);
   color: var(--text-mid);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
 }
 
 .orbit-class-legend__icon {
   flex: none;
 }
 
-.orbit-class-legend__dismiss,
-.orbit-class-legend-reopen {
+.orbit-class-legend__dismiss {
   position: absolute;
   top: var(--space-2, 0.5rem);
   right: var(--space-2, 0.5rem);
@@ -43,11 +41,23 @@
   line-height: 1;
 }
 
+/* Drawn at 32 px with a 44 px hit area. */
 .orbit-class-legend-reopen {
+  position: relative;
+  width: var(--space-8);
+  height: var(--space-8);
+  border: none;
+  border-radius: 50%;
+  background: var(--glass-fill);
+  color: var(--text-mid);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.orbit-class-legend-reopen::after {
+  content: '';
   position: absolute;
-  right: var(--space-4, 1rem);
-  bottom: var(--space-4, 1rem);
-  top: auto;
+  inset: -6px;
 }
 
 .orbit-class-legend__dismiss:focus-visible,
@@ -59,5 +69,5 @@
 .orbit-class-legend__note {
   margin: var(--space-2, 0.5rem) 0 0;
   color: var(--text-mid);
-  font: var(--t-small);
+  font: var(--t-13);
 }

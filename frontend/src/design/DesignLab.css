@@ -19,14 +19,13 @@
   background: var(--glass-fill-solid);
   color: var(--text-mid);
   padding: 8px 16px;
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   cursor: pointer;
 }
 
 .design-lab__lighting-toggle:hover {
   color: var(--text-hi);
-  border-color: var(--glass-edge-hover);
 }
 
 .design-lab__lighting-toggle:focus-visible {
@@ -46,7 +45,7 @@
 }
 
 .design-lab__header h1 {
-  font: var(--t-h1);
+  font: var(--t-22);
   color: var(--text-hi);
   margin: 0 0 var(--space-2);
 }
@@ -58,7 +57,7 @@
 }
 
 .design-section h2 {
-  font: var(--t-h2);
+  font: var(--t-19);
   color: var(--text-hi);
   margin: 0;
 }
@@ -71,7 +70,7 @@
 }
 
 .design-card h3 {
-  font: var(--t-h3);
+  font: var(--t-17);
   color: var(--text-mid);
   margin: 0;
 }
@@ -84,7 +83,7 @@
 }
 
 .design-note {
-  font: var(--t-caption);
+  font: var(--t-12);
   /* --text-lo fails 4.5:1 at this size on glass (Design.md §9) */
   color: var(--text-mid);
   margin: 0;

@@ -83,6 +83,8 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - ./packages:/app/packages
+      # landing-mark-paths.test.ts checks the paths against the master mark
+      - ./design/brand:/app/design/brand:ro
       - orcas-frontend-node-modules:/app/frontend/node_modules
     depends_on:
       - backend

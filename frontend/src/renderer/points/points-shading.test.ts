@@ -53,3 +53,15 @@ describe('apparentPx', () => {
     expect(shading.drawPx).toBeCloseTo(Math.max(px, 1.5), 12);
   });
 });
+
+import { floorCoreAlpha } from './points-shading.js';
+
+describe('floorCoreAlpha (Stage B §5.9)', () => {
+  it('lights a floored dot at the core brightness', () => {
+    expect(floorCoreAlpha(0.01, 3, 0.8)).toBe(0.8);
+  });
+  it('leaves a dot drawn at its true size alone', () => {
+    expect(floorCoreAlpha(3, 3, 0.8)).toBe(0);
+    expect(floorCoreAlpha(5, 3, 0.8)).toBe(0);
+  });
+});

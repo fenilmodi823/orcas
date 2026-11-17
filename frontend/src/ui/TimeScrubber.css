@@ -3,34 +3,34 @@
   padding: 0 var(--space-4) var(--space-3);
 }
 
-/* 24 px tall to grab (WCAG 2.5.8; UI audit B.30), the 3 px track centred in
+/* 24 px tall to grab (WCAG 2.5.8; UI audit B.30), the 4 px track centred in
    it, and the negative margins keep the dock's layout exactly as before. */
 .time-scrubber__track {
   width: 100%;
   height: var(--space-6);
-  margin: calc((3px - var(--space-6)) / 2) 0;
+  margin: calc((var(--space-1) - var(--space-6)) / 2) 0;
   appearance: none;
   background: transparent;
   cursor: pointer;
 }
 
 .time-scrubber__track::-webkit-slider-runnable-track {
-  height: 3px;
+  height: var(--space-1);
   border-radius: var(--radius-pill);
-  background: var(--glass-edge);
+  background: var(--rule);
 }
 
 .time-scrubber__track::-moz-range-track {
-  height: 3px;
+  height: var(--space-1);
   border-radius: var(--radius-pill);
-  background: var(--glass-edge);
+  background: var(--rule);
 }
 
 .time-scrubber__track::-webkit-slider-thumb {
   appearance: none;
-  margin-top: -5px;
-  width: 13px;
-  height: 13px;
+  margin-top: calc(-1 * var(--space-1));
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--orca-cyan);
   box-shadow: var(--elev-1);
@@ -38,8 +38,8 @@
 
 .time-scrubber__track::-moz-range-thumb {
   border: none;
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--orca-cyan);
   box-shadow: var(--elev-1);
@@ -47,6 +47,7 @@
 
 .time-scrubber__track:focus-visible {
   outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Two vendor-prefixed pseudo-elements, not one rule — Firefox ignores
@@ -65,7 +66,7 @@
   position: absolute;
   inset: 0 var(--space-4) auto;
   top: 1px;
-  height: 3px;
+  height: var(--space-1);
   pointer-events: none;
 }
 
@@ -73,7 +74,7 @@
   position: absolute;
   top: 0;
   width: 2px;
-  height: 3px;
+  height: var(--space-1);
   background: var(--critical);
   transform: translateX(-1px);
 }

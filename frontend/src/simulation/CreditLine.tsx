@@ -1,9 +1,9 @@
 import './CreditLine.css';
 
 export interface CreditLineProps {
-  /** Always on screen: the catalogue's provenance (RA-14 §2.3, RA14.D3) and ESA's Gaia acknowledgement. */
+  /** Always on screen, one line naming every source (RA-14 §2.3, RA14.D3; Stage B §5.7). */
   readonly required: string;
-  /** Every other credit, word for word, behind the Sources control. */
+  /** The full wording of every credit, word for word, behind the Sources control. */
   readonly sources: readonly string[];
 }
 

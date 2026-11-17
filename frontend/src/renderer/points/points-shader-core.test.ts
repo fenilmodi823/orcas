@@ -48,3 +48,14 @@ describe('Tier 0 cross-fade', () => {
     expect(POINTS_VERTEX_SHADER).not.toContain('smoothstep(6.0');
   });
 });
+
+describe('the floored core (Stage B §5.9)', () => {
+  it('declares the core uniforms and varyings', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('uniform float uFloorCoreBrightness;');
+    expect(POINTS_VERTEX_SHADER).toContain('varying float vDrawPx;');
+    expect(POINTS_VERTEX_SHADER).toContain('varying float vCoreBrightness;');
+  });
+  it('lights the core only for floored dots', () => {
+    expect(POINTS_VERTEX_SHADER).toContain('float floored = 1.0 - step(uMinPointPx, truePx);');
+  });
+});

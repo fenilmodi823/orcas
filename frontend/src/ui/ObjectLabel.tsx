@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { isUnderChrome } from '../state/chrome-rects.js';
 import './ObjectLabel.css';
 
 export interface ObjectLabelHandle {
@@ -46,6 +47,8 @@ export const ObjectLabel = forwardRef<ObjectLabelHandle, ObjectLabelProps>(funct
       const node = rootRef.current;
       if (!node) return;
       node.style.transform = `translate(${xPx}px, ${yPx}px)`;
+      if (isUnderChrome(xPx, yPx)) node.dataset.underChrome = '';
+      else delete node.dataset.underChrome;
     },
     setOpacity(alpha) {
       const node = rootRef.current;

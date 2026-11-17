@@ -2,17 +2,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: 0 var(--space-4) var(--space-3);
+  padding: 0;
+}
+
+/* One hairline per group, no box. */
+.object-detail__group {
+  padding: var(--space-4);
+  border-top: 1px solid var(--rule);
 }
 
 .object-detail__title {
   margin: 0 0 var(--space-2);
-  /* --text-lo fails 4.5:1 on glass at this size (Design.md §9, UI audit B.30). */
-  color: var(--text-mid);
-  font: var(--t-caption);
+  color: var(--text-hi);
+  font: var(--t-13);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .object-detail__grid {
@@ -28,7 +31,9 @@
 /* The method statement a number needs (RA-12 §7) — read, not scanned. */
 .object-detail__note {
   margin: var(--space-2) 0 0;
+  max-width: 64ch;
   color: var(--text-mid);
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font: var(--t-13);
+  line-height: 20px;
+  font-style: normal;
 }

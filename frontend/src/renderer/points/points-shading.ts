@@ -35,3 +35,13 @@ export function computePointShading(
   const brightness = Math.max(baseBrightness * areaRatio, floorBrightness);
   return { drawPx, brightness };
 }
+
+/**
+ * The floored core's minimum alpha (Stage B §5.9): a dot drawn larger than
+ * its true size gets this alpha inside its central FLOOR_CORE_RADIUS_PX, so a
+ * pixel centre always shows the full value. Mirrors the vertex shader's
+ * `floored * uFloorCoreBrightness`, before the shared fades.
+ */
+export function floorCoreAlpha(truePx: number, minPointPx: number, floorCoreBrightness: number): number {
+  return truePx < minPointPx ? floorCoreBrightness : 0;
+}

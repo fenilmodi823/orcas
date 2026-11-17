@@ -1,19 +1,21 @@
+/* Hallmark · stamp, critique and waivers: see ../index.css (this file is imported outside the swept graph) */
+/* Hallmark · waive 26b · a link and a disclosure toggle · nothing in this swept file can be disabled, so a disabled style would be dead CSS */
 /* Legally required attribution, styled as a map credit: present and legible
    over any backdrop (--text-mid on --glass-fill clears 4.5:1 over white,
    Design.md §9), at the type scale's smallest size, never competing with the
    scene. The rest open above it from "Sources" (UI audit B.30). */
 .credit-line {
   position: relative;
-  align-self: center;
+  justify-self: center;
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
   max-width: 100%;
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--glass-fill);
   color: var(--text-mid);
-  font: var(--t-caption);
+  font: var(--t-12);
   font-weight: 400;
 }
 
@@ -34,12 +36,13 @@
   align-items: center;
   min-height: var(--space-6); /* WCAG 2.5.8 */
   padding: 0 var(--space-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--text-hi);
   font-weight: 500;
   cursor: pointer;
   list-style: none;
   text-decoration: none;
+  white-space: nowrap;
   transition: color var(--motion-quick) var(--ease-quick);
 }
 
@@ -50,6 +53,11 @@
 .credit-line__toggle:hover,
 .credit-line__link:hover {
   color: var(--orca-cyan);
+}
+
+.credit-line__toggle:active,
+.credit-line__link:active {
+  color: var(--text-hi);
 }
 
 .credit-line__toggle:focus-visible,
@@ -63,15 +71,22 @@
   position: absolute;
   right: 0;
   bottom: calc(100% + var(--space-2));
-  width: min(36rem, calc(100vw - 2 * var(--space-4)));
+  width: 36rem;
+  max-width: calc(100vw - 2 * var(--space-4));
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--glass-edge);
   border-radius: var(--radius-md);
   background: var(--glass-fill-solid);
   box-shadow: var(--elev-2);
   color: var(--text-mid);
-  font: var(--t-caption);
+  font: var(--t-12);
   font-weight: 400;
+}
+
+/* Phones: the sheet spans the bottom stack (16 px gutters) instead of hanging off the credit line, which sat off-screen to the left. */
+@media (max-width: 767px) {
+  .credit-line { position: static; }
+  .credit-line__list { left: 0; right: 0; width: auto; max-width: none; }
 }
 
 .credit-line__list p {

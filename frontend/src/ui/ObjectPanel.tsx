@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { GlassSurface } from './GlassSurface.js';
 import { TelemetryReadout } from './TelemetryReadout.js';
 import { ObjectDetail } from './ObjectDetail.js';
+import { objectMetaLine } from './object-meta.js';
 import type { DetailGroup } from './object-detail-model.js';
 import type { SelectableObject } from '../state/selection-store.js';
+import { useChromeRect } from './use-chrome-rect.js';
 import './ObjectPanel.css';
 
 const ORBIT_CLASS_VAR: Record<SelectableObject['orbitClass'], string> = {
@@ -35,6 +37,8 @@ export interface ObjectPanelProps {
  * group show at once. Esc closes it, as Esc closed the dock's object mode.
  */
 export function ObjectPanel({ object, readouts, groups, onClose, actions }: ObjectPanelProps) {
+  const root = useRef<HTMLDivElement>(null);
+  useChromeRect(root, 'object-panel');
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
@@ -44,26 +48,28 @@ export function ObjectPanel({ object, readouts, groups, onClose, actions }: Obje
   }, [onClose]);
 
   return (
-    <GlassSurface variant="floating" elevation={3} className="object-panel">
+    <GlassSurface ref={root} variant="floating" elevation={3} className="object-panel">
       <header className="object-panel__header">
         <span className="object-panel__badge" style={{ background: ORBIT_CLASS_VAR[object.orbitClass] }} aria-hidden />
         <div className="object-panel__identity">
           <h2 className="object-panel__name">{object.name}</h2>
           <span className="object-panel__class">
-            {object.orbitClass.toUpperCase()} · NORAD {object.noradId}
+            {objectMetaLine(object.orbitClass, object.noradId)}
           </span>
         </div>
         <button type="button" className="object-panel__close" onClick={onClose} aria-label="Close panel (Esc)">
           <X aria-hidden size={16} />
         </button>
+        {/* Stage C puts the collapse control here. */}
+        <span data-slot="collapse" aria-hidden />
       </header>
       {/* aria-live announces the selection and its telemetry (Design.md §9). */}
       <div className="object-panel__body" role="region" aria-live="polite" aria-label={`Selected object: ${object.name}`}>
         {readouts ? (
           <div className="object-panel__summary">
-            <TelemetryReadout label="Alt" value={readouts.altitudeKm} unit="km" precision={1} />
-            <TelemetryReadout label="Vel" value={readouts.velocityKmS} unit="km/s" precision={2} />
-            <TelemetryReadout label="Inc" value={readouts.inclinationDeg} unit="°" precision={2} />
+            <TelemetryReadout label="Altitude" value={readouts.altitudeKm} unit="km" precision={1} />
+            <TelemetryReadout label="Velocity" value={readouts.velocityKmS} unit="km/s" precision={2} />
+            <TelemetryReadout label="Inclination" value={readouts.inclinationDeg} unit="°" precision={2} />
           </div>
         ) : (
           <p className="object-panel__pending">Computing position…</p>

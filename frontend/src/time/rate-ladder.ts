@@ -28,25 +28,24 @@ export function stepRate(signedRate: number, direction: 1 | -1): number {
   return SIGNED_LADDER[0];
 }
 
-/** NASA Eyes' units: a 30-day month and a 365-day year, as its ladder uses. */
+/** NASA Eyes' units, as symbols: a 30-day month and a 365-day year, as its ladder uses. */
 const UNITS: readonly (readonly [string, number])[] = [
-  ['YR', 31_536_000],
-  ['MTH', 2_592_000],
-  ['WK', 604_800],
-  ['DAY', 86_400],
-  ['HR', 3_600],
-  ['MIN', 60],
+  ['yr', 31_536_000],
+  ['mo', 2_592_000],
+  ['wk', 604_800],
+  ['d', 86_400],
+  ['h', 3_600],
+  ['min', 60],
 ];
 
 /**
- * The rate as NASA Eyes labels it: "REAL RATE" at 1 s/s, otherwise the
- * largest unit that divides it evenly — "1 MIN/S", not "60 SECS/S"; "3 WKS/S".
- * Reverse rates carry a true minus sign.
+ * The rate as words or a measurement (Stage B §5.6): "Real time" at 1 s/s,
+ * otherwise the largest unit that divides it evenly, as a symbol: "1 min/s",
+ * not "60 s/s"; "3 wk/s". Reverse rates carry a true minus sign.
  */
 export function formatRate(signedRate: number): string {
-  if (signedRate === 1) return 'REAL RATE';
+  if (signedRate === 1) return 'Real time';
   const magnitude = Math.abs(signedRate);
-  const [unit, size] = UNITS.find(([, s]) => magnitude >= s && magnitude % s === 0) ?? ['SEC', 1];
-  const count = magnitude / size;
-  return `${signedRate < 0 ? '−' : ''}${count} ${unit}${count === 1 ? '' : 'S'}/S`;
+  const [unit, size] = UNITS.find(([, s]) => magnitude >= s && magnitude % s === 0) ?? ['s', 1];
+  return `${signedRate < 0 ? '−' : ''}${magnitude / size} ${unit}/s`;
 }

@@ -1,11 +1,15 @@
 import { X } from 'lucide-react';
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { Conjunction } from '../data/conjunction-client.js';
 import { AlertBadge } from './AlertBadge.js';
 import { GlassSurface } from './GlassSurface.js';
+import { PassesTable } from './PassesTable.js';
+import { passesSummary } from './passes-caption.js';
 import { warningKey } from './conjunction-warning.js';
-import { DERIVATION, DISCLAIMER, HEADLINE, passText, quietLine, warningText } from './conjunction-warning-text.js';
+import { DERIVATION, DISCLAIMER, HEADLINE, quietLine, warningText } from './conjunction-warning-text.js';
 import type { WarningView } from './use-conjunction-warning.js';
+import { useSelectionStore } from '../state/selection-store.js';
+import { useChromeRect } from './use-chrome-rect.js';
 import './ConjunctionWarning.css';
 
 export interface ConjunctionWarningProps {
@@ -31,6 +35,10 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
   // Dismissing unmounts the focused ×; focus moves to this always-mounted
   // wrapper (WCAG 2.4.3) instead of falling to <body>.
   const root = useRef<HTMLDivElement>(null);
+  // The wrapper jumps left when the object panel opens, without resizing.
+  const panelOpen = useSelectionStore((s) => s.selectedNorad !== null || s.selectedBody !== null);
+  useChromeRect(root, 'passes', panelOpen);
+  const [open, setOpen] = useState(false);
   const dismiss = (key: string) => {
     onDismiss(key);
     root.current?.focus();
@@ -61,17 +69,14 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
             )}
           </p>
           {line.goThere && view.kind === 'idle' && view.top.length > 0 && (
-            <ul className="conjunction-warning__passes" aria-label="The screened day's closest passes">
-              {view.top.map((c) => {
-                const p = passText(c);
-                return (
-                  <li key={warningKey(c)} className="conjunction-warning__pass">
-                    <span>{p.pair} · <Num>{p.miss}</Num> at <Num>{p.tca}</Num></span>
-                    <button type="button" className="conjunction-warning__button" aria-label={`Watch ${p.pair}`} onClick={() => onWatch(c)}>Watch</button>
-                  </li>
-                );
-              })}
-            </ul>
+            open ? (
+              <PassesTable run={view.run} passes={view.top} wallNowMs={wallNowMs} onWatch={onWatch} onHide={() => setOpen(false)} />
+            ) : (
+              <p className="conjunction-warning__quiet">
+                {passesSummary(view.top.length, view.run.windowStartMs, view.run.windowEndMs)}
+                <button type="button" className="conjunction-warning__button" onClick={() => setOpen(true)}>Show</button>
+              </p>
+            )
           )}
           {failure}
         </div>
@@ -92,13 +97,13 @@ export function ConjunctionWarning({ view, simulationMs, wallNowMs, onWatch, onG
             <X aria-hidden size={16} />
           </button>
         </div>
-        <p className="conjunction-warning__line">{t.pair} · <Num>{t.miss}</Num> apart at <Num>{t.speed}</Num></p>
+        <p className="conjunction-warning__line">{t.pair}, <Num>{t.miss}</Num> apart at <Num>{t.speed}</Num></p>
         <p className="conjunction-warning__line">
           Maximum P_c <Num>{t.maximumPc}</Num>: an upper bound, for a <Num>{t.aspectRatio}</Num> ellipse and a <Num>{t.hardBodyRadius}</Num> hard-body radius.
         </p>
         <p className="conjunction-warning__note">{DERIVATION}</p>
         <p className="conjunction-warning__note">
-          Screened <Num>{t.windowStart}</Num> → <Num>{t.windowEnd}</Num> · orbit records <Num>{t.recordAge}</Num> old at closest approach
+          Screened <Num>{t.windowStart}</Num> → <Num>{t.windowEnd}</Num>, orbit records <Num>{t.recordAge}</Num> old at closest approach
         </p>
         <div className="conjunction-warning__foot">
           <p className="conjunction-warning__note">{DISCLAIMER}</p>

@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useCatalog } from '../data/use-catalog.js';
 import type { CatalogOrigin } from '../data/use-catalog.js';
 import { useProvenance } from '../data/use-provenance.js';
-import { formatCreditLine, isStale, type CatalogProvenance } from '../data/catalog-provenance.js';
+import { formatCreditLine, formatShortCredit, isStale, type CatalogProvenance } from '../data/catalog-provenance.js';
 import type { CatalogSnapshot, NoradId } from '../data/catalog-types.js';
 import { LiveScene } from '../renderer/live/LiveScene.js';
 import { useLiveScene, type LiveSceneState } from '../renderer/live/use-live-scene.js';
@@ -18,8 +18,6 @@ import { MOON_MAP_CREDIT } from '../renderer/solar/moon-maps.js';
 import { isBodyId } from '../renderer/solar/bodies.js';
 import { TimeDock, type FilterOption } from '../ui/TimeDock.js';
 import { presentMs } from '../data/site-mode.js';
-import { SiteNotices } from '../ui/SiteNotices.js';
-import { StatusPill } from '../ui/StatusPill.js';
 import { OrbitClassLegend } from '../ui/OrbitClassLegend.js';
 import { DataProvenance } from '../ui/DataProvenance.js';
 import { DebrisToggle } from '../ui/DebrisToggle.js';
@@ -27,13 +25,16 @@ import { HeatmapToggle } from '../ui/HeatmapToggle.js';
 import { ReplayControl, type ReplayHandle } from '../ui/ReplayControl.js';
 import { DensitySlider } from '../ui/DensitySlider.js';
 import { PanelErrorBoundary } from '../ui/PanelErrorBoundary.js';
+import { useChromeRect } from '../ui/use-chrome-rect.js';
 import { useViewStore } from '../state/view-store.js';
 import { useSelectionStore, type FilterClass } from '../state/selection-store.js';
 import { effectiveRate, useSimulationStore } from '../state/simulation-store.js';
 import { useSimulationClock } from './use-simulation-clock.js';
 import { SimulationWarning } from './SimulationWarning.js';
+import { WarningSlot } from './WarningSlot.js';
 import { SimulationSearch } from './SimulationSearch.js';
 import { CreditLine } from './CreditLine.js';
+import { SimulationHeader } from './SimulationHeader.js';
 import { SimulationPanels } from './SimulationPanels.js';
 import { useSelectedBody } from './use-selected-body.js';
 import { clampToRange, scrubRangeOf } from './coverage.js';
@@ -104,31 +105,24 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
   const provenance = useProvenance(snapshot, origin);
   const body = useSelectedBody();
   const panelOpen = scene.selectedObjectMeta !== null || body !== null;
+  const bottom = useRef<HTMLDivElement>(null);
+  useChromeRect(bottom, 'bottom');
 
   return (
     <main className="simulation" data-object-panel={panelOpen ? '' : undefined}>
       <LiveScene scene={scene} />
+      <SimulationHeader scene={scene} provenance={provenance} stale={isStale(origin)} />
       <SimulationPanels scene={scene} provenance={provenance} />
-      <PanelErrorBoundary label="Epoch">
-        <div className="simulation__pill">
-          <StatusPill
-            epoch={new Date(provenance.medianEpochMs)}
-            stale={isStale(origin)}
-            nowMs={provenance.nowMs}
-          />
-          <SiteNotices nowMs={provenance.nowMs} />
-        </div>
-      </PanelErrorBoundary>
       <PanelErrorBoundary label="Close-approach warning">
-        <div className="simulation__warning">
+        <WarningSlot>
           <SimulationWarning scene={scene} provenance={provenance} replay={replay} requestView={requestView} />
-        </div>
+        </WarningSlot>
       </PanelErrorBoundary>
       <PanelErrorBoundary label="Search">
         <SimulationSearch objects={scene.objects} />
       </PanelErrorBoundary>
       {/* The bottom edge is one stack, so nothing covers the credit or the legend (UI audit B.30). */}
-      <div className="simulation__bottom">
+      <div ref={bottom} className="simulation__bottom">
         <div className="simulation__bottom-row">
           <div className="simulation__dock">
             <PanelErrorBoundary label="Time dock">
@@ -139,13 +133,16 @@ function LiveSimulation({ snapshot, origin, replay, takeInitialView, viewRequest
             <OrbitClassLegend />
           </PanelErrorBoundary>
         </div>
-        {/* RA-14 §2.3 wants a provenance line wherever catalogue data is shown,
-            and both the USSPACECOM citation (RA14.D3) and ESA's Gaia
-            acknowledgement are licence conditions: neither waits to be
-            summoned. The rest open from Sources (Fenil, 2026-10-23, B.30). */}
+        {/* The credit is one line that still names every source (Fenil 2026-11-10,
+            Stage B §9.1 item 2). Attribution is a licence condition (RA-14 §2.3,
+            RA14.D3; ESA's Gaia acknowledgement), so the full wording that used to
+            be on screen is the first item behind Sources, word for word. */}
         <CreditLine
-          required={`${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`}
-          sources={[EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, SPACECRAFT_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT]}
+          required={formatShortCredit(provenance)}
+          sources={[
+            `${formatCreditLine(provenance)} Stars: ${GAIA_ACKNOWLEDGEMENT}`,
+            EARTH_IMAGERY_CREDIT, PLANET_CREDIT, MOON_CREDIT, SPACECRAFT_CREDIT, PLANET_MAP_CREDIT, MOON_MAP_CREDIT, LAGRANGE_CREDIT,
+          ]}
         />
       </div>
     </main>

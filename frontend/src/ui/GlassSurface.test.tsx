@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { GlassSurface } from './GlassSurface.js';
 
@@ -17,15 +17,15 @@ describe('GlassSurface', () => {
     expect(container.querySelector('.glass-surface__highlight')).toBeNull();
   });
 
-  it('tracks the pointer via a DOM custom property, not React state, when interactive', () => {
+  it('renders the interactive attribute when specified', () => {
     const { container } = render(<GlassSurface variant="modal" interactive />);
     const surface = container.firstElementChild as HTMLElement;
-    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 }) as DOMRect;
 
-    fireEvent.pointerMove(surface, { clientX: 100, clientY: 25 });
+    expect(surface.dataset.interactive).toBe('');
+  });
 
-    expect(surface.style.getPropertyValue('--mx')).toBe('50%');
-    expect(surface.style.getPropertyValue('--my')).toBe('25%');
-    expect(container.querySelector('.glass-surface__highlight')).not.toBeNull();
+  it('draws no cursor-tracked highlight (Stage B §5.2)', () => {
+    const { container } = render(<GlassSurface interactive variant="floating">x</GlassSurface>);
+    expect(container.querySelector('.glass-surface__highlight')).toBeNull();
   });
 });

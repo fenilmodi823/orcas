@@ -26,13 +26,13 @@ export function ObjectSummary({ object, detailOpen, onToggleDetail, onBack }: Ob
         <span className="object-summary__name">{object.name}</span>
         <span className="object-summary__class">{object.orbitClass.toUpperCase()}</span>
         <button type="button" className="object-summary__back" onClick={onBack}>
-          Esc · back
+          Esc to go back
         </button>
       </div>
       <div className="object-summary__grid">
-        <TelemetryReadout label="Alt" value={object.altitudeKm} unit="km" precision={1} />
-        <TelemetryReadout label="Vel" value={object.velocityKmS} unit="km/s" precision={2} />
-        <TelemetryReadout label="Inc" value={object.inclinationDeg} unit="°" precision={2} />
+        <TelemetryReadout label="Altitude" value={object.altitudeKm} unit="km" precision={1} />
+        <TelemetryReadout label="Velocity" value={object.velocityKmS} unit="km/s" precision={2} />
+        <TelemetryReadout label="Inclination" value={object.inclinationDeg} unit="°" precision={2} />
       </div>
       <button type="button" className="object-summary__more" onClick={onToggleDetail} aria-expanded={detailOpen}>
         More information {detailOpen ? '⌃' : '⌄'}

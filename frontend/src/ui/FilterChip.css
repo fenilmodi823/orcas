@@ -2,13 +2,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
   border: 1px solid var(--glass-edge);
   background: var(--glass-fill);
   color: var(--text-mid);
-  font: var(--t-small);
-  font-family: var(--font-ui);
+  font: var(--t-13);
+  font-family: var(--font-text);
   cursor: pointer;
   transition:
     border-color var(--motion-quick) var(--ease-quick),
@@ -34,8 +34,8 @@
   border-color: var(--filter-chip-colour);
 }
 
-.filter-chip:hover:not(:disabled) {
-  border-color: var(--glass-edge-hover);
+.filter-chip:active:not(:disabled) {
+  border-color: var(--filter-chip-colour);
 }
 
 .filter-chip:focus-visible {

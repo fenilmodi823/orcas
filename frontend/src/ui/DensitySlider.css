@@ -26,22 +26,22 @@
 }
 
 .density-slider__track::-webkit-slider-runnable-track {
-  height: 3px;
+  height: var(--space-1);
   border-radius: var(--radius-pill);
   background: var(--glass-edge);
 }
 
 .density-slider__track::-moz-range-track {
-  height: 3px;
+  height: var(--space-1);
   border-radius: var(--radius-pill);
   background: var(--glass-edge);
 }
 
 .density-slider__track::-webkit-slider-thumb {
   appearance: none;
-  margin-top: -5px;
-  width: 13px;
-  height: 13px;
+  margin-top: calc(-1 * var(--space-1));
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--orca-cyan);
   box-shadow: var(--elev-1);
@@ -49,8 +49,8 @@
 
 .density-slider__track::-moz-range-thumb {
   border: none;
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--orca-cyan);
   box-shadow: var(--elev-1);

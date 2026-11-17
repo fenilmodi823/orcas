@@ -117,7 +117,7 @@ export function buildDetailGroups(
       title: 'Identity',
       fields: [
         { label: 'NORAD ID', value: object.norad },
-        { label: 'Int’l designator', value: object.objectId },
+        { label: 'International designator', value: object.objectId },
         { label: 'Type', value: TYPE_LABELS[object.type], text: true },
         { label: 'Orbit class', value: ORBIT_CLASS_LABELS[object.orbitClass], text: true },
       ],

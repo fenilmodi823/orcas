@@ -27,7 +27,7 @@ describe('ObjectSummary', () => {
     const onToggleDetail = vi.fn();
     render(<ObjectSummary object={ISS} detailOpen={false} onToggleDetail={onToggleDetail} onBack={onBack} />);
 
-    fireEvent.click(screen.getByText('Esc · back'));
+    fireEvent.click(screen.getByText('Esc to go back'));
     fireEvent.click(screen.getByText(/More information/));
 
     expect(onBack).toHaveBeenCalledOnce();

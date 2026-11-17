@@ -32,7 +32,7 @@
 /* The 13 px label grows an invisible hit band to 25 px tall and 4 px wider,
    so even "Io" clears 24 px (WCAG 2.5.8; UI audit B.30). */
 .object-label__hit::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -6px -2px;
 }
@@ -55,8 +55,8 @@
 }
 
 .object-label__name {
-  margin-left: 6px;
-  font: 13px/1 var(--font-ui);
+  margin-left: var(--space-2);
+  font: 13px/1 var(--font-text);
   color: var(--text-mid);
   white-space: nowrap;
 }
@@ -68,12 +68,12 @@
   transform: translate(-3px, -3px) rotate(45deg);
 }
 
-.object-label[data-marker='stable'] .object-label__marker {
+.object-label[data-marker="stable"] .object-label__marker {
   background: var(--text-mid);
 }
 
 /* A spacecraft is NASA's hexagon, filled in the spacecraft colour. */
-.object-label[data-marker='spacecraft'] .object-label__marker {
+.object-label[data-marker="spacecraft"] .object-label__marker {
   clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
   background: var(--spacecraft);
   border: 0;
@@ -82,11 +82,9 @@
 /* NASA Eyes' tiers read through opacity (0.75 / 0.35 / 1 on hover). ORCAS
    tiers by token instead: 0.35 white fails the 4.5:1 rule (Design.md §9),
    and these labels are controls. */
-.object-label[data-tier='primary'] .object-label__name {
+.object-label[data-tier="primary"] .object-label__name {
   color: var(--text-hi);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .object-label[data-emphasised] .object-label__name,
@@ -97,4 +95,10 @@
 .object-label[data-emphasised] .object-label__marker,
 .object-label__hit:hover .object-label__marker {
   border-color: var(--orca-cyan);
+}
+
+/* Under a panel, a label would show through the glass (Stage B 5.1); the out-fade carries it. */
+.object-label[data-under-chrome] {
+  opacity: 0 !important;
+  pointer-events: none;
 }

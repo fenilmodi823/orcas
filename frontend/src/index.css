@@ -1,3 +1,7 @@
+/* Hallmark · checked: 2026-11-11 · genre: atmospheric · theme: custom · shape: app screen · surface: absolute · posture: restrained · job: simulate satellites · hero: settled · nav: header, breadcrumb and time dock · footer: credit line · redesign: restyle · built: the project (ORCAS Stage B) · states: 8 · contrast: pass */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: H, the object panel and the passes list share one calm glass recipe, so the hierarchy leans on type weight rather than a second surface; left as is to keep the scene the subject */
+/* Hallmark · dropped onPointerMove={interactive ? handlePointerMove : undefined} · Stage B removed the cursor glow and rim from the glass surface, so nothing tracks the pointer any more */
+/* Hallmark · waive 39b · each label button is 13 px drawn with a 25 px hit band from its ::before · labels are not icon buttons, 25 px meets WCAG 2.5.8 (24 px), and a taller band steals picks from neighbouring labels in dense clusters */
 @import "tailwindcss";
 @import "./styles/tokens.css";
 
@@ -12,7 +16,6 @@
   --color-deep: var(--deep);
   --color-orca-cyan: var(--orca-cyan);
   --color-orca-glow: var(--orca-glow);
-  --color-abyss-teal: var(--abyss-teal);
   --color-critical: var(--critical);
   --color-caution: var(--caution);
   --color-nominal: var(--nominal);
@@ -37,11 +40,7 @@
   --spacing-16: var(--space-16);
 
   --radius-xs: var(--radius-xs);
-  --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
   --radius-pill: var(--radius-pill);
 
   --shadow-elev-1: var(--elev-1);
@@ -49,7 +48,7 @@
   --shadow-elev-3: var(--elev-3);
   --shadow-elev-4: var(--elev-4);
 
-  --font-sans: var(--font-ui);
+  --font-sans: var(--font-text);
   --font-mono: var(--font-mono);
 }
 
@@ -58,10 +57,11 @@ body,
 #root {
   margin: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: clip;
   background: var(--void);
   color: var(--text-hi);
-  font: var(--t-body);
-  font-family: var(--font-ui);
+  font: var(--t-15);
+  font-family: var(--font-text);
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }

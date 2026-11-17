@@ -10,7 +10,7 @@ describe('ObjectTether', () => {
     const { container } = render(<ObjectTether name="ISS (ZARYA)" orbitClass="leo" altitudeKm={419.0} />);
 
     expect(screen.getByText('ISS (ZARYA)')).toBeTruthy();
-    expect(meta(container)).toBe('LEO · 419.0 km');
+    expect(meta(container)).toBe('LEO, 419.0 km');
   });
 
   it('positions itself imperatively via the DOM, not a re-render', () => {
@@ -30,9 +30,9 @@ describe('ObjectTether', () => {
     const { container, rerender } = render(<ObjectTether ref={ref} name="Hubble" orbitClass="leo" altitudeKm={540} />);
 
     ref.current?.setAltitude(512.34);
-    expect(meta(container)).toBe('LEO · 512.3 km');
+    expect(meta(container)).toBe('LEO, 512.3 km');
 
     rerender(<ObjectTether ref={ref} name="Hubble" orbitClass="leo" altitudeKm={540} />);
-    expect(meta(container)).toBe('LEO · 512.3 km');
+    expect(meta(container)).toBe('LEO, 512.3 km');
   });
 });

@@ -13,13 +13,12 @@ import { makeDeferred, type Deferred, type FlyOpts } from './flight.js';
 import { INITIAL_CAMERA_STATE, reduceCameraState, type CameraEvent, type CameraState } from './camera-state-machine.js';
 import type { CameraSystem, CameraSystemOpts } from './camera-system-types.js';
 import { BodyCamera, EARTH_TARGET, type BodyFlyOpts, type BodyTarget } from './body-camera.js';
-import { FREE_ORBIT_MIN_RADIUS_KM, OBJECT_MIN_RADIUS_KM, reexpressAsFreeOrbit, updateFreeOrbitRig, updateObjectRig } from './camera-rig-updates.js';
+import { FREE_ORBIT_MIN_RADIUS_KM, OBJECT_MIN_RADIUS_KM, reexpressOnGrab, updateFreeOrbitRig, updateObjectRig } from './camera-rig-updates.js';
 
 const DT_CLAMP_SEC = 0.1;
 const EXIT_DURATION_SEC = 1.2;
 
-export { CancelledError };
-export type { CameraSystem, CameraSystemOpts };
+export { CancelledError, type CameraSystem, type CameraSystemOpts };
 
 const _tp = new Vector3();
 
@@ -68,16 +67,17 @@ class CameraSystemImpl implements CameraSystem {
   }
 
   applyManualInput(input: ManualInput): void {
-    if (this._state.kind === 'focusFlight' || this._state.kind === 'exit') {
-      this.flights.cancel();
-      this.bodies.cancel();
-      reexpressAsFreeOrbit(this.rig, this.targetRig, this.camera.position, this.refUp);
-      this.dispatch({ type: 'grabInput' });
-    }
+    if (this._state.kind === 'focusFlight' || this._state.kind === 'exit') this.grab();
     this.bodies.stopSpin();
-    const objectFloor = this.bodies.target ? this.bodies.minRadiusKm : OBJECT_MIN_RADIUS_KM;
-    const floor = this._state.kind === 'object' ? objectFloor : FREE_ORBIT_MIN_RADIUS_KM;
+    const floor = this._state.kind !== 'object' ? FREE_ORBIT_MIN_RADIUS_KM : this.bodies.target ? this.bodies.minRadiusKm : OBJECT_MIN_RADIUS_KM;
     accumulateManualInput(this.targetRig, input, floor, this.refUp);
+  }
+
+  private grab(): void {
+    const sat = this._state.kind === 'focusFlight' && this.targetIndex >= 0 && !this.bodies.flying ? targetPositionAt(this.frameRef, this.targetIndex, this.frameRef.epochMs, _tp) : null;
+    this.flights.cancel();
+    this.bodies.cancel();
+    this.dispatch({ type: 'grabInput', keepTarget: reexpressOnGrab(this.rig, this.targetRig, this.camera.position, sat, this.refUp) });
   }
 
   flyTo(targetIndex: number, opts?: FlyOpts): Promise<void> {

@@ -1,10 +1,10 @@
-/* The breadcrumb's old "Solar System" root, unchanged in look until Stage B (rules copied from Breadcrumb.css). */
+/* The breadcrumb's old "Solar System" root, set like Breadcrumb.css (rules copied from it). */
 .scene-toggle {
   min-height: var(--space-6); /* WCAG 2.5.8, UI audit B.30 */
   padding: 0;
   border: none;
   background: none;
-  font: var(--t-small);
+  font: var(--t-15);
   color: var(--text-mid);
   cursor: pointer;
   white-space: nowrap;
@@ -16,7 +16,7 @@
 
 .scene-toggle:focus-visible {
   outline: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   box-shadow: var(--focus-ring);
 }
 
@@ -26,8 +26,8 @@
   align-items: center;
 }
 .scene-toggle + nav::before {
-  content: '›';
+  content: "▸";
   margin-inline: var(--space-2);
   color: var(--text-mid);
-  font: var(--t-small);
+  font: var(--t-15);
 }

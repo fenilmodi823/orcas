@@ -9,7 +9,11 @@ import { readOrbitClassColor } from '../paths/path-orbit-class-tint.js';
 const FRAGMENT_SHADER = /* glsl */ `
 precision mediump float;
 
+uniform float uFloorCoreRadiusPx;
+
 varying float vBrightness;
+varying float vCoreBrightness;
+varying float vDrawPx;
 varying vec3 vTint;
 
 void main() {
@@ -21,8 +25,13 @@ void main() {
   float core = exp(-d * d * 4.0);
   float halo = smoothstep(1.0, 0.0, d) * 0.12;
   float alpha = clamp(core + halo, 0.0, 1.0) * vBrightness;
+  // Stage B §5.9: gl_PointCoord spans vDrawPx CSS px, so the lit core's
+  // radius in point-coord units is uFloorCoreRadiusPx / vDrawPx.
+  float lit = (1.0 - step(uFloorCoreRadiusPx / vDrawPx, length(fromCenter))) * vCoreBrightness;
+  alpha = max(alpha, lit);
   if (alpha < 0.003) discard;
   gl_FragColor = vec4(vTint, alpha);
+  #include <colorspace_fragment>
 }
 `;
 
@@ -45,6 +54,12 @@ const ORBIT_CLASS_ORDER: readonly OrbitClass[] = [
 export const MIN_POINT_PX = 3;
 /** The click/hover target, CSS px (Q43): the pick window is PICK_MIN_PX + 1 wide. */
 export const PICK_MIN_PX = 12;
+/** Alpha a floored dot's lit core never drops below (Stage B §5.9). Measured live 2026-11-11 at
+ * 2026-11-04 00:00 UTC: 0.6 lifts the lone-dot peak median to (47, 95, 153), the target; 0.8 grew the
+ * opening view's saturated ring pixels by 61% (0.6: 31%); 0 (colour fix alone) gave (43, 77, 123). */
+export const FLOOR_CORE_BRIGHTNESS = 0.6;
+/** Radius of that lit core, CSS px: 1.5 px across always holds a pixel centre (Stage B §5.9). */
+export const FLOOR_CORE_RADIUS_PX = 0.75;
 
 export function createPointsMaterial(): ShaderMaterial {
   return new ShaderMaterial({
@@ -67,6 +82,8 @@ export function createPointsMaterial(): ShaderMaterial {
       // Once real per-object sizes exist, most objects will draw well
       // above the floor and this value matters far less.
       uFloorBrightness: { value: 0.6 },
+      uFloorCoreBrightness: { value: FLOOR_CORE_BRIGHTNESS },
+      uFloorCoreRadiusPx: { value: FLOOR_CORE_RADIUS_PX },
       uDimFactor: { value: 0.45 }, // P4.D27 supersedes D6's 0.3 — a readable floor, not a blackout
       uLayerFade: { value: 1.0 },
       uLodLoPx: { value: LOD_BAND_PX.loPx },

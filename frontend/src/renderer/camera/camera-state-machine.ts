@@ -16,7 +16,7 @@ export type CameraEvent =
   | { readonly type: 'select'; readonly target: CameraTargetKey }
   | { readonly type: 'deselect' }
   | { readonly type: 'flightArrived' }
-  | { readonly type: 'grabInput' };
+  | { readonly type: 'grabInput'; readonly keepTarget?: boolean };
 
 export const INITIAL_CAMERA_STATE: CameraState = { kind: 'freeOrbit' };
 
@@ -36,6 +36,8 @@ export function reduceCameraState(state: CameraState, event: CameraEvent): Camer
     case 'grabInput':
       // A grab means "I want to look around", not "never mind" — the state
       // machine drops to freeOrbit but does NOT clear selection (brief §C.11).
+      // `keepTarget` (a fly-in to a satellite, 2026-11-11) overrides that: the drag orbits the target instead.
+      if (state.kind === 'focusFlight' && event.keepTarget) return { kind: 'object', target: state.target };
       return state.kind === 'focusFlight' || state.kind === 'exit' ? { kind: 'freeOrbit' } : state;
   }
 }
